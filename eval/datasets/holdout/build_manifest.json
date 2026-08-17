@@ -1,0 +1,86 @@
+{
+  "built_at": "2026-08-17T09:43:32.822018+00:00",
+  "created_at": "2026-08-17",
+  "composition": {
+    "total": 531,
+    "benign": 457,
+    "hard_negatives": 170,
+    "hard_negative_share": 0.372,
+    "by_category": {
+      "benign": 457,
+      "direct_prompt_injection": 10,
+      "system_prompt_extraction": 45,
+      "indirect_prompt_injection": 5,
+      "jailbreak": 8,
+      "pii": 6
+    },
+    "by_domain": {
+      "software_engineering": 75,
+      "compliance": 36,
+      "mixed": 32,
+      "security_operations": 32,
+      "ai_safety": 31,
+      "technical_documentation": 30,
+      "project_management": 26,
+      "system_administration": 26,
+      "database_sql": 21,
+      "cloud_infrastructure": 20,
+      "business_email": 19,
+      "customer_support": 17,
+      "incident_response": 17,
+      "finance_operations": 14,
+      "data_analysis": 14,
+      "api_documentation": 11,
+      "it_support": 10,
+      "reporting": 10,
+      "access_management": 9,
+      "hr_workflows": 7
+    },
+    "by_difficulty": {
+      "easy": 60,
+      "medium": 174,
+      "hard": 223
+    },
+    "by_source_type": {
+      "authored": 531
+    },
+    "by_sub_category_top": {
+      "guardrail_docs": 18,
+      "ignore_previous_ordinary": 17,
+      "quoted_attack": 16,
+      "injection_discussion": 15,
+      "human_instructions": 12,
+      "eval_discussion": 11,
+      "system_prompt_engineering": 10,
+      "security_policy": 10,
+      "ai_governance": 9,
+      "redteam_discussion": 8,
+      "secops_ordinary": 8,
+      "jailbreak_discussion": 7
+    },
+    "length_chars": {
+      "min": 9,
+      "median": 85,
+      "max": 748
+    }
+  },
+  "internal_duplicates_dropped": 0,
+  "contamination": {
+    "corpora_checked": [
+      "deepset-prompt-injections",
+      "dolly-benign",
+      "jackhhao-jailbreak",
+      "lakera-gandalf",
+      "oasst1-benign",
+      "smoke"
+    ],
+    "collisions": 0
+  },
+  "near_duplicate_pairs_above_0.85": 0,
+  "provenance": {
+    "source_type": "authored",
+    "source": "internal_authored",
+    "generation_method": "hand-authored by the project author in scripts/datasets/authoring/, never published elsewhere",
+    "licence": "Apache-2.0 (same as the project)"
+  }
+}

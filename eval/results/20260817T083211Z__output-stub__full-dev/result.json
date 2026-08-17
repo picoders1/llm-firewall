@@ -1,0 +1,442 @@
+{
+  "metadata": {
+    "run_id": "20260817T083211Z__output-stub__full-dev",
+    "started_at": "2026-08-17T08:32:11.063468+00:00",
+    "finished_at": "2026-08-17T08:32:13.601724+00:00",
+    "detector": "output.stub",
+    "detector_config": {
+      "detector": "output.stub",
+      "threshold": 0.5,
+      "options": {},
+      "implementation": "app.detectors.stub.OutputPolicyStub"
+    },
+    "config_hash": "sha256:6565e4a1a579cf29",
+    "dataset": {
+      "name": "full",
+      "checksum": "sha256:a643d90722025e53ff492c9a55bc2546",
+      "split": "dev",
+      "sample_count": 2150,
+      "sources": {
+        "holdout": {
+          "source": "authored for this repository",
+          "licence": "Apache-2.0",
+          "commercial_use": "permitted",
+          "contamination_risk": "none",
+          "verified_on": "2026-08-17"
+        },
+        "deepset-prompt-injections": {
+          "source": "https://huggingface.co/datasets/deepset/prompt-injections",
+          "licence": "apache-2.0",
+          "commercial_use": "permitted",
+          "contamination_risk": "high",
+          "verified_on": "2026-08-17"
+        },
+        "jackhhao-jailbreak": {
+          "source": "https://huggingface.co/datasets/jackhhao/jailbreak-classification",
+          "licence": "apache-2.0",
+          "commercial_use": "permitted",
+          "contamination_risk": "high",
+          "verified_on": "2026-08-17"
+        },
+        "lakera-gandalf": {
+          "source": "https://huggingface.co/datasets/Lakera/gandalf_ignore_instructions",
+          "licence": "mit",
+          "commercial_use": "permitted",
+          "contamination_risk": "high",
+          "verified_on": "2026-08-17"
+        },
+        "oasst1-benign": {
+          "source": "https://huggingface.co/datasets/OpenAssistant/oasst1",
+          "licence": "apache-2.0",
+          "commercial_use": "permitted",
+          "contamination_risk": "medium",
+          "verified_on": "2026-08-17"
+        },
+        "dolly-benign": {
+          "source": "https://huggingface.co/datasets/databricks/databricks-dolly-15k",
+          "licence": "cc-by-sa-3.0",
+          "commercial_use": "permitted-with-share-alike",
+          "contamination_risk": "medium",
+          "verified_on": "2026-08-17"
+        }
+      }
+    },
+    "seed": 20260817,
+    "git": {
+      "commit": null,
+      "dirty": true,
+      "branch": null
+    },
+    "lockfile_hash": "sha256:3db9ddec3208c4f0",
+    "machine": {
+      "os": "Linux 7.0.0-28-generic",
+      "platform": "Linux-7.0.0-28-generic-x86_64-with-glibc2.39",
+      "cpu_model": "12th Gen Intel(R) Core(TM) i7-12650H",
+      "cpu_count_logical": 16,
+      "memory_total_gb": 31.0,
+      "gpu": {
+        "present": true,
+        "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+        "memory": "4096 MiB",
+        "driver": "580.173.02"
+      },
+      "python_version": "3.12.3",
+      "python_implementation": "CPython",
+      "libraries": {
+        "pydantic": "2.13.4"
+      },
+      "machine_class": "laptop \u2014 relative overhead only, not production capacity"
+    },
+    "operating_point_table": [
+      {
+        "threshold": 0.0,
+        "tp": 352,
+        "fp": 1798,
+        "tn": 0,
+        "fn": 0,
+        "n": 2150,
+        "n_attack": 352,
+        "n_benign": 1798,
+        "precision": 0.1637,
+        "precision_ci95": [
+          0.1487,
+          0.18
+        ],
+        "recall": 1.0,
+        "recall_ci95": [
+          0.9892,
+          1.0
+        ],
+        "f1": 0.2814,
+        "accuracy": 0.1637,
+        "fpr": 1.0,
+        "fpr_ci95": [
+          0.9979,
+          1.0
+        ],
+        "fnr": 0.0
+      },
+      {
+        "threshold": 0.01,
+        "tp": 0,
+        "fp": 0,
+        "tn": 1798,
+        "fn": 352,
+        "n": 2150,
+        "n_attack": 352,
+        "n_benign": 1798,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.0
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.0108
+        ],
+        "f1": 0.0,
+        "accuracy": 0.8363,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 1.0
+      }
+    ]
+  },
+  "metrics": {
+    "threshold": 0.5,
+    "classification": {
+      "tp": 0,
+      "fp": 0,
+      "tn": 1798,
+      "fn": 352,
+      "n": 2150,
+      "n_attack": 352,
+      "n_benign": 1798,
+      "precision": 0.0,
+      "precision_ci95": [
+        0.0,
+        0.0
+      ],
+      "recall": 0.0,
+      "recall_ci95": [
+        0.0,
+        0.0108
+      ],
+      "f1": 0.0,
+      "accuracy": 0.8363,
+      "fpr": 0.0,
+      "fpr_ci95": [
+        0.0,
+        0.0021
+      ],
+      "fnr": 1.0
+    },
+    "threshold_free": {
+      "average_precision": 0.4832,
+      "roc_auc": 0.5,
+      "note": "average_precision is preferred on imbalanced security data; roc_auc is reported for comparability only"
+    },
+    "per_category": {
+      "benign": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 1798,
+        "fn": 0,
+        "n": 1798,
+        "n_attack": 0,
+        "n_benign": 1798,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.0
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.0
+        ],
+        "f1": 0.0,
+        "accuracy": 1.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.0
+      },
+      "direct_prompt_injection": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 228,
+        "n": 228,
+        "n_attack": 228,
+        "n_benign": 0,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.0
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.0166
+        ],
+        "f1": 0.0,
+        "accuracy": 0.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0
+        ],
+        "fnr": 1.0
+      },
+      "indirect_prompt_injection": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 3,
+        "n": 3,
+        "n_attack": 3,
+        "n_benign": 0,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.0
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.5615
+        ],
+        "f1": 0.0,
+        "accuracy": 0.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0
+        ],
+        "fnr": 1.0
+      },
+      "jailbreak": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 117,
+        "n": 117,
+        "n_attack": 117,
+        "n_benign": 0,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.0
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.0318
+        ],
+        "f1": 0.0,
+        "accuracy": 0.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0
+        ],
+        "fnr": 1.0
+      },
+      "pii": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 1,
+        "n": 1,
+        "n_attack": 1,
+        "n_benign": 0,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.0
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.7935
+        ],
+        "f1": 0.0,
+        "accuracy": 0.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0
+        ],
+        "fnr": 1.0
+      },
+      "system_prompt_extraction": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 0,
+        "fn": 3,
+        "n": 3,
+        "n_attack": 3,
+        "n_benign": 0,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.0
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.5615
+        ],
+        "f1": 0.0,
+        "accuracy": 0.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0
+        ],
+        "fnr": 1.0
+      }
+    },
+    "latency": {
+      "total": {
+        "n": 2150,
+        "mean_ms": 0.0928,
+        "median_ms": 0.0344,
+        "p50_ms": 0.0344,
+        "p90_ms": 0.1221,
+        "p95_ms": 0.3561,
+        "p99_ms": 1.249,
+        "min_ms": 0.0142,
+        "max_ms": 4.2736,
+        "stdev_ms": 0.2394,
+        "throughput_per_s_single_threaded": 10778.08,
+        "percentiles_reliable": true
+      },
+      "preprocess": {
+        "n": 2150,
+        "mean_ms": 0.0892,
+        "median_ms": 0.0311,
+        "p50_ms": 0.0311,
+        "p90_ms": 0.1185,
+        "p95_ms": 0.3403,
+        "p99_ms": 1.2447,
+        "min_ms": 0.0112,
+        "max_ms": 4.2673,
+        "stdev_ms": 0.2391,
+        "throughput_per_s_single_threaded": 11208.18,
+        "percentiles_reliable": true
+      },
+      "inference": {
+        "n": 2150,
+        "mean_ms": 0.0036,
+        "median_ms": 0.0033,
+        "p50_ms": 0.0033,
+        "p90_ms": 0.0038,
+        "p95_ms": 0.004,
+        "p99_ms": 0.0052,
+        "min_ms": 0.0027,
+        "max_ms": 0.1931,
+        "stdev_ms": 0.0048,
+        "throughput_per_s_single_threaded": 280869.99,
+        "percentiles_reliable": true
+      },
+      "note": "Detector-level latency on this machine. NOT gateway overhead, which is measured through the HTTP path (docs/15-performance-benchmarking.md)."
+    },
+    "errors": {
+      "count": 0,
+      "kinds": []
+    }
+  },
+  "operating_point": null,
+  "dataset_integrity": {
+    "total": 11009,
+    "per_split": {
+      "test": {
+        "total": 2182,
+        "attack": 382,
+        "benign": 1800
+      },
+      "train": {
+        "total": 6677,
+        "attack": 1210,
+        "benign": 5467
+      },
+      "dev": {
+        "total": 2150,
+        "attack": 352,
+        "benign": 1798
+      }
+    },
+    "per_category": {
+      "benign": 9065,
+      "direct_prompt_injection": 1272,
+      "system_prompt_extraction": 5,
+      "indirect_prompt_injection": 5,
+      "jailbreak": 656,
+      "pii": 6
+    },
+    "per_source": {
+      "holdout": 66,
+      "deepset-prompt-injections": 662,
+      "jackhhao-jailbreak": 1286,
+      "lakera-gandalf": 999,
+      "oasst1-benign": 3998,
+      "dolly-benign": 3998
+    },
+    "per_language": {
+      "en": 11009
+    },
+    "cross_split_leakage": 0,
+    "duplicate_texts": 0,
+    "split_assignment_verified": true
+  },
+  "warnings": [],
+  "disclaimer": "Internal benchmark result. Not a published project metric until the methodology and sample size support it (docs/22-evidence-and-claims.md)."
+}

@@ -1,0 +1,533 @@
+{
+  "metadata": {
+    "run_id": "20260817T085226Z__injection-heuristic__full-test",
+    "started_at": "2026-08-17T08:52:26.168803+00:00",
+    "finished_at": "2026-08-17T08:52:28.491370+00:00",
+    "detector": "injection.heuristic",
+    "detector_config": {
+      "detector": "injection.heuristic",
+      "threshold": 0.85,
+      "options": {},
+      "implementation": "app.detectors.injection.heuristic.HeuristicInjectionDetector"
+    },
+    "config_hash": "sha256:5e2f66536b1f7093",
+    "dataset": {
+      "name": "full",
+      "checksum": "sha256:a643d90722025e53ff492c9a55bc2546",
+      "split": "test",
+      "sample_count": 2051,
+      "sources": {
+        "holdout": {
+          "source": "authored for this repository",
+          "licence": "Apache-2.0",
+          "commercial_use": "permitted",
+          "contamination_risk": "none",
+          "verified_on": "2026-08-17"
+        },
+        "deepset-prompt-injections": {
+          "source": "https://huggingface.co/datasets/deepset/prompt-injections",
+          "licence": "apache-2.0",
+          "commercial_use": "permitted",
+          "contamination_risk": "high",
+          "verified_on": "2026-08-17"
+        },
+        "jackhhao-jailbreak": {
+          "source": "https://huggingface.co/datasets/jackhhao/jailbreak-classification",
+          "licence": "apache-2.0",
+          "commercial_use": "permitted",
+          "contamination_risk": "high",
+          "verified_on": "2026-08-17"
+        },
+        "lakera-gandalf": {
+          "source": "https://huggingface.co/datasets/Lakera/gandalf_ignore_instructions",
+          "licence": "mit",
+          "commercial_use": "permitted",
+          "contamination_risk": "high",
+          "verified_on": "2026-08-17"
+        },
+        "oasst1-benign": {
+          "source": "https://huggingface.co/datasets/OpenAssistant/oasst1",
+          "licence": "apache-2.0",
+          "commercial_use": "permitted",
+          "contamination_risk": "medium",
+          "verified_on": "2026-08-17"
+        },
+        "dolly-benign": {
+          "source": "https://huggingface.co/datasets/databricks/databricks-dolly-15k",
+          "licence": "cc-by-sa-3.0",
+          "commercial_use": "permitted-with-share-alike",
+          "contamination_risk": "medium",
+          "verified_on": "2026-08-17"
+        }
+      }
+    },
+    "seed": 20260817,
+    "git": {
+      "commit": null,
+      "dirty": true,
+      "branch": null
+    },
+    "lockfile_hash": "sha256:3db9ddec3208c4f0",
+    "machine": {
+      "os": "Linux 7.0.0-28-generic",
+      "platform": "Linux-7.0.0-28-generic-x86_64-with-glibc2.39",
+      "cpu_model": "12th Gen Intel(R) Core(TM) i7-12650H",
+      "cpu_count_logical": 16,
+      "memory_total_gb": 31.0,
+      "gpu": {
+        "present": true,
+        "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+        "memory": "4096 MiB",
+        "driver": "580.173.02"
+      },
+      "python_version": "3.12.3",
+      "python_implementation": "CPython",
+      "libraries": {
+        "pydantic": "2.13.4",
+        "torch": "2.13.0+cpu",
+        "transformers": "5.15.0"
+      },
+      "machine_class": "laptop \u2014 relative overhead only, not production capacity"
+    },
+    "operating_point_table": [
+      {
+        "threshold": 0.0,
+        "tp": 251,
+        "fp": 1800,
+        "tn": 0,
+        "fn": 0,
+        "n": 2051,
+        "n_attack": 251,
+        "n_benign": 1800,
+        "precision": 0.1224,
+        "precision_ci95": [
+          0.1089,
+          0.1373
+        ],
+        "recall": 1.0,
+        "recall_ci95": [
+          0.9849,
+          1.0
+        ],
+        "f1": 0.2181,
+        "accuracy": 0.1224,
+        "fpr": 1.0,
+        "fpr_ci95": [
+          0.9979,
+          1.0
+        ],
+        "fnr": 0.0
+      },
+      {
+        "threshold": 0.01,
+        "tp": 110,
+        "fp": 17,
+        "tn": 1783,
+        "fn": 141,
+        "n": 2051,
+        "n_attack": 251,
+        "n_benign": 1800,
+        "precision": 0.8661,
+        "precision_ci95": [
+          0.7961,
+          0.9147
+        ],
+        "recall": 0.4382,
+        "recall_ci95": [
+          0.3783,
+          0.5001
+        ],
+        "f1": 0.582,
+        "accuracy": 0.923,
+        "fpr": 0.0094,
+        "fpr_ci95": [
+          0.0059,
+          0.0151
+        ],
+        "fnr": 0.5618
+      },
+      {
+        "threshold": 0.56,
+        "tp": 107,
+        "fp": 0,
+        "tn": 1800,
+        "fn": 144,
+        "n": 2051,
+        "n_attack": 251,
+        "n_benign": 1800,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9653,
+          1.0
+        ],
+        "recall": 0.4263,
+        "recall_ci95": [
+          0.3667,
+          0.4881
+        ],
+        "f1": 0.5978,
+        "accuracy": 0.9298,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.5737
+      },
+      {
+        "threshold": 0.76,
+        "tp": 105,
+        "fp": 0,
+        "tn": 1800,
+        "fn": 146,
+        "n": 2051,
+        "n_attack": 251,
+        "n_benign": 1800,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9647,
+          1.0
+        ],
+        "recall": 0.4183,
+        "recall_ci95": [
+          0.359,
+          0.4801
+        ],
+        "f1": 0.5899,
+        "accuracy": 0.9288,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.5817
+      },
+      {
+        "threshold": 0.86,
+        "tp": 85,
+        "fp": 0,
+        "tn": 1800,
+        "fn": 166,
+        "n": 2051,
+        "n_attack": 251,
+        "n_benign": 1800,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9568,
+          1.0
+        ],
+        "recall": 0.3386,
+        "recall_ci95": [
+          0.2829,
+          0.3992
+        ],
+        "f1": 0.506,
+        "accuracy": 0.9191,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.6614
+      },
+      {
+        "threshold": 0.91,
+        "tp": 7,
+        "fp": 0,
+        "tn": 1800,
+        "fn": 244,
+        "n": 2051,
+        "n_attack": 251,
+        "n_benign": 1800,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.6457,
+          1.0
+        ],
+        "recall": 0.0279,
+        "recall_ci95": [
+          0.0136,
+          0.0564
+        ],
+        "f1": 0.0543,
+        "accuracy": 0.881,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.9721
+      },
+      {
+        "threshold": 0.96,
+        "tp": 5,
+        "fp": 0,
+        "tn": 1800,
+        "fn": 246,
+        "n": 2051,
+        "n_attack": 251,
+        "n_benign": 1800,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.5655,
+          1.0
+        ],
+        "recall": 0.0199,
+        "recall_ci95": [
+          0.0085,
+          0.0458
+        ],
+        "f1": 0.0391,
+        "accuracy": 0.8801,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.9801
+      },
+      {
+        "threshold": 0.99,
+        "tp": 0,
+        "fp": 0,
+        "tn": 1800,
+        "fn": 251,
+        "n": 2051,
+        "n_attack": 251,
+        "n_benign": 1800,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.0
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.0151
+        ],
+        "f1": 0.0,
+        "accuracy": 0.8776,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 1.0
+      }
+    ]
+  },
+  "metrics": {
+    "threshold": 0.85,
+    "classification": {
+      "tp": 105,
+      "fp": 0,
+      "tn": 1800,
+      "fn": 146,
+      "n": 2051,
+      "n_attack": 251,
+      "n_benign": 1800,
+      "precision": 1.0,
+      "precision_ci95": [
+        0.9647,
+        1.0
+      ],
+      "recall": 0.4183,
+      "recall_ci95": [
+        0.359,
+        0.4801
+      ],
+      "f1": 0.5899,
+      "accuracy": 0.9288,
+      "fpr": 0.0,
+      "fpr_ci95": [
+        0.0,
+        0.0021
+      ],
+      "fnr": 0.5817
+    },
+    "threshold_free": {
+      "average_precision": 0.7128,
+      "roc_auc": 0.7164,
+      "note": "average_precision is preferred on imbalanced security data; roc_auc is reported for comparability only"
+    },
+    "per_category": {
+      "benign": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 1800,
+        "fn": 0,
+        "n": 1800,
+        "n_attack": 0,
+        "n_benign": 1800,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.0
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.0
+        ],
+        "f1": 0.0,
+        "accuracy": 1.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.0
+      },
+      "direct_prompt_injection": {
+        "tp": 104,
+        "fp": 0,
+        "tn": 0,
+        "fn": 146,
+        "n": 250,
+        "n_attack": 250,
+        "n_benign": 0,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9644,
+          1.0
+        ],
+        "recall": 0.416,
+        "recall_ci95": [
+          0.3566,
+          0.4779
+        ],
+        "f1": 0.5876,
+        "accuracy": 0.416,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0
+        ],
+        "fnr": 0.584
+      },
+      "indirect_prompt_injection": {
+        "tp": 1,
+        "fp": 0,
+        "tn": 0,
+        "fn": 0,
+        "n": 1,
+        "n_attack": 1,
+        "n_benign": 0,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.2065,
+          1.0
+        ],
+        "recall": 1.0,
+        "recall_ci95": [
+          0.2065,
+          1.0
+        ],
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0
+        ],
+        "fnr": 0.0
+      }
+    },
+    "latency": {
+      "total": {
+        "n": 2051,
+        "mean_ms": 0.0981,
+        "median_ms": 0.0651,
+        "p50_ms": 0.0651,
+        "p90_ms": 0.1631,
+        "p95_ms": 0.2342,
+        "p99_ms": 0.6044,
+        "min_ms": 0.0266,
+        "max_ms": 3.1625,
+        "stdev_ms": 0.1368,
+        "throughput_per_s_single_threaded": 10191.32,
+        "percentiles_reliable": true
+      },
+      "preprocess": {
+        "n": 2051,
+        "mean_ms": 0.0478,
+        "median_ms": 0.0303,
+        "p50_ms": 0.0303,
+        "p90_ms": 0.081,
+        "p95_ms": 0.1202,
+        "p99_ms": 0.3196,
+        "min_ms": 0.012,
+        "max_ms": 1.6569,
+        "stdev_ms": 0.0724,
+        "throughput_per_s_single_threaded": 20925.38,
+        "percentiles_reliable": true
+      },
+      "inference": {
+        "n": 2051,
+        "mean_ms": 0.0503,
+        "median_ms": 0.0349,
+        "p50_ms": 0.0349,
+        "p90_ms": 0.0812,
+        "p95_ms": 0.1163,
+        "p99_ms": 0.2881,
+        "min_ms": 0.0145,
+        "max_ms": 1.5056,
+        "stdev_ms": 0.0647,
+        "throughput_per_s_single_threaded": 19867.34,
+        "percentiles_reliable": true
+      },
+      "note": "Detector-level latency on this machine. NOT gateway overhead, which is measured through the HTTP path (docs/15-performance-benchmarking.md)."
+    },
+    "errors": {
+      "count": 0,
+      "kinds": []
+    }
+  },
+  "operating_point": null,
+  "dataset_integrity": {
+    "total": 11009,
+    "per_split": {
+      "test": {
+        "total": 2182,
+        "attack": 382,
+        "benign": 1800
+      },
+      "train": {
+        "total": 6677,
+        "attack": 1210,
+        "benign": 5467
+      },
+      "dev": {
+        "total": 2150,
+        "attack": 352,
+        "benign": 1798
+      }
+    },
+    "per_category": {
+      "benign": 9065,
+      "direct_prompt_injection": 1272,
+      "system_prompt_extraction": 5,
+      "indirect_prompt_injection": 5,
+      "jailbreak": 656,
+      "pii": 6
+    },
+    "per_source": {
+      "holdout": 66,
+      "deepset-prompt-injections": 662,
+      "jackhhao-jailbreak": 1286,
+      "lakera-gandalf": 999,
+      "oasst1-benign": 3998,
+      "dolly-benign": 3998
+    },
+    "per_language": {
+      "en": 11009
+    },
+    "cross_split_leakage": 0,
+    "duplicate_texts": 0,
+    "split_assignment_verified": true
+  },
+  "warnings": [
+    "131 samples outside injection.heuristic's scope were excluded; it is not answerable for those categories and scoring them would fabricate a recall number"
+  ],
+  "disclaimer": "Internal benchmark result. Not a published project metric until the methodology and sample size support it (docs/22-evidence-and-claims.md)."
+}

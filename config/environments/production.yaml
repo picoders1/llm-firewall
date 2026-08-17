@@ -1,0 +1,29 @@
+# Production overlay — non-secret deployment defaults.
+#
+# Secrets (FIREWALL_UPSTREAM_API_KEY, FIREWALL_DATABASE_URL) come from the
+# platform's secret manager as environment variables. They are rejected here.
+#
+# Note that FIREWALL_ENVIRONMENT=production also changes behaviour in code:
+# content_logging=full is downgraded to hash regardless of what is configured
+# (docs/10-security-model.md).
+
+log_level: INFO
+log_format: json
+
+content_logging: none
+
+persist_events: true
+# Audit-write failure does not fail the request by default: the security decision
+# is unaffected by a database outage, only the record is lost (ADR-012). Set
+# require_audit: true where a regulatory audit guarantee is needed.
+require_audit: false
+
+metrics_enabled: true
+
+# Off by default. A security gateway must not ship telemetry to a third party
+# without an explicit decision (ADR-008).
+tracing_enabled: false
+
+# Off: per-stage timings are a timing side channel an attacker could use to
+# infer which detector fired.
+expose_timing_headers: false

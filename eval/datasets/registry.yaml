@@ -1,0 +1,189 @@
+# Dataset registry — the licence and provenance record.
+#
+# NOTHING THIRD-PARTY IS COMMITTED TO THIS REPOSITORY. Entries record how to
+# obtain a dataset; `scripts/datasets/download.py` fetches it into
+# eval/datasets/raw/, which is git-ignored (docs/14-dataset-strategy.md).
+#
+# `licence` and `gated` were read from the Hugging Face API on the date in
+# `verified_on`, not from memory. Re-verify before relying on them: dataset
+# licences and gating change.
+#
+# `commercial_use` governs whether the loader will use a dataset at all:
+#   permitted                    — usable
+#   permitted-with-attribution   — usable, attribution required
+#   permitted-with-share-alike   — usable, derivative datasets inherit the licence
+#   prohibited                   — REFUSED by the loader
+
+version: 1
+verified_against: "https://huggingface.co/api/datasets/<id> (license tags)"
+
+datasets:
+  # ── Internally authored ────────────────────────────────────────────────────
+  - name: holdout
+    source: authored for this repository
+    licence: Apache-2.0
+    redistributable: true
+    commercial_use: permitted
+    gated: false
+    local: true
+    categories: [benign, direct_prompt_injection, indirect_prompt_injection, jailbreak, pii, system_prompt_extraction]
+    languages: [en]
+    verified_on: "2026-08-17"
+    contamination_risk: none
+    notes: >
+      66 cases written for this project and never published, so they cannot be in
+      any model's training data. This is the only contamination control available
+      without access to training corpora. Small: it is a generalisation check, not
+      a benchmark. Roughly half benign, deliberately including security-adjacent
+      near-miss text ("explain how instruction-override attacks work", "ignore my
+      earlier question") because that is where a naive rule set produces its false
+      positives. All PII values are synthetic (example.com, 555-01xx reserved
+      range, Luhn-valid test card, documentation IP ranges, standard IBAN test
+      value).
+
+  - name: smoke
+    source: authored for this repository
+    licence: Apache-2.0
+    redistributable: true
+    commercial_use: permitted
+    gated: false
+    local: true
+    categories: [benign, direct_prompt_injection, indirect_prompt_injection, jailbreak, pii, system_prompt_extraction]
+    languages: [en]
+    verified_on: "2026-08-17"
+    contamination_risk: none
+    notes: >
+      31-case wiring fixture. NOT a benchmark and never a source of reported
+      metrics: authored by the same person who wrote the detection rules.
+
+  # ── Third-party: verified available and permissively licensed ─────────────
+  - name: deepset-prompt-injections
+    source: https://huggingface.co/datasets/deepset/prompt-injections
+    licence: apache-2.0
+    redistributable: true
+    commercial_use: permitted
+    gated: false
+    download: scripts/datasets/download.py
+    categories: [benign, direct_prompt_injection]
+    languages: [en, de]
+    verified_on: "2026-08-17"
+    contamination_risk: high
+    notes: >
+      ~660 samples, binary labelled. Widely mirrored and heavily used since 2023,
+      so it is very likely present in the training data of any published
+      injection classifier — numbers on it flatter published models specifically.
+      Mixed English/German. Small enough that its FPR denominator is inadequate
+      on its own.
+
+  - name: jackhhao-jailbreak
+    source: https://huggingface.co/datasets/jackhhao/jailbreak-classification
+    licence: apache-2.0
+    redistributable: true
+    commercial_use: permitted
+    gated: false
+    download: scripts/datasets/download.py
+    categories: [benign, jailbreak]
+    languages: [en]
+    verified_on: "2026-08-17"
+    contamination_risk: high
+    notes: >
+      ~1300 samples labelled jailbreak/benign, derived from published jailbreak
+      collections. The jailbreak/roleplay label boundary is a judgement call and
+      the labels carry noise. Published 2023; contamination likely.
+
+  - name: lakera-gandalf
+    source: https://huggingface.co/datasets/Lakera/gandalf_ignore_instructions
+    licence: mit
+    redistributable: true
+    commercial_use: permitted
+    gated: false
+    download: scripts/datasets/download.py
+    categories: [direct_prompt_injection]
+    languages: [en]
+    verified_on: "2026-08-17"
+    contamination_risk: high
+    notes: >
+      ~1000 real user injection attempts from the Gandalf game. ATTACK-ONLY — it
+      contains no benign class, so it can measure recall but cannot contribute to
+      FPR. Game-derived, so its distribution differs from application traffic.
+
+  - name: oasst1-benign
+    source: https://huggingface.co/datasets/OpenAssistant/oasst1
+    licence: apache-2.0
+    redistributable: true
+    commercial_use: permitted
+    gated: false
+    download: scripts/datasets/download.py
+    categories: [benign]
+    languages: [en, multi]
+    verified_on: "2026-08-17"
+    contamination_risk: medium
+    notes: >
+      Human-authored assistant prompts. Used as a BENIGN corpus — the FPR
+      denominator, which is the hardest and most important sourcing problem
+      (R-02). Multilingual; the English subset is taken. Conversational rather
+      than enterprise-shaped, which is a stated representativeness limit.
+
+  - name: dolly-benign
+    source: https://huggingface.co/datasets/databricks/databricks-dolly-15k
+    licence: cc-by-sa-3.0
+    redistributable: true
+    commercial_use: permitted-with-share-alike
+    gated: false
+    download: scripts/datasets/download.py
+    categories: [benign]
+    languages: [en]
+    verified_on: "2026-08-17"
+    contamination_risk: medium
+    notes: >
+      15k human-authored instruction prompts across brainstorming, QA,
+      summarisation and classification. Good topical diversity for a benign
+      corpus. CC-BY-SA-3.0 share-alike: we do not redistribute it, and any
+      derived dataset we published would inherit the licence.
+
+  # ── Third-party: REJECTED, recorded so the decision is not re-litigated ───
+  - name: tatsu-lab-alpaca
+    source: https://huggingface.co/datasets/tatsu-lab/alpaca
+    licence: cc-by-nc-4.0
+    redistributable: false
+    commercial_use: prohibited
+    gated: false
+    categories: [benign]
+    languages: [en]
+    verified_on: "2026-08-17"
+    contamination_risk: high
+    notes: >
+      REJECTED. CC-BY-NC-4.0 forbids commercial use; this project is Apache-2.0
+      and a benchmark it cannot use commercially is one it cannot rely on. Also
+      machine-generated from a model, so it is not human benign traffic.
+
+  - name: no-robots
+    source: https://huggingface.co/datasets/HuggingFaceH4/no_robots
+    licence: cc-by-nc-4.0
+    redistributable: false
+    commercial_use: prohibited
+    gated: false
+    categories: [benign]
+    languages: [en]
+    verified_on: "2026-08-17"
+    contamination_risk: medium
+    notes: >
+      REJECTED for the same licence reason. Otherwise an excellent benign corpus
+      (10k human-written prompts); revisit only if the licence changes.
+
+  - name: hackaprompt
+    source: https://huggingface.co/datasets/hackaprompt/hackaprompt-dataset
+    licence: mit
+    redistributable: true
+    commercial_use: permitted
+    gated: true
+    categories: [direct_prompt_injection]
+    languages: [en]
+    verified_on: "2026-08-17"
+    contamination_risk: high
+    notes: >
+      DEFERRED. Licence is permissive but the dataset is gated (`gated: auto`),
+      so it needs an authenticated token and cannot be fetched by an
+      unauthenticated reproducible script. ~600k competition submissions with
+      very noisy labels; would need sampling and re-labelling. Revisit if a
+      token-based path is acceptable and the labelling effort is justified.

@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1
+#
+# The mock upstream. Deliberately tiny and dependency-light: FastAPI and Uvicorn
+# only, no shared code with `app/` (docs/adr/ADR-009-mock-upstream.md).
+ARG PYTHON_IMAGE=python@sha256:229a2c5bfa27522db7815ea81f9bed70af17ccb9de9fc7ad142b1877b5830d36
+
+FROM ${PYTHON_IMAGE} AS runtime
+
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --uid 10002 --shell /usr/sbin/nologin mock \
+    && pip install --no-cache-dir "fastapi==0.141.1" "uvicorn[standard]==0.52.3"
+
+WORKDIR /srv
+COPY --chown=root:root services/mock_upstream ./mock_upstream
+
+USER mock
+EXPOSE 8081
+
+HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -fsS http://127.0.0.1:8081/health || exit 1
+
+CMD ["uvicorn", "mock_upstream.main:app", "--host", "0.0.0.0", "--port", "8081"]

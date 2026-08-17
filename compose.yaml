@@ -1,0 +1,131 @@
+# Local development stack — Phase 0.
+#
+# Deliberately two services. Langfuse, Grafana and the dashboard arrive in Phase 5
+# (ADR-013): a seven-container stack that takes minutes to start is friction paid
+# on every iteration, in exchange for components nothing yet uses.
+#
+# PostgreSQL is published on host port 5433 — 5432 is already in use on the
+# reference machine (docs/17-deployment-architecture.md).
+
+name: llm-firewall
+
+services:
+  firewall-api:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile
+    image: llm-firewall:dev
+    ports:
+      - "8000:8000"
+    environment:
+      FIREWALL_ENVIRONMENT: development
+      FIREWALL_LOG_FORMAT: json
+      FIREWALL_CONTENT_LOGGING: none
+      FIREWALL_POLICY_FILE: config/policies/default.yaml
+      # Audit persistence is off until the schema lands later in Phase 0. The
+      # database runs so migrations and connectivity can be exercised now.
+      FIREWALL_PERSIST_EVENTS: "true"
+      FIREWALL_DATABASE_URL: postgresql+asyncpg://firewall:firewall@postgres:5432/firewall
+      FIREWALL_UPSTREAM_BASE_URL: http://mock-upstream:8081/v1
+      # Benchmarking aid; off in production because per-stage timings are a
+      # timing side channel (docs/15-performance-benchmarking.md).
+      FIREWALL_EXPOSE_TIMING_HEADERS: "true"
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mock-upstream:
+        condition: service_healthy
+    restart: unless-stopped
+
+    # Container hardening (docs/10-security-model.md). The process cannot write
+    # to its own filesystem; /tmp is an explicit tmpfs.
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+    # A model-loading OOM should kill one container, not the host.
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "2.0"
+
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/health"]
+      interval: 15s
+      timeout: 3s
+      start_period: 20s
+      retries: 3
+
+  # A controllable OpenAI-compatible mock, not a model (ADR-009). It is what
+  # makes `docker compose up` work with no API key and no egress, makes tests
+  # deterministic, and — via MOCK_LATENCY_MS — makes gateway overhead separable
+  # from model latency when benchmarks arrive in Phase 4.
+  mock-upstream:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.mock
+    image: llm-firewall-mock-upstream:dev
+    ports:
+      - "8081:8081"
+    environment:
+      # 0 = maximum sensitivity to the gateway's own cost. Set a realistic value
+      # (e.g. 800) to see what a user would actually notice.
+      MOCK_LATENCY_MS: "0"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/health"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      # Host 5434: 5432 is the host PostgreSQL and 5433 is taken by an unrelated
+      # container on the reference machine. Neither must be disturbed.
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: firewall
+      # Local development credential only. Production reads FIREWALL_DATABASE_URL
+      # from the platform's secret manager (ADR-011).
+      POSTGRES_PASSWORD: firewall
+      POSTGRES_DB: firewall
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    healthcheck:
+      # pg_isready, not a sleep: dependent services wait on real readiness.
+      test: ["CMD-SHELL", "pg_isready -U firewall -d firewall"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  postgres-data:

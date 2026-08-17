@@ -1,0 +1,25 @@
+# Development overlay — non-secret deployment defaults.
+#
+# Precedence: built-in defaults < THIS FILE < FIREWALL_* env vars < runtime overrides.
+# Secrets are rejected here at load time; use .env / the environment.
+
+log_level: DEBUG
+log_format: console          # human-readable; production uses json
+
+# Content logging stays off even in development. Turn it on deliberately with
+# FIREWALL_CONTENT_LOGGING=full when you actually need to see payloads, and
+# understand that you have created a sensitive datastore while it is on.
+content_logging: none
+
+# Bundled mock upstream (Phase 1). No credentials, no egress.
+upstream_base_url: http://localhost:8081/v1
+
+# Audit persistence is opt-in locally so the app runs without a database.
+persist_events: false
+
+metrics_enabled: true
+tracing_enabled: false
+
+# Per-stage timings as response headers, so tests and benchmark tooling can
+# read them without a database (docs/15-performance-benchmarking.md).
+expose_timing_headers: true

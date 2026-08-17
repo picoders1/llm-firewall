@@ -1,0 +1,19 @@
+# Testing overlay — used by the automated suites.
+#
+# Deterministic and dependency-free: no database, no tracing, no network egress.
+# Tests that need a database opt in explicitly (pytest -m integration).
+
+log_level: WARNING           # keep test output readable
+log_format: json             # the suite asserts on structured fields
+
+content_logging: none        # the log-leak canary test depends on this default
+
+persist_events: false
+metrics_enabled: true
+tracing_enabled: false
+
+# Short timeouts keep failure-path tests fast; they are not a performance target.
+detector_default_timeout_ms: 50
+
+# Timings exposed so latency assertions can be made without a database.
+expose_timing_headers: true

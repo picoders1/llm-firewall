@@ -1,0 +1,209 @@
+name: CI
+
+# Every job is blocking. A pipeline with advisory jobs trains people to ignore it.
+# Design: docs/18-ci-cd-strategy.md
+#
+# No deployment, and no secrets: this pipeline builds, tests and scans. Deployment
+# credentials would make every fork's CI a credential-exposure surface, and the
+# suite needs no provider key to run.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  UV_VERSION: "0.12.5"
+  PYTHON_VERSION: "3.12"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lock-check:
+    name: lockfile is current
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          # Keyed on the lockfile: a cache key that does not change when
+          # dependencies change is how a "green" pipeline tests the wrong set.
+          cache-dependency-glob: "uv.lock"
+      # Catches pyproject.toml edited without re-locking.
+      - run: uv lock --check
+
+  lint:
+    name: lint and format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - run: uv sync --all-groups --frozen
+      - run: uv run ruff check --output-format=github .
+      - run: uv run ruff format --check .
+
+  types:
+    name: type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - run: uv sync --all-groups --frozen
+      - run: uv run mypy app
+
+  test:
+    name: unit, api and security tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - run: uv sync --all-groups --frozen
+      - name: Run fast suites
+        run: uv run pytest -m "unit or api or security" --cov=app --cov-report=term-missing
+      - name: Security suite must not be empty
+        # A green pipeline because the security tests silently stopped being
+        # collected would be the worst possible failure mode here.
+        run: |
+          count=$(uv run pytest -m security --collect-only -q | tail -1)
+          echo "collected: $count"
+          uv run pytest -m security -q
+
+  security:
+    name: dependency and secret scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - run: uv sync --all-groups --frozen
+      - name: Known vulnerabilities in pinned dependencies
+        # --skip-editable: this project itself is installed editable and is not on
+        # PyPI, so it cannot be audited. --strict is NOT used because it fails on
+        # any skip, including that one, which would make the job fail for a
+        # reason unrelated to security. pip-audit still exits non-zero when a
+        # vulnerability is found, which is the gate we actually want, and no
+        # vulnerability is ignored.
+        run: uv run pip-audit --skip-editable
+      - name: Bandit security rules
+        run: uv run ruff check --select S --output-format=github .
+      - name: Secret scanning
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    name: container build and smoke test
+    runs-on: ubuntu-latest
+    needs: [lint, types, test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile
+          tags: llm-firewall:ci
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Image must not contain secrets, tests or build tools
+        run: |
+          docker run --rm --entrypoint sh llm-firewall:ci -c '
+            test ! -e /app/.env      || { echo "FAIL: .env in image"; exit 1; }
+            test ! -e /app/tests     || { echo "FAIL: tests in image"; exit 1; }
+            ! command -v gcc >/dev/null || { echo "FAIL: compiler in runtime"; exit 1; }
+            test "$(id -u)" != "0"   || { echo "FAIL: running as root"; exit 1; }
+            echo OK'
+
+      - name: Boot the container and check /health
+        run: |
+          docker run -d --name firewall -p 8000:8000 \
+            -e FIREWALL_ENVIRONMENT=development \
+            -e FIREWALL_PERSIST_EVENTS=false \
+            llm-firewall:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health >/dev/null 2>&1; then
+              echo "healthy after ${i}s"; break
+            fi
+            sleep 1
+          done
+          curl -fsS http://localhost:8000/health | tee /dev/stderr | grep -q '"status":"ok"'
+          curl -fsS http://localhost:8000/ready  | tee /dev/stderr | grep -q '"status":"ready"'
+          docker rm -f firewall
+
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: llm-firewall:ci
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+
+  integration:
+    name: integration tests
+    runs-on: ubuntu-latest
+    needs: [lint, types, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - run: uv sync --all-groups --frozen
+
+      - name: Start the stack
+        run: docker compose up -d --build
+
+      - name: Wait for readiness
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:8000/ready >/dev/null 2>&1; then
+              echo "ready after ${i}s"; exit 0
+            fi
+            sleep 2
+          done
+          echo "stack did not become ready"; docker compose logs; exit 1
+
+      - name: Verify the migration mechanism against a real database
+        run: |
+          docker compose exec -T \
+            -e FIREWALL_DATABASE_URL=postgresql+asyncpg://firewall:firewall@postgres:5432/firewall \
+            firewall-api alembic upgrade head
+
+      - name: Run integration suite
+        run: uv run pytest -m integration -q
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

@@ -1,0 +1,616 @@
+{
+  "metadata": {
+    "run_id": "20260817T083208Z__jailbreak-heuristic__full-dev",
+    "started_at": "2026-08-17T08:32:08.235627+00:00",
+    "finished_at": "2026-08-17T08:32:10.977022+00:00",
+    "detector": "jailbreak.heuristic",
+    "detector_config": {
+      "detector": "jailbreak.heuristic",
+      "threshold": 0.85,
+      "options": {},
+      "implementation": "app.detectors.jailbreak.heuristic.HeuristicJailbreakDetector"
+    },
+    "config_hash": "sha256:a769b40194e1f450",
+    "dataset": {
+      "name": "full",
+      "checksum": "sha256:a643d90722025e53ff492c9a55bc2546",
+      "split": "dev",
+      "sample_count": 1915,
+      "sources": {
+        "holdout": {
+          "source": "authored for this repository",
+          "licence": "Apache-2.0",
+          "commercial_use": "permitted",
+          "contamination_risk": "none",
+          "verified_on": "2026-08-17"
+        },
+        "deepset-prompt-injections": {
+          "source": "https://huggingface.co/datasets/deepset/prompt-injections",
+          "licence": "apache-2.0",
+          "commercial_use": "permitted",
+          "contamination_risk": "high",
+          "verified_on": "2026-08-17"
+        },
+        "jackhhao-jailbreak": {
+          "source": "https://huggingface.co/datasets/jackhhao/jailbreak-classification",
+          "licence": "apache-2.0",
+          "commercial_use": "permitted",
+          "contamination_risk": "high",
+          "verified_on": "2026-08-17"
+        },
+        "lakera-gandalf": {
+          "source": "https://huggingface.co/datasets/Lakera/gandalf_ignore_instructions",
+          "licence": "mit",
+          "commercial_use": "permitted",
+          "contamination_risk": "high",
+          "verified_on": "2026-08-17"
+        },
+        "oasst1-benign": {
+          "source": "https://huggingface.co/datasets/OpenAssistant/oasst1",
+          "licence": "apache-2.0",
+          "commercial_use": "permitted",
+          "contamination_risk": "medium",
+          "verified_on": "2026-08-17"
+        },
+        "dolly-benign": {
+          "source": "https://huggingface.co/datasets/databricks/databricks-dolly-15k",
+          "licence": "cc-by-sa-3.0",
+          "commercial_use": "permitted-with-share-alike",
+          "contamination_risk": "medium",
+          "verified_on": "2026-08-17"
+        }
+      }
+    },
+    "seed": 20260817,
+    "git": {
+      "commit": null,
+      "dirty": true,
+      "branch": null
+    },
+    "lockfile_hash": "sha256:3db9ddec3208c4f0",
+    "machine": {
+      "os": "Linux 7.0.0-28-generic",
+      "platform": "Linux-7.0.0-28-generic-x86_64-with-glibc2.39",
+      "cpu_model": "12th Gen Intel(R) Core(TM) i7-12650H",
+      "cpu_count_logical": 16,
+      "memory_total_gb": 31.0,
+      "gpu": {
+        "present": true,
+        "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+        "memory": "4096 MiB",
+        "driver": "580.173.02"
+      },
+      "python_version": "3.12.3",
+      "python_implementation": "CPython",
+      "libraries": {
+        "pydantic": "2.13.4"
+      },
+      "machine_class": "laptop \u2014 relative overhead only, not production capacity"
+    },
+    "operating_point_table": [
+      {
+        "threshold": 0.0,
+        "tp": 117,
+        "fp": 1798,
+        "tn": 0,
+        "fn": 0,
+        "n": 1915,
+        "n_attack": 117,
+        "n_benign": 1798,
+        "precision": 0.0611,
+        "precision_ci95": [
+          0.0512,
+          0.0727
+        ],
+        "recall": 1.0,
+        "recall_ci95": [
+          0.9682,
+          1.0
+        ],
+        "f1": 0.1152,
+        "accuracy": 0.0611,
+        "fpr": 1.0,
+        "fpr_ci95": [
+          0.9979,
+          1.0
+        ],
+        "fnr": 0.0
+      },
+      {
+        "threshold": 0.01,
+        "tp": 76,
+        "fp": 19,
+        "tn": 1779,
+        "fn": 41,
+        "n": 1915,
+        "n_attack": 117,
+        "n_benign": 1798,
+        "precision": 0.8,
+        "precision_ci95": [
+          0.7086,
+          0.8681
+        ],
+        "recall": 0.6496,
+        "recall_ci95": [
+          0.5596,
+          0.73
+        ],
+        "f1": 0.717,
+        "accuracy": 0.9687,
+        "fpr": 0.0106,
+        "fpr_ci95": [
+          0.0068,
+          0.0164
+        ],
+        "fnr": 0.3504
+      },
+      {
+        "threshold": 0.31,
+        "tp": 69,
+        "fp": 2,
+        "tn": 1796,
+        "fn": 48,
+        "n": 1915,
+        "n_attack": 117,
+        "n_benign": 1798,
+        "precision": 0.9718,
+        "precision_ci95": [
+          0.903,
+          0.9922
+        ],
+        "recall": 0.5897,
+        "recall_ci95": [
+          0.4991,
+          0.6746
+        ],
+        "f1": 0.734,
+        "accuracy": 0.9739,
+        "fpr": 0.0011,
+        "fpr_ci95": [
+          0.0003,
+          0.004
+        ],
+        "fnr": 0.4103
+      },
+      {
+        "threshold": 0.66,
+        "tp": 68,
+        "fp": 2,
+        "tn": 1796,
+        "fn": 49,
+        "n": 1915,
+        "n_attack": 117,
+        "n_benign": 1798,
+        "precision": 0.9714,
+        "precision_ci95": [
+          0.9017,
+          0.9921
+        ],
+        "recall": 0.5812,
+        "recall_ci95": [
+          0.4906,
+          0.6666
+        ],
+        "f1": 0.7273,
+        "accuracy": 0.9734,
+        "fpr": 0.0011,
+        "fpr_ci95": [
+          0.0003,
+          0.004
+        ],
+        "fnr": 0.4188
+      },
+      {
+        "threshold": 0.83,
+        "tp": 56,
+        "fp": 2,
+        "tn": 1796,
+        "fn": 61,
+        "n": 1915,
+        "n_attack": 117,
+        "n_benign": 1798,
+        "precision": 0.9655,
+        "precision_ci95": [
+          0.8827,
+          0.9905
+        ],
+        "recall": 0.4786,
+        "recall_ci95": [
+          0.3902,
+          0.5684
+        ],
+        "f1": 0.64,
+        "accuracy": 0.9671,
+        "fpr": 0.0011,
+        "fpr_ci95": [
+          0.0003,
+          0.004
+        ],
+        "fnr": 0.5214
+      },
+      {
+        "threshold": 0.86,
+        "tp": 35,
+        "fp": 0,
+        "tn": 1798,
+        "fn": 82,
+        "n": 1915,
+        "n_attack": 117,
+        "n_benign": 1798,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9011,
+          1.0
+        ],
+        "recall": 0.2991,
+        "recall_ci95": [
+          0.2236,
+          0.3874
+        ],
+        "f1": 0.4605,
+        "accuracy": 0.9572,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.7009
+      },
+      {
+        "threshold": 0.9,
+        "tp": 24,
+        "fp": 0,
+        "tn": 1798,
+        "fn": 93,
+        "n": 1915,
+        "n_attack": 117,
+        "n_benign": 1798,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.862,
+          1.0
+        ],
+        "recall": 0.2051,
+        "recall_ci95": [
+          0.1419,
+          0.2871
+        ],
+        "f1": 0.3404,
+        "accuracy": 0.9514,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.7949
+      },
+      {
+        "threshold": 0.9685,
+        "tp": 17,
+        "fp": 0,
+        "tn": 1798,
+        "fn": 100,
+        "n": 1915,
+        "n_attack": 117,
+        "n_benign": 1798,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.8157,
+          1.0
+        ],
+        "recall": 0.1453,
+        "recall_ci95": [
+          0.0927,
+          0.2204
+        ],
+        "f1": 0.2537,
+        "accuracy": 0.9478,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.8547
+      },
+      {
+        "threshold": 0.9775,
+        "tp": 14,
+        "fp": 0,
+        "tn": 1798,
+        "fn": 103,
+        "n": 1915,
+        "n_attack": 117,
+        "n_benign": 1798,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.7847,
+          1.0
+        ],
+        "recall": 0.1197,
+        "recall_ci95": [
+          0.0726,
+          0.1909
+        ],
+        "f1": 0.2137,
+        "accuracy": 0.9462,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.8803
+      },
+      {
+        "threshold": 0.98,
+        "tp": 5,
+        "fp": 0,
+        "tn": 1798,
+        "fn": 112,
+        "n": 1915,
+        "n_attack": 117,
+        "n_benign": 1798,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.5655,
+          1.0
+        ],
+        "recall": 0.0427,
+        "recall_ci95": [
+          0.0184,
+          0.0962
+        ],
+        "f1": 0.082,
+        "accuracy": 0.9415,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.9573
+      },
+      {
+        "threshold": 0.99,
+        "tp": 4,
+        "fp": 0,
+        "tn": 1798,
+        "fn": 113,
+        "n": 1915,
+        "n_attack": 117,
+        "n_benign": 1798,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.5101,
+          1.0
+        ],
+        "recall": 0.0342,
+        "recall_ci95": [
+          0.0134,
+          0.0846
+        ],
+        "f1": 0.0661,
+        "accuracy": 0.941,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 0.9658
+      },
+      {
+        "threshold": 0.9986,
+        "tp": 0,
+        "fp": 0,
+        "tn": 1798,
+        "fn": 117,
+        "n": 1915,
+        "n_attack": 117,
+        "n_benign": 1798,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.0
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.0318
+        ],
+        "f1": 0.0,
+        "accuracy": 0.9389,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0021
+        ],
+        "fnr": 1.0
+      }
+    ]
+  },
+  "metrics": {
+    "threshold": 0.85,
+    "classification": {
+      "tp": 56,
+      "fp": 2,
+      "tn": 1796,
+      "fn": 61,
+      "n": 1915,
+      "n_attack": 117,
+      "n_benign": 1798,
+      "precision": 0.9655,
+      "precision_ci95": [
+        0.8827,
+        0.9905
+      ],
+      "recall": 0.4786,
+      "recall_ci95": [
+        0.3902,
+        0.5684
+      ],
+      "f1": 0.64,
+      "accuracy": 0.9671,
+      "fpr": 0.0011,
+      "fpr_ci95": [
+        0.0003,
+        0.004
+      ],
+      "fnr": 0.5214
+    },
+    "threshold_free": {
+      "average_precision": 0.7693,
+      "roc_auc": 0.8224,
+      "note": "average_precision is preferred on imbalanced security data; roc_auc is reported for comparability only"
+    },
+    "per_category": {
+      "benign": {
+        "tp": 0,
+        "fp": 2,
+        "tn": 1796,
+        "fn": 0,
+        "n": 1798,
+        "n_attack": 0,
+        "n_benign": 1798,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.6576
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.0
+        ],
+        "f1": 0.0,
+        "accuracy": 0.9989,
+        "fpr": 0.0011,
+        "fpr_ci95": [
+          0.0003,
+          0.004
+        ],
+        "fnr": 0.0
+      },
+      "jailbreak": {
+        "tp": 56,
+        "fp": 0,
+        "tn": 0,
+        "fn": 61,
+        "n": 117,
+        "n_attack": 117,
+        "n_benign": 0,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9358,
+          1.0
+        ],
+        "recall": 0.4786,
+        "recall_ci95": [
+          0.3902,
+          0.5684
+        ],
+        "f1": 0.6474,
+        "accuracy": 0.4786,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0
+        ],
+        "fnr": 0.5214
+      }
+    },
+    "latency": {
+      "total": {
+        "n": 1915,
+        "mean_ms": 0.1867,
+        "median_ms": 0.0656,
+        "p50_ms": 0.0656,
+        "p90_ms": 0.2649,
+        "p95_ms": 0.7956,
+        "p99_ms": 2.5144,
+        "min_ms": 0.0238,
+        "max_ms": 8.0325,
+        "stdev_ms": 0.4775,
+        "throughput_per_s_single_threaded": 5355.66,
+        "percentiles_reliable": true
+      },
+      "preprocess": {
+        "n": 1915,
+        "mean_ms": 0.098,
+        "median_ms": 0.0324,
+        "p50_ms": 0.0324,
+        "p90_ms": 0.1412,
+        "p95_ms": 0.4125,
+        "p99_ms": 1.4055,
+        "min_ms": 0.0115,
+        "max_ms": 4.3719,
+        "stdev_ms": 0.258,
+        "throughput_per_s_single_threaded": 10206.02,
+        "percentiles_reliable": true
+      },
+      "inference": {
+        "n": 1915,
+        "mean_ms": 0.0887,
+        "median_ms": 0.0326,
+        "p50_ms": 0.0326,
+        "p90_ms": 0.127,
+        "p95_ms": 0.3743,
+        "p99_ms": 1.1472,
+        "min_ms": 0.0117,
+        "max_ms": 3.6606,
+        "stdev_ms": 0.2199,
+        "throughput_per_s_single_threaded": 11269.26,
+        "percentiles_reliable": true
+      },
+      "note": "Detector-level latency on this machine. NOT gateway overhead, which is measured through the HTTP path (docs/15-performance-benchmarking.md)."
+    },
+    "errors": {
+      "count": 0,
+      "kinds": []
+    }
+  },
+  "operating_point": null,
+  "dataset_integrity": {
+    "total": 11009,
+    "per_split": {
+      "test": {
+        "total": 2182,
+        "attack": 382,
+        "benign": 1800
+      },
+      "train": {
+        "total": 6677,
+        "attack": 1210,
+        "benign": 5467
+      },
+      "dev": {
+        "total": 2150,
+        "attack": 352,
+        "benign": 1798
+      }
+    },
+    "per_category": {
+      "benign": 9065,
+      "direct_prompt_injection": 1272,
+      "system_prompt_extraction": 5,
+      "indirect_prompt_injection": 5,
+      "jailbreak": 656,
+      "pii": 6
+    },
+    "per_source": {
+      "holdout": 66,
+      "deepset-prompt-injections": 662,
+      "jackhhao-jailbreak": 1286,
+      "lakera-gandalf": 999,
+      "oasst1-benign": 3998,
+      "dolly-benign": 3998
+    },
+    "per_language": {
+      "en": 11009
+    },
+    "cross_split_leakage": 0,
+    "duplicate_texts": 0,
+    "split_assignment_verified": true
+  },
+  "warnings": [
+    "235 samples outside jailbreak.heuristic's scope were excluded; it is not answerable for those categories and scoring them would fabricate a recall number"
+  ],
+  "disclaimer": "Internal benchmark result. Not a published project metric until the methodology and sample size support it (docs/22-evidence-and-claims.md)."
+}

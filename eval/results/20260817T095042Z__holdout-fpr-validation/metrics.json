@@ -1,0 +1,643 @@
+{
+  "injection.heuristic": {
+    "detector": "injection.heuristic",
+    "threshold": 0.85,
+    "threshold_source": "frozen from prior calibration; NOT selected on this hold-out",
+    "overall": {
+      "tp": 19,
+      "fp": 11,
+      "tn": 446,
+      "fn": 41,
+      "n": 517,
+      "n_attack": 60,
+      "n_benign": 457,
+      "precision": 0.6333,
+      "precision_ci95": [
+        0.4551,
+        0.7813
+      ],
+      "recall": 0.3167,
+      "recall_ci95": [
+        0.2131,
+        0.4423
+      ],
+      "f1": 0.4222,
+      "accuracy": 0.8994,
+      "fpr": 0.0241,
+      "fpr_ci95": [
+        0.0135,
+        0.0426
+      ],
+      "fnr": 0.6833
+    },
+    "benign": {
+      "n": 457,
+      "fp": 11,
+      "tn": 446,
+      "fpr": 0.0241,
+      "fpr_ci95_wilson": [
+        0.0135,
+        0.0426
+      ]
+    },
+    "hard_negatives": {
+      "n": 170,
+      "fp": 11,
+      "fpr": 0.0647,
+      "fpr_ci95_wilson": [
+        0.0365,
+        0.1121
+      ]
+    },
+    "ordinary_benign": {
+      "n": 287,
+      "fp": 0,
+      "fpr": 0.0,
+      "fpr_ci95_wilson": [
+        0.0,
+        0.0132
+      ]
+    },
+    "system_prompt_extraction": {
+      "n": 45,
+      "detected": 12,
+      "recall": 0.2667,
+      "recall_ci95_wilson": [
+        0.1596,
+        0.4104
+      ]
+    },
+    "false_positives_by_sub_category": {
+      "quoted_attack": {
+        "fp": 8,
+        "n": 16,
+        "fpr": 0.5
+      },
+      "ignore_previous_ordinary": {
+        "fp": 1,
+        "n": 17,
+        "fpr": 0.0588
+      },
+      "system_prompt_engineering": {
+        "fp": 1,
+        "n": 10,
+        "fpr": 0.1
+      },
+      "code_with_attack_strings": {
+        "fp": 1,
+        "n": 5,
+        "fpr": 0.2
+      }
+    },
+    "false_positives_by_domain": {
+      "incident_response": {
+        "fp": 5,
+        "n": 17,
+        "fpr": 0.2941
+      },
+      "software_engineering": {
+        "fp": 2,
+        "n": 75,
+        "fpr": 0.0267
+      },
+      "ai_safety": {
+        "fp": 2,
+        "n": 31,
+        "fpr": 0.0645
+      },
+      "hr_workflows": {
+        "fp": 1,
+        "n": 7,
+        "fpr": 0.1429
+      },
+      "security_operations": {
+        "fp": 1,
+        "n": 32,
+        "fpr": 0.0312
+      }
+    },
+    "latency": {
+      "n": 517,
+      "mean_ms": 0.0447,
+      "median_ms": 0.0396,
+      "p50_ms": 0.0396,
+      "p90_ms": 0.0568,
+      "p95_ms": 0.0706,
+      "p99_ms": 0.1932,
+      "min_ms": 0.0124,
+      "max_ms": 0.2507,
+      "stdev_ms": 0.0248,
+      "throughput_per_s_single_threaded": 22373.32,
+      "percentiles_reliable": true
+    }
+  },
+  "injection.protectai_deberta_v2": {
+    "detector": "injection.protectai_deberta_v2",
+    "threshold": 0.5,
+    "threshold_source": "frozen from prior calibration; NOT selected on this hold-out",
+    "overall": {
+      "tp": 57,
+      "fp": 55,
+      "tn": 402,
+      "fn": 3,
+      "n": 517,
+      "n_attack": 60,
+      "n_benign": 457,
+      "precision": 0.5089,
+      "precision_ci95": [
+        0.4176,
+        0.5997
+      ],
+      "recall": 0.95,
+      "recall_ci95": [
+        0.863,
+        0.9829
+      ],
+      "f1": 0.6628,
+      "accuracy": 0.8878,
+      "fpr": 0.1204,
+      "fpr_ci95": [
+        0.0936,
+        0.1534
+      ],
+      "fnr": 0.05
+    },
+    "benign": {
+      "n": 457,
+      "fp": 55,
+      "tn": 402,
+      "fpr": 0.1204,
+      "fpr_ci95_wilson": [
+        0.0936,
+        0.1534
+      ]
+    },
+    "hard_negatives": {
+      "n": 170,
+      "fp": 49,
+      "fpr": 0.2882,
+      "fpr_ci95_wilson": [
+        0.2254,
+        0.3604
+      ]
+    },
+    "ordinary_benign": {
+      "n": 287,
+      "fp": 6,
+      "fpr": 0.0209,
+      "fpr_ci95_wilson": [
+        0.0096,
+        0.0449
+      ]
+    },
+    "system_prompt_extraction": {
+      "n": 45,
+      "detected": 42,
+      "recall": 0.9333,
+      "recall_ci95_wilson": [
+        0.8214,
+        0.9771
+      ]
+    },
+    "false_positives_by_sub_category": {
+      "quoted_attack": {
+        "fp": 15,
+        "n": 16,
+        "fpr": 0.9375
+      },
+      "ignore_previous_ordinary": {
+        "fp": 8,
+        "n": 17,
+        "fpr": 0.4706
+      },
+      "v1_original": {
+        "fp": 5,
+        "n": 32,
+        "fpr": 0.1562
+      },
+      "human_instructions": {
+        "fp": 5,
+        "n": 12,
+        "fpr": 0.4167
+      },
+      "security_policy": {
+        "fp": 4,
+        "n": 10,
+        "fpr": 0.4
+      },
+      "override_ordinary": {
+        "fp": 3,
+        "n": 5,
+        "fpr": 0.6
+      },
+      "system_prompt_engineering": {
+        "fp": 3,
+        "n": 10,
+        "fpr": 0.3
+      },
+      "guardrail_docs": {
+        "fp": 3,
+        "n": 18,
+        "fpr": 0.1667
+      },
+      "admin_vocabulary": {
+        "fp": 2,
+        "n": 6,
+        "fpr": 0.3333
+      },
+      "code_with_attack_strings": {
+        "fp": 2,
+        "n": 5,
+        "fpr": 0.4
+      },
+      "awareness_training": {
+        "fp": 2,
+        "n": 7,
+        "fpr": 0.2857
+      },
+      "short_form": {
+        "fp": 1,
+        "n": 12,
+        "fpr": 0.0833
+      },
+      "injection_discussion": {
+        "fp": 1,
+        "n": 15,
+        "fpr": 0.0667
+      },
+      "ai_governance": {
+        "fp": 1,
+        "n": 9,
+        "fpr": 0.1111
+      }
+    },
+    "false_positives_by_domain": {
+      "security_operations": {
+        "fp": 9,
+        "n": 32,
+        "fpr": 0.2812
+      },
+      "incident_response": {
+        "fp": 8,
+        "n": 17,
+        "fpr": 0.4706
+      },
+      "technical_documentation": {
+        "fp": 6,
+        "n": 30,
+        "fpr": 0.2
+      },
+      "mixed": {
+        "fp": 5,
+        "n": 32,
+        "fpr": 0.1562
+      },
+      "compliance": {
+        "fp": 5,
+        "n": 36,
+        "fpr": 0.1389
+      },
+      "software_engineering": {
+        "fp": 4,
+        "n": 75,
+        "fpr": 0.0533
+      },
+      "ai_safety": {
+        "fp": 4,
+        "n": 31,
+        "fpr": 0.129
+      },
+      "project_management": {
+        "fp": 3,
+        "n": 26,
+        "fpr": 0.1154
+      },
+      "business_email": {
+        "fp": 2,
+        "n": 19,
+        "fpr": 0.1053
+      },
+      "customer_support": {
+        "fp": 2,
+        "n": 17,
+        "fpr": 0.1176
+      },
+      "access_management": {
+        "fp": 2,
+        "n": 9,
+        "fpr": 0.2222
+      },
+      "it_support": {
+        "fp": 1,
+        "n": 10,
+        "fpr": 0.1
+      },
+      "database_sql": {
+        "fp": 1,
+        "n": 21,
+        "fpr": 0.0476
+      },
+      "hr_workflows": {
+        "fp": 1,
+        "n": 7,
+        "fpr": 0.1429
+      },
+      "finance_operations": {
+        "fp": 1,
+        "n": 14,
+        "fpr": 0.0714
+      },
+      "system_administration": {
+        "fp": 1,
+        "n": 26,
+        "fpr": 0.0385
+      }
+    },
+    "latency": {
+      "n": 517,
+      "mean_ms": 84.5239,
+      "median_ms": 81.7489,
+      "p50_ms": 81.7489,
+      "p90_ms": 87.8772,
+      "p95_ms": 97.2181,
+      "p99_ms": 180.1388,
+      "min_ms": 67.5411,
+      "max_ms": 244.533,
+      "stdev_ms": 18.3696,
+      "throughput_per_s_single_threaded": 11.83,
+      "percentiles_reliable": true
+    }
+  },
+  "injection.arch_guard": {
+    "detector": "injection.arch_guard",
+    "threshold": 0.5,
+    "threshold_source": "frozen from prior calibration; NOT selected on this hold-out",
+    "overall": {
+      "tp": 37,
+      "fp": 64,
+      "tn": 393,
+      "fn": 23,
+      "n": 517,
+      "n_attack": 60,
+      "n_benign": 457,
+      "precision": 0.3663,
+      "precision_ci95": [
+        0.2789,
+        0.4636
+      ],
+      "recall": 0.6167,
+      "recall_ci95": [
+        0.4902,
+        0.7291
+      ],
+      "f1": 0.4596,
+      "accuracy": 0.8317,
+      "fpr": 0.14,
+      "fpr_ci95": [
+        0.1112,
+        0.1749
+      ],
+      "fnr": 0.3833
+    },
+    "benign": {
+      "n": 457,
+      "fp": 64,
+      "tn": 393,
+      "fpr": 0.14,
+      "fpr_ci95_wilson": [
+        0.1112,
+        0.1749
+      ]
+    },
+    "hard_negatives": {
+      "n": 170,
+      "fp": 52,
+      "fpr": 0.3059,
+      "fpr_ci95_wilson": [
+        0.2415,
+        0.3788
+      ]
+    },
+    "ordinary_benign": {
+      "n": 287,
+      "fp": 12,
+      "fpr": 0.0418,
+      "fpr_ci95_wilson": [
+        0.0241,
+        0.0716
+      ]
+    },
+    "system_prompt_extraction": {
+      "n": 45,
+      "detected": 22,
+      "recall": 0.4889,
+      "recall_ci95_wilson": [
+        0.3496,
+        0.63
+      ]
+    },
+    "false_positives_by_sub_category": {
+      "ignore_previous_ordinary": {
+        "fp": 14,
+        "n": 17,
+        "fpr": 0.8235
+      },
+      "quoted_attack": {
+        "fp": 13,
+        "n": 16,
+        "fpr": 0.8125
+      },
+      "security_policy": {
+        "fp": 5,
+        "n": 10,
+        "fpr": 0.5
+      },
+      "human_instructions": {
+        "fp": 5,
+        "n": 12,
+        "fpr": 0.4167
+      },
+      "awareness_training": {
+        "fp": 5,
+        "n": 7,
+        "fpr": 0.7143
+      },
+      "v1_original": {
+        "fp": 3,
+        "n": 32,
+        "fpr": 0.0938
+      },
+      "code_with_attack_strings": {
+        "fp": 3,
+        "n": 5,
+        "fpr": 0.6
+      },
+      "process": {
+        "fp": 2,
+        "n": 31,
+        "fpr": 0.0645
+      },
+      "injection_discussion": {
+        "fp": 2,
+        "n": 15,
+        "fpr": 0.1333
+      },
+      "guardrail_docs": {
+        "fp": 2,
+        "n": 18,
+        "fpr": 0.1111
+      },
+      "authoring": {
+        "fp": 1,
+        "n": 30,
+        "fpr": 0.0333
+      },
+      "design": {
+        "fp": 1,
+        "n": 24,
+        "fpr": 0.0417
+      },
+      "migration": {
+        "fp": 1,
+        "n": 3,
+        "fpr": 0.3333
+      },
+      "explanation": {
+        "fp": 1,
+        "n": 24,
+        "fpr": 0.0417
+      },
+      "markdown": {
+        "fp": 1,
+        "n": 4,
+        "fpr": 0.25
+      },
+      "code_block": {
+        "fp": 1,
+        "n": 5,
+        "fpr": 0.2
+      },
+      "informal": {
+        "fp": 1,
+        "n": 6,
+        "fpr": 0.1667
+      },
+      "override_ordinary": {
+        "fp": 1,
+        "n": 5,
+        "fpr": 0.2
+      },
+      "secops_ordinary": {
+        "fp": 1,
+        "n": 8,
+        "fpr": 0.125
+      },
+      "eval_discussion": {
+        "fp": 1,
+        "n": 11,
+        "fpr": 0.0909
+      }
+    },
+    "false_positives_by_domain": {
+      "security_operations": {
+        "fp": 12,
+        "n": 32,
+        "fpr": 0.375
+      },
+      "software_engineering": {
+        "fp": 8,
+        "n": 75,
+        "fpr": 0.1067
+      },
+      "incident_response": {
+        "fp": 8,
+        "n": 17,
+        "fpr": 0.4706
+      },
+      "technical_documentation": {
+        "fp": 7,
+        "n": 30,
+        "fpr": 0.2333
+      },
+      "compliance": {
+        "fp": 6,
+        "n": 36,
+        "fpr": 0.1667
+      },
+      "project_management": {
+        "fp": 5,
+        "n": 26,
+        "fpr": 0.1923
+      },
+      "mixed": {
+        "fp": 3,
+        "n": 32,
+        "fpr": 0.0938
+      },
+      "ai_safety": {
+        "fp": 3,
+        "n": 31,
+        "fpr": 0.0968
+      },
+      "business_email": {
+        "fp": 2,
+        "n": 19,
+        "fpr": 0.1053
+      },
+      "database_sql": {
+        "fp": 2,
+        "n": 21,
+        "fpr": 0.0952
+      },
+      "customer_support": {
+        "fp": 2,
+        "n": 17,
+        "fpr": 0.1176
+      },
+      "it_support": {
+        "fp": 1,
+        "n": 10,
+        "fpr": 0.1
+      },
+      "hr_workflows": {
+        "fp": 1,
+        "n": 7,
+        "fpr": 0.1429
+      },
+      "finance_operations": {
+        "fp": 1,
+        "n": 14,
+        "fpr": 0.0714
+      },
+      "api_documentation": {
+        "fp": 1,
+        "n": 11,
+        "fpr": 0.0909
+      },
+      "system_administration": {
+        "fp": 1,
+        "n": 26,
+        "fpr": 0.0385
+      },
+      "cloud_infrastructure": {
+        "fp": 1,
+        "n": 20,
+        "fpr": 0.05
+      }
+    },
+    "latency": {
+      "n": 517,
+      "mean_ms": 92.2554,
+      "median_ms": 87.4918,
+      "p50_ms": 87.4918,
+      "p90_ms": 99.3031,
+      "p95_ms": 118.4298,
+      "p99_ms": 200.5013,
+      "min_ms": 75.7396,
+      "max_ms": 417.2176,
+      "stdev_ms": 23.2668,
+      "throughput_per_s_single_threaded": 10.84,
+      "percentiles_reliable": true
+    }
+  }
+}

@@ -1,0 +1,219 @@
+{
+  "frozen_at": "2026-08-17T10:32:53.372791+00:00",
+  "selected_on": "public/dev",
+  "policy": "Thresholds are frozen here, BEFORE the hold-out is scored. Nothing downstream may change them. If every point fails on the hold-out, that is the result (docs/13-evaluation-strategy.md).",
+  "frozen_thresholds": {
+    "fpr<=0.005": 0.999492,
+    "fpr<=0.01": 0.985,
+    "fpr<=0.02": 0.985,
+    "fpr<=0.0241": 0.031,
+    "fpr<=0.025": 0.031,
+    "fpr<=0.05": 0.001601
+  },
+  "dev_selection": [
+    {
+      "name": "fpr<=0.005",
+      "target_fpr": 0.005,
+      "threshold": 0.999492,
+      "achievable": true,
+      "dev": {
+        "threshold": 0.999492,
+        "tp": 194,
+        "fp": 5,
+        "tn": 1787,
+        "fn": 32,
+        "n": 2018,
+        "n_attack": 226,
+        "n_benign": 1792,
+        "precision": 0.9749,
+        "precision_ci95": [
+          0.9425,
+          0.9892
+        ],
+        "recall": 0.8584,
+        "recall_ci95": [
+          0.8069,
+          0.8979
+        ],
+        "f1": 0.9129,
+        "accuracy": 0.9817,
+        "fpr": 0.0028,
+        "fpr_ci95": [
+          0.0012,
+          0.0065
+        ],
+        "fnr": 0.1416
+      }
+    },
+    {
+      "name": "fpr<=0.01",
+      "target_fpr": 0.01,
+      "threshold": 0.985,
+      "achievable": true,
+      "dev": {
+        "threshold": 0.985,
+        "tp": 199,
+        "fp": 12,
+        "tn": 1780,
+        "fn": 27,
+        "n": 2018,
+        "n_attack": 226,
+        "n_benign": 1792,
+        "precision": 0.9431,
+        "precision_ci95": [
+          0.9032,
+          0.9672
+        ],
+        "recall": 0.8805,
+        "recall_ci95": [
+          0.8318,
+          0.9166
+        ],
+        "f1": 0.9108,
+        "accuracy": 0.9807,
+        "fpr": 0.0067,
+        "fpr_ci95": [
+          0.0038,
+          0.0117
+        ],
+        "fnr": 0.1195
+      }
+    },
+    {
+      "name": "fpr<=0.02",
+      "target_fpr": 0.02,
+      "threshold": 0.985,
+      "achievable": true,
+      "dev": {
+        "threshold": 0.985,
+        "tp": 199,
+        "fp": 12,
+        "tn": 1780,
+        "fn": 27,
+        "n": 2018,
+        "n_attack": 226,
+        "n_benign": 1792,
+        "precision": 0.9431,
+        "precision_ci95": [
+          0.9032,
+          0.9672
+        ],
+        "recall": 0.8805,
+        "recall_ci95": [
+          0.8318,
+          0.9166
+        ],
+        "f1": 0.9108,
+        "accuracy": 0.9807,
+        "fpr": 0.0067,
+        "fpr_ci95": [
+          0.0038,
+          0.0117
+        ],
+        "fnr": 0.1195
+      }
+    },
+    {
+      "name": "fpr<=0.0241",
+      "target_fpr": 0.0241,
+      "threshold": 0.031,
+      "achievable": true,
+      "dev": {
+        "threshold": 0.031,
+        "tp": 200,
+        "fp": 39,
+        "tn": 1753,
+        "fn": 26,
+        "n": 2018,
+        "n_attack": 226,
+        "n_benign": 1792,
+        "precision": 0.8368,
+        "precision_ci95": [
+          0.7847,
+          0.8783
+        ],
+        "recall": 0.885,
+        "recall_ci95": [
+          0.8368,
+          0.9203
+        ],
+        "f1": 0.8602,
+        "accuracy": 0.9678,
+        "fpr": 0.0218,
+        "fpr_ci95": [
+          0.016,
+          0.0296
+        ],
+        "fnr": 0.115
+      }
+    },
+    {
+      "name": "fpr<=0.025",
+      "target_fpr": 0.025,
+      "threshold": 0.031,
+      "achievable": true,
+      "dev": {
+        "threshold": 0.031,
+        "tp": 200,
+        "fp": 39,
+        "tn": 1753,
+        "fn": 26,
+        "n": 2018,
+        "n_attack": 226,
+        "n_benign": 1792,
+        "precision": 0.8368,
+        "precision_ci95": [
+          0.7847,
+          0.8783
+        ],
+        "recall": 0.885,
+        "recall_ci95": [
+          0.8368,
+          0.9203
+        ],
+        "f1": 0.8602,
+        "accuracy": 0.9678,
+        "fpr": 0.0218,
+        "fpr_ci95": [
+          0.016,
+          0.0296
+        ],
+        "fnr": 0.115
+      }
+    },
+    {
+      "name": "fpr<=0.05",
+      "target_fpr": 0.05,
+      "threshold": 0.001601,
+      "achievable": true,
+      "dev": {
+        "threshold": 0.001601,
+        "tp": 208,
+        "fp": 70,
+        "tn": 1722,
+        "fn": 18,
+        "n": 2018,
+        "n_attack": 226,
+        "n_benign": 1792,
+        "precision": 0.7482,
+        "precision_ci95": [
+          0.694,
+          0.7956
+        ],
+        "recall": 0.9204,
+        "recall_ci95": [
+          0.8776,
+          0.949
+        ],
+        "f1": 0.8254,
+        "accuracy": 0.9564,
+        "fpr": 0.0391,
+        "fpr_ci95": [
+          0.031,
+          0.0491
+        ],
+        "fnr": 0.0796
+      }
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "built_at": "2026-08-17T10:44:20.203596+00:00",
+  "dataset_version": "finetune-v1",
+  "seed": 20260817,
+  "generation": "compositional matrix over authored component pools",
+  "composition": {
+    "total": 3814,
+    "train": 3006,
+    "dev": 808,
+    "by_label": {
+      "benign(0)": 3074,
+      "attack(1)": 740
+    },
+    "by_category": {
+      "hard_negative": 2443,
+      "attack": 740,
+      "benign": 631
+    },
+    "by_sub_category": {
+      "quoted_attack": 1364,
+      "general_benign": 631,
+      "developer_documentation": 440,
+      "system_prompt_extraction": 288,
+      "direct_prompt_injection": 281,
+      "instructional_language": 171,
+      "ignore_previous_ordinary": 133,
+      "configuration_override": 95,
+      "security_policy_discussion": 72,
+      "jailbreak": 71,
+      "prompt_injection_discussion": 60,
+      "indirect_injection": 50,
+      "system_prompt_discussion": 48,
+      "role_override": 30,
+      "jailbreak_discussion": 24,
+      "red_team_discussion": 24,
+      "context_override": 20,
+      "security_training": 12
+    },
+    "by_domain": {
+      "attack": 740,
+      "software_engineering": 584,
+      "incident_response": 352,
+      "business_benign": 323,
+      "security_operations": 268,
+      "documentation": 266,
+      "ai_safety": 250,
+      "compliance": 236,
+      "it_support": 154,
+      "red_team_discussion": 154,
+      "technical_benign": 133,
+      "general_benign": 97,
+      "system_administration": 57,
+      "security_training": 44,
+      "technical_documentation": 44,
+      "IT_support": 39,
+      "cloud_infrastructure": 39,
+      "customer_support": 22,
+      "access_management": 12
+    },
+    "by_difficulty": {
+      "hard": 2537,
+      "medium": 646,
+      "easy": 631
+    },
+    "by_generation_method": {
+      "matrix:quoting_frame x attack_phrase x reference": 1364,
+      "matrix:benign_task x reference": 631,
+      "matrix:code_frame x attack_phrase x reference": 440,
+      "matrix:request x pretext x transform": 288,
+      "matrix:opener x scope x goal": 245,
+      "matrix:discussion_topic x deliverable": 240,
+      "matrix:override_frame x reference": 228,
+      "matrix:human_instruction_frame x reference": 171,
+      "matrix:jailbreak_frame x persona x constraint x demand": 71,
+      "matrix:container x payload x reference": 50,
+      "matrix:persona x demand": 30,
+      "matrix:boundary_claim x payload": 20,
+      "surface_form:uppercase": 12,
+      "surface_form:cyrillic_confusable": 12,
+      "surface_form:zero_width_space": 12
+    },
+    "length_chars": {
+      "min": 44,
+      "median": 116,
+      "max": 163
+    }
+  },
+  "integrity": {
+    "exact_and_normalised_duplicates_dropped": 1997,
+    "frozen_holdout_collisions": 0,
+    "public_benchmark_collisions": 0,
+    "cross_split_leakage": 0,
+    "near_duplicate_rate": 1e-05,
+    "near_duplicate_threshold": 0.9,
+    "secrets": 0,
+    "pii": 0
+  },
+  "frozen_holdout": {
+    "path": "eval/datasets/holdout/cases.jsonl",
+    "sha256": "fd91575272056d3b282804ddfbbbde6357f9d20bbf9e98ed49e145b674a28237",
+    "sample_count": 531,
+    "status": "READ-ONLY. Never train, tune, or select on this file."
+  },
+  "provenance": {
+    "source": "internal_generated",
+    "source_type": "synthetic",
+    "generation_method": "eval/datasets/finetune/authoring/pools.py via scripts/datasets/build_finetune.py",
+    "licence": "Apache-2.0 (same as the project)",
+    "deterministic": "seed=20260817; rebuilds byte-identically from a given commit"
+  }
+}

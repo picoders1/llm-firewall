@@ -1,0 +1,39 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Model weights and third-party datasets are downloaded, never committed
+models/
+eval/datasets/raw/
+eval/datasets/cache/
+
+# Evaluation output: reports are committed deliberately, scratch runs are not
+eval/reports/scratch/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Third-party benchmark data is fetched, never committed
+eval/datasets/raw/

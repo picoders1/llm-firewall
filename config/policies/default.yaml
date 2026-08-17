@@ -1,0 +1,113 @@
+# LLM Firewall — default security policy
+#
+# SECRETS ARE STRUCTURALLY FORBIDDEN IN THIS FILE. Any key matching *secret*,
+# *password*, *token*, *_key* or *credential* fails startup. Secrets are supplied
+# as FIREWALL_* environment variables only (docs/adr/ADR-011-configuration-model.md).
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# READ THIS BEFORE TRUSTING ANY VALUE HERE
+#
+# 1. The injection and jailbreak detectors are **baseline heuristics**. They
+#    recognise a small set of published attack phrasings and will miss anything
+#    reworded, translated, or produced after one round of iterating against them.
+#    They are not prompt-injection detection; they are the control condition the
+#    Phase 2 classifier will be measured against (docs/05-detector-architecture.md).
+#
+# 2. The PII detector covers **structured identifiers only** — no names, no
+#    addresses, no organisations. For many deployments that is the majority of
+#    their PII risk (docs/08-pii-security.md).
+#
+# 3. Every `threshold:` below is a **placeholder**, not a calibrated value. No
+#    evaluation has been run. Thresholds are selected in Phase 2 from a published
+#    precision/recall sweep, tuned on `dev` and reported on `test`
+#    (docs/13-evaluation-strategy.md, OD-3 in docs/21-open-decisions.md).
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: 1
+policy_name: default-phase0-baseline
+
+# Which message roles are inspected.
+#   user — direct injection and user-supplied PII.
+#   tool — THE indirect-injection surface. Retrieved documents and tool output
+#          are attacker-controlled in any RAG or agent system, and arrive with
+#          the same syntactic status as the user's own words.
+#   system/developer — trusted by configuration. Enable if you template user
+#          data into your system prompt.
+#   assistant — already inspected on the way out.
+inspect_roles:
+  - user
+  - tool
+
+# ── Inbound inspection ───────────────────────────────────────────────────────
+input:
+  prompt_injection:
+    detector: injection.heuristic   # → injection.transformer (Phase 2)
+    enabled: true
+    threshold: 0.85                 # PLACEHOLDER — uncalibrated
+    action: block
+    on_error: fail_closed           # a firewall that stops inspecting must fail loudly (ADR-007)
+    timeout_ms: 250
+
+  jailbreak:
+    detector: jailbreak.heuristic   # → jailbreak.transformer (Phase 2)
+    enabled: true
+    threshold: 0.85                 # PLACEHOLDER — uncalibrated
+    action: block
+    on_error: fail_closed
+    timeout_ms: 250
+
+  pii:
+    detector: pii.regex             # → pii.presidio (Phase 2)
+    enabled: true
+    # Entities below this confidence are not reported at all. PHONE sits at 0.60
+    # and is the largest false-positive source, so raising this to 0.7 disables
+    # phone matching without touching the entity list.
+    threshold: 0.50                 # PLACEHOLDER — uncalibrated
+    action: redact                  # redact, not block: "summarise this customer
+                                    # email" is the application, not the attack
+    on_error: fail_closed
+    timeout_ms: 100
+    options:
+      entities: [EMAIL, PHONE, CREDIT_CARD, IPV4, IBAN]
+      # Enterprise identifiers are the PII an organisation actually cares about,
+      # and only the operator knows their format. Patterns are policy, so they
+      # are reviewable in a diff.
+      custom_patterns: []
+
+# ── Outbound inspection ──────────────────────────────────────────────────────
+# Note the asymmetry with `input`. Input inspection is prevention and blocking is
+# cheap. Output inspection is containment: the upstream call is already paid for
+# and the model has already produced the content, so redaction is usually right
+# where blocking would be right on input (docs/03-request-response-flow.md).
+output:
+  pii:
+    detector: pii.regex
+    enabled: true
+    threshold: 0.50                 # PLACEHOLDER — uncalibrated
+    action: redact
+    on_error: fail_closed
+    timeout_ms: 100
+    options:
+      entities: [EMAIL, PHONE, CREDIT_CARD]
+
+  output_policy:
+    detector: output.stub           # → Phase 3 (disclosure, tool-call and URL exfiltration)
+    enabled: false                  # nothing to enforce until Phase 3
+    threshold: 0.90                 # PLACEHOLDER — uncalibrated
+    action: block
+    on_error: fail_closed
+    timeout_ms: 250
+
+# ── Redaction ────────────────────────────────────────────────────────────────
+redaction:
+  # Labelled tokens, never fixed-width masking: the text stays readable, the
+  # sentence keeps its structure, and the caller can see what was removed.
+  template: "<{entity}_REDACTED>"
+
+# ── Limits ───────────────────────────────────────────────────────────────────
+# Bound the work an attacker can force. Truncation is recorded on the security
+# event, so a partially-inspected request is never mistaken for a clean one.
+limits:
+  max_inspect_chars: 100000
+  max_messages: 200
+  base64_segments: 8

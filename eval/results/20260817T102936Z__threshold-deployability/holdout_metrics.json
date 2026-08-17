@@ -1,0 +1,2076 @@
+{
+  "note": "frozen thresholds from public/dev; no threshold selected here",
+  "n": 517,
+  "candidate": {
+    "fpr<=0.005": {
+      "threshold": 0.999492,
+      "overall": {
+        "tp": 53,
+        "fp": 31,
+        "tn": 426,
+        "fn": 7,
+        "n": 517,
+        "n_attack": 60,
+        "n_benign": 457,
+        "precision": 0.631,
+        "precision_ci95": [
+          0.5242,
+          0.7263
+        ],
+        "recall": 0.8833,
+        "recall_ci95": [
+          0.7782,
+          0.9423
+        ],
+        "f1": 0.7361,
+        "accuracy": 0.9265,
+        "fpr": 0.0678,
+        "fpr_ci95": [
+          0.0482,
+          0.0947
+        ],
+        "fnr": 0.1167
+      },
+      "all_benign": {
+        "n": 457,
+        "n_benign": 457,
+        "fp": 31,
+        "tn": 426,
+        "fpr": 0.0678,
+        "fpr_ci95": [
+          0.0482,
+          0.0947
+        ]
+      },
+      "hard_negatives": {
+        "n": 170,
+        "n_benign": 170,
+        "fp": 29,
+        "tn": 141,
+        "fpr": 0.1706,
+        "fpr_ci95": [
+          0.1215,
+          0.2343
+        ]
+      },
+      "ordinary_benign": {
+        "n": 287,
+        "n_benign": 287,
+        "fp": 2,
+        "tn": 285,
+        "fpr": 0.007,
+        "fpr_ci95": [
+          0.0019,
+          0.025
+        ]
+      },
+      "by_sub_category": {
+        "quoted_attack": {
+          "n": 16,
+          "n_benign": 16,
+          "fp": 14,
+          "tn": 2,
+          "fpr": 0.875,
+          "fpr_ci95": [
+            0.6398,
+            0.965
+          ]
+        },
+        "ignore_previous_ordinary": {
+          "n": 17,
+          "n_benign": 17,
+          "fp": 3,
+          "tn": 14,
+          "fpr": 0.1765,
+          "fpr_ci95": [
+            0.0619,
+            0.4103
+          ]
+        },
+        "override_ordinary": {
+          "n": 5,
+          "n_benign": 5,
+          "fp": 0,
+          "tn": 5,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.4345
+          ]
+        },
+        "human_instructions": {
+          "n": 12,
+          "n_benign": 12,
+          "fp": 2,
+          "tn": 10,
+          "fpr": 0.1667,
+          "fpr_ci95": [
+            0.047,
+            0.448
+          ]
+        },
+        "security_policy": {
+          "n": 10,
+          "n_benign": 10,
+          "fp": 2,
+          "tn": 8,
+          "fpr": 0.2,
+          "fpr_ci95": [
+            0.0567,
+            0.5098
+          ]
+        },
+        "system_prompt_engineering": {
+          "n": 10,
+          "n_benign": 10,
+          "fp": 2,
+          "tn": 8,
+          "fpr": 0.2,
+          "fpr_ci95": [
+            0.0567,
+            0.5098
+          ]
+        },
+        "injection_discussion": {
+          "n": 15,
+          "n_benign": 15,
+          "fp": 1,
+          "tn": 14,
+          "fpr": 0.0667,
+          "fpr_ci95": [
+            0.0119,
+            0.2982
+          ]
+        },
+        "jailbreak_discussion": {
+          "n": 7,
+          "n_benign": 7,
+          "fp": 0,
+          "tn": 7,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.3543
+          ]
+        },
+        "guardrail_docs": {
+          "n": 18,
+          "n_benign": 18,
+          "fp": 1,
+          "tn": 17,
+          "fpr": 0.0556,
+          "fpr_ci95": [
+            0.0099,
+            0.2576
+          ]
+        },
+        "code_with_attack_strings": {
+          "n": 5,
+          "n_benign": 5,
+          "fp": 2,
+          "tn": 3,
+          "fpr": 0.4,
+          "fpr_ci95": [
+            0.1176,
+            0.7693
+          ]
+        }
+      },
+      "by_domain": {
+        "security_operations": {
+          "n": 32,
+          "n_benign": 32,
+          "fp": 7,
+          "tn": 25,
+          "fpr": 0.2188,
+          "fpr_ci95": [
+            0.1102,
+            0.3875
+          ]
+        },
+        "incident_response": {
+          "n": 17,
+          "n_benign": 17,
+          "fp": 7,
+          "tn": 10,
+          "fpr": 0.4118,
+          "fpr_ci95": [
+            0.2161,
+            0.6399
+          ]
+        },
+        "technical_documentation": {
+          "n": 30,
+          "n_benign": 30,
+          "fp": 2,
+          "tn": 28,
+          "fpr": 0.0667,
+          "fpr_ci95": [
+            0.0185,
+            0.2132
+          ]
+        },
+        "software_engineering": {
+          "n": 75,
+          "n_benign": 75,
+          "fp": 3,
+          "tn": 72,
+          "fpr": 0.04,
+          "fpr_ci95": [
+            0.0137,
+            0.1111
+          ]
+        },
+        "compliance": {
+          "n": 36,
+          "n_benign": 36,
+          "fp": 2,
+          "tn": 34,
+          "fpr": 0.0556,
+          "fpr_ci95": [
+            0.0154,
+            0.1814
+          ]
+        },
+        "ai_safety": {
+          "n": 31,
+          "n_benign": 31,
+          "fp": 3,
+          "tn": 28,
+          "fpr": 0.0968,
+          "fpr_ci95": [
+            0.0335,
+            0.249
+          ]
+        }
+      },
+      "system_prompt_extraction": {
+        "n": 45,
+        "tp": 38,
+        "fn": 7,
+        "recall": 0.8444,
+        "recall_ci95": [
+          0.7122,
+          0.9225
+        ]
+      }
+    },
+    "fpr<=0.01": {
+      "threshold": 0.985,
+      "overall": {
+        "tp": 54,
+        "fp": 48,
+        "tn": 409,
+        "fn": 6,
+        "n": 517,
+        "n_attack": 60,
+        "n_benign": 457,
+        "precision": 0.5294,
+        "precision_ci95": [
+          0.4332,
+          0.6234
+        ],
+        "recall": 0.9,
+        "recall_ci95": [
+          0.7985,
+          0.9534
+        ],
+        "f1": 0.6667,
+        "accuracy": 0.8956,
+        "fpr": 0.105,
+        "fpr_ci95": [
+          0.0801,
+          0.1365
+        ],
+        "fnr": 0.1
+      },
+      "all_benign": {
+        "n": 457,
+        "n_benign": 457,
+        "fp": 48,
+        "tn": 409,
+        "fpr": 0.105,
+        "fpr_ci95": [
+          0.0801,
+          0.1365
+        ]
+      },
+      "hard_negatives": {
+        "n": 170,
+        "n_benign": 170,
+        "fp": 43,
+        "tn": 127,
+        "fpr": 0.2529,
+        "fpr_ci95": [
+          0.1936,
+          0.3232
+        ]
+      },
+      "ordinary_benign": {
+        "n": 287,
+        "n_benign": 287,
+        "fp": 5,
+        "tn": 282,
+        "fpr": 0.0174,
+        "fpr_ci95": [
+          0.0075,
+          0.0401
+        ]
+      },
+      "by_sub_category": {
+        "quoted_attack": {
+          "n": 16,
+          "n_benign": 16,
+          "fp": 15,
+          "tn": 1,
+          "fpr": 0.9375,
+          "fpr_ci95": [
+            0.7167,
+            0.9889
+          ]
+        },
+        "ignore_previous_ordinary": {
+          "n": 17,
+          "n_benign": 17,
+          "fp": 6,
+          "tn": 11,
+          "fpr": 0.3529,
+          "fpr_ci95": [
+            0.1731,
+            0.587
+          ]
+        },
+        "override_ordinary": {
+          "n": 5,
+          "n_benign": 5,
+          "fp": 1,
+          "tn": 4,
+          "fpr": 0.2,
+          "fpr_ci95": [
+            0.0362,
+            0.6245
+          ]
+        },
+        "human_instructions": {
+          "n": 12,
+          "n_benign": 12,
+          "fp": 4,
+          "tn": 8,
+          "fpr": 0.3333,
+          "fpr_ci95": [
+            0.1381,
+            0.6094
+          ]
+        },
+        "security_policy": {
+          "n": 10,
+          "n_benign": 10,
+          "fp": 4,
+          "tn": 6,
+          "fpr": 0.4,
+          "fpr_ci95": [
+            0.1682,
+            0.6873
+          ]
+        },
+        "system_prompt_engineering": {
+          "n": 10,
+          "n_benign": 10,
+          "fp": 2,
+          "tn": 8,
+          "fpr": 0.2,
+          "fpr_ci95": [
+            0.0567,
+            0.5098
+          ]
+        },
+        "injection_discussion": {
+          "n": 15,
+          "n_benign": 15,
+          "fp": 1,
+          "tn": 14,
+          "fpr": 0.0667,
+          "fpr_ci95": [
+            0.0119,
+            0.2982
+          ]
+        },
+        "jailbreak_discussion": {
+          "n": 7,
+          "n_benign": 7,
+          "fp": 0,
+          "tn": 7,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.3543
+          ]
+        },
+        "guardrail_docs": {
+          "n": 18,
+          "n_benign": 18,
+          "fp": 3,
+          "tn": 15,
+          "fpr": 0.1667,
+          "fpr_ci95": [
+            0.0584,
+            0.3922
+          ]
+        },
+        "code_with_attack_strings": {
+          "n": 5,
+          "n_benign": 5,
+          "fp": 2,
+          "tn": 3,
+          "fpr": 0.4,
+          "fpr_ci95": [
+            0.1176,
+            0.7693
+          ]
+        }
+      },
+      "by_domain": {
+        "security_operations": {
+          "n": 32,
+          "n_benign": 32,
+          "fp": 9,
+          "tn": 23,
+          "fpr": 0.2812,
+          "fpr_ci95": [
+            0.1556,
+            0.4537
+          ]
+        },
+        "incident_response": {
+          "n": 17,
+          "n_benign": 17,
+          "fp": 8,
+          "tn": 9,
+          "fpr": 0.4706,
+          "fpr_ci95": [
+            0.2617,
+            0.6904
+          ]
+        },
+        "technical_documentation": {
+          "n": 30,
+          "n_benign": 30,
+          "fp": 4,
+          "tn": 26,
+          "fpr": 0.1333,
+          "fpr_ci95": [
+            0.0531,
+            0.2968
+          ]
+        },
+        "software_engineering": {
+          "n": 75,
+          "n_benign": 75,
+          "fp": 3,
+          "tn": 72,
+          "fpr": 0.04,
+          "fpr_ci95": [
+            0.0137,
+            0.1111
+          ]
+        },
+        "compliance": {
+          "n": 36,
+          "n_benign": 36,
+          "fp": 4,
+          "tn": 32,
+          "fpr": 0.1111,
+          "fpr_ci95": [
+            0.0441,
+            0.2531
+          ]
+        },
+        "ai_safety": {
+          "n": 31,
+          "n_benign": 31,
+          "fp": 4,
+          "tn": 27,
+          "fpr": 0.129,
+          "fpr_ci95": [
+            0.0513,
+            0.2885
+          ]
+        }
+      },
+      "system_prompt_extraction": {
+        "n": 45,
+        "tp": 39,
+        "fn": 6,
+        "recall": 0.8667,
+        "recall_ci95": [
+          0.7382,
+          0.9374
+        ]
+      }
+    },
+    "fpr<=0.02": {
+      "threshold": 0.985,
+      "overall": {
+        "tp": 54,
+        "fp": 48,
+        "tn": 409,
+        "fn": 6,
+        "n": 517,
+        "n_attack": 60,
+        "n_benign": 457,
+        "precision": 0.5294,
+        "precision_ci95": [
+          0.4332,
+          0.6234
+        ],
+        "recall": 0.9,
+        "recall_ci95": [
+          0.7985,
+          0.9534
+        ],
+        "f1": 0.6667,
+        "accuracy": 0.8956,
+        "fpr": 0.105,
+        "fpr_ci95": [
+          0.0801,
+          0.1365
+        ],
+        "fnr": 0.1
+      },
+      "all_benign": {
+        "n": 457,
+        "n_benign": 457,
+        "fp": 48,
+        "tn": 409,
+        "fpr": 0.105,
+        "fpr_ci95": [
+          0.0801,
+          0.1365
+        ]
+      },
+      "hard_negatives": {
+        "n": 170,
+        "n_benign": 170,
+        "fp": 43,
+        "tn": 127,
+        "fpr": 0.2529,
+        "fpr_ci95": [
+          0.1936,
+          0.3232
+        ]
+      },
+      "ordinary_benign": {
+        "n": 287,
+        "n_benign": 287,
+        "fp": 5,
+        "tn": 282,
+        "fpr": 0.0174,
+        "fpr_ci95": [
+          0.0075,
+          0.0401
+        ]
+      },
+      "by_sub_category": {
+        "quoted_attack": {
+          "n": 16,
+          "n_benign": 16,
+          "fp": 15,
+          "tn": 1,
+          "fpr": 0.9375,
+          "fpr_ci95": [
+            0.7167,
+            0.9889
+          ]
+        },
+        "ignore_previous_ordinary": {
+          "n": 17,
+          "n_benign": 17,
+          "fp": 6,
+          "tn": 11,
+          "fpr": 0.3529,
+          "fpr_ci95": [
+            0.1731,
+            0.587
+          ]
+        },
+        "override_ordinary": {
+          "n": 5,
+          "n_benign": 5,
+          "fp": 1,
+          "tn": 4,
+          "fpr": 0.2,
+          "fpr_ci95": [
+            0.0362,
+            0.6245
+          ]
+        },
+        "human_instructions": {
+          "n": 12,
+          "n_benign": 12,
+          "fp": 4,
+          "tn": 8,
+          "fpr": 0.3333,
+          "fpr_ci95": [
+            0.1381,
+            0.6094
+          ]
+        },
+        "security_policy": {
+          "n": 10,
+          "n_benign": 10,
+          "fp": 4,
+          "tn": 6,
+          "fpr": 0.4,
+          "fpr_ci95": [
+            0.1682,
+            0.6873
+          ]
+        },
+        "system_prompt_engineering": {
+          "n": 10,
+          "n_benign": 10,
+          "fp": 2,
+          "tn": 8,
+          "fpr": 0.2,
+          "fpr_ci95": [
+            0.0567,
+            0.5098
+          ]
+        },
+        "injection_discussion": {
+          "n": 15,
+          "n_benign": 15,
+          "fp": 1,
+          "tn": 14,
+          "fpr": 0.0667,
+          "fpr_ci95": [
+            0.0119,
+            0.2982
+          ]
+        },
+        "jailbreak_discussion": {
+          "n": 7,
+          "n_benign": 7,
+          "fp": 0,
+          "tn": 7,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.3543
+          ]
+        },
+        "guardrail_docs": {
+          "n": 18,
+          "n_benign": 18,
+          "fp": 3,
+          "tn": 15,
+          "fpr": 0.1667,
+          "fpr_ci95": [
+            0.0584,
+            0.3922
+          ]
+        },
+        "code_with_attack_strings": {
+          "n": 5,
+          "n_benign": 5,
+          "fp": 2,
+          "tn": 3,
+          "fpr": 0.4,
+          "fpr_ci95": [
+            0.1176,
+            0.7693
+          ]
+        }
+      },
+      "by_domain": {
+        "security_operations": {
+          "n": 32,
+          "n_benign": 32,
+          "fp": 9,
+          "tn": 23,
+          "fpr": 0.2812,
+          "fpr_ci95": [
+            0.1556,
+            0.4537
+          ]
+        },
+        "incident_response": {
+          "n": 17,
+          "n_benign": 17,
+          "fp": 8,
+          "tn": 9,
+          "fpr": 0.4706,
+          "fpr_ci95": [
+            0.2617,
+            0.6904
+          ]
+        },
+        "technical_documentation": {
+          "n": 30,
+          "n_benign": 30,
+          "fp": 4,
+          "tn": 26,
+          "fpr": 0.1333,
+          "fpr_ci95": [
+            0.0531,
+            0.2968
+          ]
+        },
+        "software_engineering": {
+          "n": 75,
+          "n_benign": 75,
+          "fp": 3,
+          "tn": 72,
+          "fpr": 0.04,
+          "fpr_ci95": [
+            0.0137,
+            0.1111
+          ]
+        },
+        "compliance": {
+          "n": 36,
+          "n_benign": 36,
+          "fp": 4,
+          "tn": 32,
+          "fpr": 0.1111,
+          "fpr_ci95": [
+            0.0441,
+            0.2531
+          ]
+        },
+        "ai_safety": {
+          "n": 31,
+          "n_benign": 31,
+          "fp": 4,
+          "tn": 27,
+          "fpr": 0.129,
+          "fpr_ci95": [
+            0.0513,
+            0.2885
+          ]
+        }
+      },
+      "system_prompt_extraction": {
+        "n": 45,
+        "tp": 39,
+        "fn": 6,
+        "recall": 0.8667,
+        "recall_ci95": [
+          0.7382,
+          0.9374
+        ]
+      }
+    },
+    "fpr<=0.0241": {
+      "threshold": 0.031,
+      "overall": {
+        "tp": 57,
+        "fp": 69,
+        "tn": 388,
+        "fn": 3,
+        "n": 517,
+        "n_attack": 60,
+        "n_benign": 457,
+        "precision": 0.4524,
+        "precision_ci95": [
+          0.3682,
+          0.5394
+        ],
+        "recall": 0.95,
+        "recall_ci95": [
+          0.863,
+          0.9829
+        ],
+        "f1": 0.6129,
+        "accuracy": 0.8607,
+        "fpr": 0.151,
+        "fpr_ci95": [
+          0.1211,
+          0.1867
+        ],
+        "fnr": 0.05
+      },
+      "all_benign": {
+        "n": 457,
+        "n_benign": 457,
+        "fp": 69,
+        "tn": 388,
+        "fpr": 0.151,
+        "fpr_ci95": [
+          0.1211,
+          0.1867
+        ]
+      },
+      "hard_negatives": {
+        "n": 170,
+        "n_benign": 170,
+        "fp": 61,
+        "tn": 109,
+        "fpr": 0.3588,
+        "fpr_ci95": [
+          0.2906,
+          0.4333
+        ]
+      },
+      "ordinary_benign": {
+        "n": 287,
+        "n_benign": 287,
+        "fp": 8,
+        "tn": 279,
+        "fpr": 0.0279,
+        "fpr_ci95": [
+          0.0142,
+          0.054
+        ]
+      },
+      "by_sub_category": {
+        "quoted_attack": {
+          "n": 16,
+          "n_benign": 16,
+          "fp": 15,
+          "tn": 1,
+          "fpr": 0.9375,
+          "fpr_ci95": [
+            0.7167,
+            0.9889
+          ]
+        },
+        "ignore_previous_ordinary": {
+          "n": 17,
+          "n_benign": 17,
+          "fp": 11,
+          "tn": 6,
+          "fpr": 0.6471,
+          "fpr_ci95": [
+            0.413,
+            0.8269
+          ]
+        },
+        "override_ordinary": {
+          "n": 5,
+          "n_benign": 5,
+          "fp": 3,
+          "tn": 2,
+          "fpr": 0.6,
+          "fpr_ci95": [
+            0.2307,
+            0.8824
+          ]
+        },
+        "human_instructions": {
+          "n": 12,
+          "n_benign": 12,
+          "fp": 8,
+          "tn": 4,
+          "fpr": 0.6667,
+          "fpr_ci95": [
+            0.3906,
+            0.8619
+          ]
+        },
+        "security_policy": {
+          "n": 10,
+          "n_benign": 10,
+          "fp": 5,
+          "tn": 5,
+          "fpr": 0.5,
+          "fpr_ci95": [
+            0.2366,
+            0.7634
+          ]
+        },
+        "system_prompt_engineering": {
+          "n": 10,
+          "n_benign": 10,
+          "fp": 3,
+          "tn": 7,
+          "fpr": 0.3,
+          "fpr_ci95": [
+            0.1078,
+            0.6032
+          ]
+        },
+        "injection_discussion": {
+          "n": 15,
+          "n_benign": 15,
+          "fp": 2,
+          "tn": 13,
+          "fpr": 0.1333,
+          "fpr_ci95": [
+            0.0374,
+            0.3788
+          ]
+        },
+        "jailbreak_discussion": {
+          "n": 7,
+          "n_benign": 7,
+          "fp": 0,
+          "tn": 7,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.3543
+          ]
+        },
+        "guardrail_docs": {
+          "n": 18,
+          "n_benign": 18,
+          "fp": 4,
+          "tn": 14,
+          "fpr": 0.2222,
+          "fpr_ci95": [
+            0.09,
+            0.4521
+          ]
+        },
+        "code_with_attack_strings": {
+          "n": 5,
+          "n_benign": 5,
+          "fp": 3,
+          "tn": 2,
+          "fpr": 0.6,
+          "fpr_ci95": [
+            0.2307,
+            0.8824
+          ]
+        }
+      },
+      "by_domain": {
+        "security_operations": {
+          "n": 32,
+          "n_benign": 32,
+          "fp": 11,
+          "tn": 21,
+          "fpr": 0.3438,
+          "fpr_ci95": [
+            0.2041,
+            0.5169
+          ]
+        },
+        "incident_response": {
+          "n": 17,
+          "n_benign": 17,
+          "fp": 9,
+          "tn": 8,
+          "fpr": 0.5294,
+          "fpr_ci95": [
+            0.3096,
+            0.7383
+          ]
+        },
+        "technical_documentation": {
+          "n": 30,
+          "n_benign": 30,
+          "fp": 8,
+          "tn": 22,
+          "fpr": 0.2667,
+          "fpr_ci95": [
+            0.1418,
+            0.4445
+          ]
+        },
+        "software_engineering": {
+          "n": 75,
+          "n_benign": 75,
+          "fp": 8,
+          "tn": 67,
+          "fpr": 0.1067,
+          "fpr_ci95": [
+            0.055,
+            0.1966
+          ]
+        },
+        "compliance": {
+          "n": 36,
+          "n_benign": 36,
+          "fp": 5,
+          "tn": 31,
+          "fpr": 0.1389,
+          "fpr_ci95": [
+            0.0608,
+            0.2866
+          ]
+        },
+        "ai_safety": {
+          "n": 31,
+          "n_benign": 31,
+          "fp": 5,
+          "tn": 26,
+          "fpr": 0.1613,
+          "fpr_ci95": [
+            0.0709,
+            0.3263
+          ]
+        }
+      },
+      "system_prompt_extraction": {
+        "n": 45,
+        "tp": 42,
+        "fn": 3,
+        "recall": 0.9333,
+        "recall_ci95": [
+          0.8214,
+          0.9771
+        ]
+      }
+    },
+    "fpr<=0.025": {
+      "threshold": 0.031,
+      "overall": {
+        "tp": 57,
+        "fp": 69,
+        "tn": 388,
+        "fn": 3,
+        "n": 517,
+        "n_attack": 60,
+        "n_benign": 457,
+        "precision": 0.4524,
+        "precision_ci95": [
+          0.3682,
+          0.5394
+        ],
+        "recall": 0.95,
+        "recall_ci95": [
+          0.863,
+          0.9829
+        ],
+        "f1": 0.6129,
+        "accuracy": 0.8607,
+        "fpr": 0.151,
+        "fpr_ci95": [
+          0.1211,
+          0.1867
+        ],
+        "fnr": 0.05
+      },
+      "all_benign": {
+        "n": 457,
+        "n_benign": 457,
+        "fp": 69,
+        "tn": 388,
+        "fpr": 0.151,
+        "fpr_ci95": [
+          0.1211,
+          0.1867
+        ]
+      },
+      "hard_negatives": {
+        "n": 170,
+        "n_benign": 170,
+        "fp": 61,
+        "tn": 109,
+        "fpr": 0.3588,
+        "fpr_ci95": [
+          0.2906,
+          0.4333
+        ]
+      },
+      "ordinary_benign": {
+        "n": 287,
+        "n_benign": 287,
+        "fp": 8,
+        "tn": 279,
+        "fpr": 0.0279,
+        "fpr_ci95": [
+          0.0142,
+          0.054
+        ]
+      },
+      "by_sub_category": {
+        "quoted_attack": {
+          "n": 16,
+          "n_benign": 16,
+          "fp": 15,
+          "tn": 1,
+          "fpr": 0.9375,
+          "fpr_ci95": [
+            0.7167,
+            0.9889
+          ]
+        },
+        "ignore_previous_ordinary": {
+          "n": 17,
+          "n_benign": 17,
+          "fp": 11,
+          "tn": 6,
+          "fpr": 0.6471,
+          "fpr_ci95": [
+            0.413,
+            0.8269
+          ]
+        },
+        "override_ordinary": {
+          "n": 5,
+          "n_benign": 5,
+          "fp": 3,
+          "tn": 2,
+          "fpr": 0.6,
+          "fpr_ci95": [
+            0.2307,
+            0.8824
+          ]
+        },
+        "human_instructions": {
+          "n": 12,
+          "n_benign": 12,
+          "fp": 8,
+          "tn": 4,
+          "fpr": 0.6667,
+          "fpr_ci95": [
+            0.3906,
+            0.8619
+          ]
+        },
+        "security_policy": {
+          "n": 10,
+          "n_benign": 10,
+          "fp": 5,
+          "tn": 5,
+          "fpr": 0.5,
+          "fpr_ci95": [
+            0.2366,
+            0.7634
+          ]
+        },
+        "system_prompt_engineering": {
+          "n": 10,
+          "n_benign": 10,
+          "fp": 3,
+          "tn": 7,
+          "fpr": 0.3,
+          "fpr_ci95": [
+            0.1078,
+            0.6032
+          ]
+        },
+        "injection_discussion": {
+          "n": 15,
+          "n_benign": 15,
+          "fp": 2,
+          "tn": 13,
+          "fpr": 0.1333,
+          "fpr_ci95": [
+            0.0374,
+            0.3788
+          ]
+        },
+        "jailbreak_discussion": {
+          "n": 7,
+          "n_benign": 7,
+          "fp": 0,
+          "tn": 7,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.3543
+          ]
+        },
+        "guardrail_docs": {
+          "n": 18,
+          "n_benign": 18,
+          "fp": 4,
+          "tn": 14,
+          "fpr": 0.2222,
+          "fpr_ci95": [
+            0.09,
+            0.4521
+          ]
+        },
+        "code_with_attack_strings": {
+          "n": 5,
+          "n_benign": 5,
+          "fp": 3,
+          "tn": 2,
+          "fpr": 0.6,
+          "fpr_ci95": [
+            0.2307,
+            0.8824
+          ]
+        }
+      },
+      "by_domain": {
+        "security_operations": {
+          "n": 32,
+          "n_benign": 32,
+          "fp": 11,
+          "tn": 21,
+          "fpr": 0.3438,
+          "fpr_ci95": [
+            0.2041,
+            0.5169
+          ]
+        },
+        "incident_response": {
+          "n": 17,
+          "n_benign": 17,
+          "fp": 9,
+          "tn": 8,
+          "fpr": 0.5294,
+          "fpr_ci95": [
+            0.3096,
+            0.7383
+          ]
+        },
+        "technical_documentation": {
+          "n": 30,
+          "n_benign": 30,
+          "fp": 8,
+          "tn": 22,
+          "fpr": 0.2667,
+          "fpr_ci95": [
+            0.1418,
+            0.4445
+          ]
+        },
+        "software_engineering": {
+          "n": 75,
+          "n_benign": 75,
+          "fp": 8,
+          "tn": 67,
+          "fpr": 0.1067,
+          "fpr_ci95": [
+            0.055,
+            0.1966
+          ]
+        },
+        "compliance": {
+          "n": 36,
+          "n_benign": 36,
+          "fp": 5,
+          "tn": 31,
+          "fpr": 0.1389,
+          "fpr_ci95": [
+            0.0608,
+            0.2866
+          ]
+        },
+        "ai_safety": {
+          "n": 31,
+          "n_benign": 31,
+          "fp": 5,
+          "tn": 26,
+          "fpr": 0.1613,
+          "fpr_ci95": [
+            0.0709,
+            0.3263
+          ]
+        }
+      },
+      "system_prompt_extraction": {
+        "n": 45,
+        "tp": 42,
+        "fn": 3,
+        "recall": 0.9333,
+        "recall_ci95": [
+          0.8214,
+          0.9771
+        ]
+      }
+    },
+    "fpr<=0.05": {
+      "threshold": 0.001601,
+      "overall": {
+        "tp": 57,
+        "fp": 89,
+        "tn": 368,
+        "fn": 3,
+        "n": 517,
+        "n_attack": 60,
+        "n_benign": 457,
+        "precision": 0.3904,
+        "precision_ci95": [
+          0.3151,
+          0.4714
+        ],
+        "recall": 0.95,
+        "recall_ci95": [
+          0.863,
+          0.9829
+        ],
+        "f1": 0.5534,
+        "accuracy": 0.8221,
+        "fpr": 0.1947,
+        "fpr_ci95": [
+          0.161,
+          0.2335
+        ],
+        "fnr": 0.05
+      },
+      "all_benign": {
+        "n": 457,
+        "n_benign": 457,
+        "fp": 89,
+        "tn": 368,
+        "fpr": 0.1947,
+        "fpr_ci95": [
+          0.161,
+          0.2335
+        ]
+      },
+      "hard_negatives": {
+        "n": 170,
+        "n_benign": 170,
+        "fp": 74,
+        "tn": 96,
+        "fpr": 0.4353,
+        "fpr_ci95": [
+          0.363,
+          0.5104
+        ]
+      },
+      "ordinary_benign": {
+        "n": 287,
+        "n_benign": 287,
+        "fp": 15,
+        "tn": 272,
+        "fpr": 0.0523,
+        "fpr_ci95": [
+          0.0319,
+          0.0844
+        ]
+      },
+      "by_sub_category": {
+        "quoted_attack": {
+          "n": 16,
+          "n_benign": 16,
+          "fp": 15,
+          "tn": 1,
+          "fpr": 0.9375,
+          "fpr_ci95": [
+            0.7167,
+            0.9889
+          ]
+        },
+        "ignore_previous_ordinary": {
+          "n": 17,
+          "n_benign": 17,
+          "fp": 12,
+          "tn": 5,
+          "fpr": 0.7059,
+          "fpr_ci95": [
+            0.4687,
+            0.8672
+          ]
+        },
+        "override_ordinary": {
+          "n": 5,
+          "n_benign": 5,
+          "fp": 4,
+          "tn": 1,
+          "fpr": 0.8,
+          "fpr_ci95": [
+            0.3755,
+            0.9638
+          ]
+        },
+        "human_instructions": {
+          "n": 12,
+          "n_benign": 12,
+          "fp": 8,
+          "tn": 4,
+          "fpr": 0.6667,
+          "fpr_ci95": [
+            0.3906,
+            0.8619
+          ]
+        },
+        "security_policy": {
+          "n": 10,
+          "n_benign": 10,
+          "fp": 8,
+          "tn": 2,
+          "fpr": 0.8,
+          "fpr_ci95": [
+            0.4902,
+            0.9433
+          ]
+        },
+        "system_prompt_engineering": {
+          "n": 10,
+          "n_benign": 10,
+          "fp": 3,
+          "tn": 7,
+          "fpr": 0.3,
+          "fpr_ci95": [
+            0.1078,
+            0.6032
+          ]
+        },
+        "injection_discussion": {
+          "n": 15,
+          "n_benign": 15,
+          "fp": 4,
+          "tn": 11,
+          "fpr": 0.2667,
+          "fpr_ci95": [
+            0.109,
+            0.5195
+          ]
+        },
+        "jailbreak_discussion": {
+          "n": 7,
+          "n_benign": 7,
+          "fp": 0,
+          "tn": 7,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.3543
+          ]
+        },
+        "guardrail_docs": {
+          "n": 18,
+          "n_benign": 18,
+          "fp": 6,
+          "tn": 12,
+          "fpr": 0.3333,
+          "fpr_ci95": [
+            0.1628,
+            0.5625
+          ]
+        },
+        "code_with_attack_strings": {
+          "n": 5,
+          "n_benign": 5,
+          "fp": 3,
+          "tn": 2,
+          "fpr": 0.6,
+          "fpr_ci95": [
+            0.2307,
+            0.8824
+          ]
+        }
+      },
+      "by_domain": {
+        "security_operations": {
+          "n": 32,
+          "n_benign": 32,
+          "fp": 14,
+          "tn": 18,
+          "fpr": 0.4375,
+          "fpr_ci95": [
+            0.2817,
+            0.6067
+          ]
+        },
+        "incident_response": {
+          "n": 17,
+          "n_benign": 17,
+          "fp": 9,
+          "tn": 8,
+          "fpr": 0.5294,
+          "fpr_ci95": [
+            0.3096,
+            0.7383
+          ]
+        },
+        "technical_documentation": {
+          "n": 30,
+          "n_benign": 30,
+          "fp": 8,
+          "tn": 22,
+          "fpr": 0.2667,
+          "fpr_ci95": [
+            0.1418,
+            0.4445
+          ]
+        },
+        "software_engineering": {
+          "n": 75,
+          "n_benign": 75,
+          "fp": 10,
+          "tn": 65,
+          "fpr": 0.1333,
+          "fpr_ci95": [
+            0.0741,
+            0.2283
+          ]
+        },
+        "compliance": {
+          "n": 36,
+          "n_benign": 36,
+          "fp": 10,
+          "tn": 26,
+          "fpr": 0.2778,
+          "fpr_ci95": [
+            0.1585,
+            0.4399
+          ]
+        },
+        "ai_safety": {
+          "n": 31,
+          "n_benign": 31,
+          "fp": 5,
+          "tn": 26,
+          "fpr": 0.1613,
+          "fpr_ci95": [
+            0.0709,
+            0.3263
+          ]
+        }
+      },
+      "system_prompt_extraction": {
+        "n": 45,
+        "tp": 42,
+        "fn": 3,
+        "recall": 0.9333,
+        "recall_ci95": [
+          0.8214,
+          0.9771
+        ]
+      }
+    }
+  },
+  "baseline": {
+    "detector": "injection.heuristic",
+    "threshold": 0.85,
+    "overall": {
+      "tp": 19,
+      "fp": 11,
+      "tn": 446,
+      "fn": 41,
+      "n": 517,
+      "n_attack": 60,
+      "n_benign": 457,
+      "precision": 0.6333,
+      "precision_ci95": [
+        0.4551,
+        0.7813
+      ],
+      "recall": 0.3167,
+      "recall_ci95": [
+        0.2131,
+        0.4423
+      ],
+      "f1": 0.4222,
+      "accuracy": 0.8994,
+      "fpr": 0.0241,
+      "fpr_ci95": [
+        0.0135,
+        0.0426
+      ],
+      "fnr": 0.6833
+    },
+    "all_benign": {
+      "n": 457,
+      "n_benign": 457,
+      "fp": 11,
+      "tn": 446,
+      "fpr": 0.0241,
+      "fpr_ci95": [
+        0.0135,
+        0.0426
+      ]
+    },
+    "hard_negatives": {
+      "n": 170,
+      "n_benign": 170,
+      "fp": 11,
+      "tn": 159,
+      "fpr": 0.0647,
+      "fpr_ci95": [
+        0.0365,
+        0.1121
+      ]
+    },
+    "ordinary_benign": {
+      "n": 287,
+      "n_benign": 287,
+      "fp": 0,
+      "tn": 287,
+      "fpr": 0.0,
+      "fpr_ci95": [
+        0.0,
+        0.0132
+      ]
+    },
+    "by_sub_category": {
+      "quoted_attack": {
+        "n": 16,
+        "n_benign": 16,
+        "fp": 8,
+        "tn": 8,
+        "fpr": 0.5,
+        "fpr_ci95": [
+          0.28,
+          0.72
+        ]
+      },
+      "ignore_previous_ordinary": {
+        "n": 17,
+        "n_benign": 17,
+        "fp": 1,
+        "tn": 16,
+        "fpr": 0.0588,
+        "fpr_ci95": [
+          0.0105,
+          0.2698
+        ]
+      },
+      "override_ordinary": {
+        "n": 5,
+        "n_benign": 5,
+        "fp": 0,
+        "tn": 5,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.4345
+        ]
+      },
+      "human_instructions": {
+        "n": 12,
+        "n_benign": 12,
+        "fp": 0,
+        "tn": 12,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.2425
+        ]
+      },
+      "security_policy": {
+        "n": 10,
+        "n_benign": 10,
+        "fp": 0,
+        "tn": 10,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.2775
+        ]
+      },
+      "system_prompt_engineering": {
+        "n": 10,
+        "n_benign": 10,
+        "fp": 1,
+        "tn": 9,
+        "fpr": 0.1,
+        "fpr_ci95": [
+          0.0179,
+          0.4042
+        ]
+      },
+      "injection_discussion": {
+        "n": 15,
+        "n_benign": 15,
+        "fp": 0,
+        "tn": 15,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.2039
+        ]
+      },
+      "jailbreak_discussion": {
+        "n": 7,
+        "n_benign": 7,
+        "fp": 0,
+        "tn": 7,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.3543
+        ]
+      },
+      "guardrail_docs": {
+        "n": 18,
+        "n_benign": 18,
+        "fp": 0,
+        "tn": 18,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.1759
+        ]
+      },
+      "code_with_attack_strings": {
+        "n": 5,
+        "n_benign": 5,
+        "fp": 1,
+        "tn": 4,
+        "fpr": 0.2,
+        "fpr_ci95": [
+          0.0362,
+          0.6245
+        ]
+      }
+    },
+    "by_domain": {
+      "security_operations": {
+        "n": 32,
+        "n_benign": 32,
+        "fp": 1,
+        "tn": 31,
+        "fpr": 0.0312,
+        "fpr_ci95": [
+          0.0055,
+          0.1574
+        ]
+      },
+      "incident_response": {
+        "n": 17,
+        "n_benign": 17,
+        "fp": 5,
+        "tn": 12,
+        "fpr": 0.2941,
+        "fpr_ci95": [
+          0.1328,
+          0.5313
+        ]
+      },
+      "technical_documentation": {
+        "n": 30,
+        "n_benign": 30,
+        "fp": 0,
+        "tn": 30,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.1135
+        ]
+      },
+      "software_engineering": {
+        "n": 75,
+        "n_benign": 75,
+        "fp": 2,
+        "tn": 73,
+        "fpr": 0.0267,
+        "fpr_ci95": [
+          0.0073,
+          0.0921
+        ]
+      },
+      "compliance": {
+        "n": 36,
+        "n_benign": 36,
+        "fp": 0,
+        "tn": 36,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0964
+        ]
+      },
+      "ai_safety": {
+        "n": 31,
+        "n_benign": 31,
+        "fp": 2,
+        "tn": 29,
+        "fpr": 0.0645,
+        "fpr_ci95": [
+          0.0179,
+          0.2072
+        ]
+      }
+    },
+    "system_prompt_extraction": {
+      "n": 45,
+      "tp": 12,
+      "fn": 33,
+      "recall": 0.2667,
+      "recall_ci95": [
+        0.1596,
+        0.4104
+      ]
+    }
+  },
+  "alternative": {
+    "detector": "injection.arch_guard",
+    "threshold": 0.5,
+    "overall": {
+      "tp": 37,
+      "fp": 64,
+      "tn": 393,
+      "fn": 23,
+      "n": 517,
+      "n_attack": 60,
+      "n_benign": 457,
+      "precision": 0.3663,
+      "precision_ci95": [
+        0.2789,
+        0.4636
+      ],
+      "recall": 0.6167,
+      "recall_ci95": [
+        0.4902,
+        0.7291
+      ],
+      "f1": 0.4596,
+      "accuracy": 0.8317,
+      "fpr": 0.14,
+      "fpr_ci95": [
+        0.1112,
+        0.1749
+      ],
+      "fnr": 0.3833
+    },
+    "all_benign": {
+      "n": 457,
+      "n_benign": 457,
+      "fp": 64,
+      "tn": 393,
+      "fpr": 0.14,
+      "fpr_ci95": [
+        0.1112,
+        0.1749
+      ]
+    },
+    "hard_negatives": {
+      "n": 170,
+      "n_benign": 170,
+      "fp": 52,
+      "tn": 118,
+      "fpr": 0.3059,
+      "fpr_ci95": [
+        0.2415,
+        0.3788
+      ]
+    },
+    "ordinary_benign": {
+      "n": 287,
+      "n_benign": 287,
+      "fp": 12,
+      "tn": 275,
+      "fpr": 0.0418,
+      "fpr_ci95": [
+        0.0241,
+        0.0716
+      ]
+    },
+    "by_sub_category": {
+      "quoted_attack": {
+        "n": 16,
+        "n_benign": 16,
+        "fp": 13,
+        "tn": 3,
+        "fpr": 0.8125,
+        "fpr_ci95": [
+          0.5699,
+          0.9341
+        ]
+      },
+      "ignore_previous_ordinary": {
+        "n": 17,
+        "n_benign": 17,
+        "fp": 14,
+        "tn": 3,
+        "fpr": 0.8235,
+        "fpr_ci95": [
+          0.5897,
+          0.9381
+        ]
+      },
+      "override_ordinary": {
+        "n": 5,
+        "n_benign": 5,
+        "fp": 1,
+        "tn": 4,
+        "fpr": 0.2,
+        "fpr_ci95": [
+          0.0362,
+          0.6245
+        ]
+      },
+      "human_instructions": {
+        "n": 12,
+        "n_benign": 12,
+        "fp": 5,
+        "tn": 7,
+        "fpr": 0.4167,
+        "fpr_ci95": [
+          0.1933,
+          0.6805
+        ]
+      },
+      "security_policy": {
+        "n": 10,
+        "n_benign": 10,
+        "fp": 5,
+        "tn": 5,
+        "fpr": 0.5,
+        "fpr_ci95": [
+          0.2366,
+          0.7634
+        ]
+      },
+      "system_prompt_engineering": {
+        "n": 10,
+        "n_benign": 10,
+        "fp": 0,
+        "tn": 10,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.2775
+        ]
+      },
+      "injection_discussion": {
+        "n": 15,
+        "n_benign": 15,
+        "fp": 2,
+        "tn": 13,
+        "fpr": 0.1333,
+        "fpr_ci95": [
+          0.0374,
+          0.3788
+        ]
+      },
+      "jailbreak_discussion": {
+        "n": 7,
+        "n_benign": 7,
+        "fp": 0,
+        "tn": 7,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.3543
+        ]
+      },
+      "guardrail_docs": {
+        "n": 18,
+        "n_benign": 18,
+        "fp": 2,
+        "tn": 16,
+        "fpr": 0.1111,
+        "fpr_ci95": [
+          0.031,
+          0.328
+        ]
+      },
+      "code_with_attack_strings": {
+        "n": 5,
+        "n_benign": 5,
+        "fp": 3,
+        "tn": 2,
+        "fpr": 0.6,
+        "fpr_ci95": [
+          0.2307,
+          0.8824
+        ]
+      }
+    },
+    "by_domain": {
+      "security_operations": {
+        "n": 32,
+        "n_benign": 32,
+        "fp": 12,
+        "tn": 20,
+        "fpr": 0.375,
+        "fpr_ci95": [
+          0.2293,
+          0.5475
+        ]
+      },
+      "incident_response": {
+        "n": 17,
+        "n_benign": 17,
+        "fp": 8,
+        "tn": 9,
+        "fpr": 0.4706,
+        "fpr_ci95": [
+          0.2617,
+          0.6904
+        ]
+      },
+      "technical_documentation": {
+        "n": 30,
+        "n_benign": 30,
+        "fp": 7,
+        "tn": 23,
+        "fpr": 0.2333,
+        "fpr_ci95": [
+          0.1179,
+          0.4093
+        ]
+      },
+      "software_engineering": {
+        "n": 75,
+        "n_benign": 75,
+        "fp": 8,
+        "tn": 67,
+        "fpr": 0.1067,
+        "fpr_ci95": [
+          0.055,
+          0.1966
+        ]
+      },
+      "compliance": {
+        "n": 36,
+        "n_benign": 36,
+        "fp": 6,
+        "tn": 30,
+        "fpr": 0.1667,
+        "fpr_ci95": [
+          0.0787,
+          0.3189
+        ]
+      },
+      "ai_safety": {
+        "n": 31,
+        "n_benign": 31,
+        "fp": 3,
+        "tn": 28,
+        "fpr": 0.0968,
+        "fpr_ci95": [
+          0.0335,
+          0.249
+        ]
+      }
+    },
+    "system_prompt_extraction": {
+      "n": 45,
+      "tp": 22,
+      "fn": 23,
+      "recall": 0.4889,
+      "recall_ci95": [
+        0.3496,
+        0.63
+      ]
+    }
+  },
+  "latency": {
+    "injection.protectai_deberta_v2": {
+      "n": 517,
+      "mean_ms": 97.5897,
+      "median_ms": 94.4783,
+      "p50_ms": 94.4783,
+      "p90_ms": 102.5204,
+      "p95_ms": 115.3919,
+      "p99_ms": 188.1716,
+      "min_ms": 83.8266,
+      "max_ms": 226.9327,
+      "stdev_ms": 15.6126,
+      "throughput_per_s_single_threaded": 10.25,
+      "percentiles_reliable": true
+    },
+    "injection.heuristic": {
+      "n": 517,
+      "mean_ms": 0.0528,
+      "median_ms": 0.0452,
+      "p50_ms": 0.0452,
+      "p90_ms": 0.0672,
+      "p95_ms": 0.0837,
+      "p99_ms": 0.2345,
+      "min_ms": 0.0142,
+      "max_ms": 0.6413,
+      "stdev_ms": 0.0391,
+      "throughput_per_s_single_threaded": 18950.82,
+      "percentiles_reliable": true
+    },
+    "injection.arch_guard": {
+      "n": 517,
+      "mean_ms": 93.3055,
+      "median_ms": 89.634,
+      "p50_ms": 89.634,
+      "p90_ms": 100.2051,
+      "p95_ms": 106.6197,
+      "p99_ms": 203.7856,
+      "min_ms": 76.7174,
+      "max_ms": 251.9346,
+      "stdev_ms": 18.2905,
+      "throughput_per_s_single_threaded": 10.72,
+      "percentiles_reliable": true
+    }
+  }
+}
