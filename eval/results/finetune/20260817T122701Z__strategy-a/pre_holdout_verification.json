@@ -1,0 +1,20 @@
+{
+  "verified_at": "2026-08-17T12:27:16.009527+00:00",
+  "selected_run_id": "stratA__lr1e-05__ep2__seed13",
+  "selected_threshold": 0.9955,
+  "checks": {
+    "lock_file_present": true,
+    "lock_sha256": "2c3c65b6f433a07c57b6c813e27858c5",
+    "checkpoint_present": true,
+    "checkpoint_hash_stable": true,
+    "threshold_is_fixed": true,
+    "selection_metrics_present": true,
+    "train_manifest_matches": true,
+    "dev_manifest_matches": true,
+    "holdout_content_matches_preregistered": true,
+    "holdout_manifest_matches": true,
+    "holdout_not_used_in_selection": true,
+    "holdout_not_yet_scored": true
+  },
+  "all_passed": true
+}

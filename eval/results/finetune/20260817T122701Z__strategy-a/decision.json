@@ -1,0 +1,8 @@
+{
+  "decision": "PARTIAL SUCCESS",
+  "all_blocking_criteria_met": false,
+  "any_failure_criterion_triggered": false,
+  "partial_success_bar_met": true,
+  "hard_negative_relative_reduction": 0.9308,
+  "generalisation_case": "Case 1 \u2014 dev improves and hold-out improves: supports generalisation"
+}

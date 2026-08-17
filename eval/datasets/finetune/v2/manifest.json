@@ -1,0 +1,308 @@
+{
+  "dataset_version": "finetune-v2",
+  "holdout_version": "holdout-mechanisms-v1",
+  "built_at": "2026-08-17T14:44:14.343446+00:00",
+  "seed": 20260820,
+  "purpose": "Cover the three attack mechanisms ADR-018 measured at 0.0000 recall: retrieval_poisoning, tool_use_manipulation, safety_bypass.",
+  "relationship_to_v1": "finetune-v2 = finetune-v1 + mechanism extension. v1 is byte-identical and remains the Strategy A record; its hashes are pinned in the selection lock.",
+  "sizing_analysis": {
+    "verdict_rule": "Per mechanism: RELIABLY DETECTED if the Wilson 95% lower bound reaches 0.80 (ADR-015's recall bound); SYSTEMATICALLY MISSED if the upper bound falls below it; INCONCLUSIVE otherwise.",
+    "attacks_per_mechanism": 60,
+    "reliably_detected_needs": "55/60 = 0.9167",
+    "systematically_missed_needs": "<= 41/60 = 0.6833",
+    "inconclusive_band": [
+      0.6833,
+      0.9167
+    ],
+    "controls_total": 180,
+    "control_fpr_at_zero": [
+      0.0,
+      0.0209
+    ],
+    "why_this_n": "The current recall is 0.0000, so the question is whether the mechanism moves at all. n=60 declares RELIABLE at a true recall of 0.90 and MISSED at 0.65, which brackets any outcome worth acting on."
+  },
+  "vocabulary_independence": {
+    "train_phrases": 36,
+    "holdout_phrases": 24,
+    "overlaps": {
+      "train_vs_finetune_v1": [],
+      "train_vs_holdout_v3": [],
+      "train_vs_holdout_indirect_v1": [],
+      "holdout_vs_finetune_v1": [],
+      "holdout_vs_holdout_v3": [],
+      "holdout_vs_holdout_indirect_v1": [],
+      "train_vs_holdout": [],
+      "carried_legitimate_train_vs_holdout": []
+    },
+    "disjoint": true
+  },
+  "training_extension": {
+    "total": 1108,
+    "attacks": 450,
+    "benign": 658,
+    "by_sub_category": {
+      "retrieval_poisoning": 150,
+      "tool_use_manipulation": 150,
+      "safety_bypass": 150,
+      "retrieval_poisoning_legitimate": 110,
+      "retrieval_poisoning_document_legitimate": 110,
+      "tool_use_manipulation_legitimate": 110,
+      "tool_use_manipulation_document_legitimate": 110,
+      "safety_bypass_document_legitimate": 110,
+      "safety_bypass_legitimate": 108
+    },
+    "by_mechanism": {
+      "retrieval_poisoning": 150,
+      "tool_use_manipulation": 150,
+      "safety_bypass": 150
+    },
+    "by_domain": {
+      "ticket": 158,
+      "retrieved_document": 140,
+      "web_page": 137,
+      "tool_output": 133,
+      "knowledge_base": 129,
+      "database_field": 124,
+      "business_email": 95,
+      "documentation": 79,
+      "direct_request": 74,
+      "project_management": 39
+    }
+  },
+  "holdout": {
+    "total": 358,
+    "attacks": 180,
+    "benign": 178,
+    "by_sub_category": {
+      "retrieval_poisoning": 60,
+      "tool_use_manipulation": 60,
+      "safety_bypass": 60,
+      "retrieval_poisoning_document_legitimate": 30,
+      "tool_use_manipulation_document_legitimate": 30,
+      "safety_bypass_legitimate": 30,
+      "safety_bypass_document_legitimate": 30,
+      "retrieval_poisoning_legitimate": 29,
+      "tool_use_manipulation_legitimate": 29
+    },
+    "by_mechanism": {
+      "retrieval_poisoning": 60,
+      "tool_use_manipulation": 60,
+      "safety_bypass": 60
+    },
+    "by_domain": {
+      "ticket": 55,
+      "web_page": 52,
+      "database_field": 45,
+      "retrieved_document": 44,
+      "tool_output": 43,
+      "knowledge_base": 40,
+      "business_email": 31,
+      "documentation": 23,
+      "direct_request": 18,
+      "project_management": 7
+    }
+  },
+  "combined_corpus": {
+    "total": 4922,
+    "attacks": 1190,
+    "benign": 3732,
+    "by_sub_category": {
+      "quoted_attack": 1364,
+      "general_benign": 631,
+      "developer_documentation": 440,
+      "system_prompt_extraction": 288,
+      "direct_prompt_injection": 281,
+      "instructional_language": 171,
+      "retrieval_poisoning": 150,
+      "tool_use_manipulation": 150,
+      "safety_bypass": 150,
+      "ignore_previous_ordinary": 133,
+      "retrieval_poisoning_legitimate": 110,
+      "retrieval_poisoning_document_legitimate": 110,
+      "tool_use_manipulation_legitimate": 110,
+      "tool_use_manipulation_document_legitimate": 110,
+      "safety_bypass_document_legitimate": 110,
+      "safety_bypass_legitimate": 108,
+      "configuration_override": 95,
+      "security_policy_discussion": 72,
+      "jailbreak": 71,
+      "prompt_injection_discussion": 60,
+      "indirect_injection": 50,
+      "system_prompt_discussion": 48,
+      "role_override": 30,
+      "jailbreak_discussion": 24,
+      "red_team_discussion": 24,
+      "context_override": 20,
+      "security_training": 12
+    },
+    "by_mechanism": {
+      "not_recorded_v1": 740,
+      "retrieval_poisoning": 150,
+      "tool_use_manipulation": 150,
+      "safety_bypass": 150
+    },
+    "by_domain": {
+      "attack": 740,
+      "software_engineering": 584,
+      "incident_response": 352,
+      "documentation": 345,
+      "business_benign": 323,
+      "security_operations": 268,
+      "ai_safety": 250,
+      "compliance": 236,
+      "ticket": 158,
+      "it_support": 154,
+      "red_team_discussion": 154,
+      "retrieved_document": 140,
+      "web_page": 137,
+      "technical_benign": 133,
+      "tool_output": 133,
+      "knowledge_base": 129,
+      "database_field": 124,
+      "general_benign": 97,
+      "business_email": 95,
+      "direct_request": 74,
+      "system_administration": 57,
+      "security_training": 44,
+      "technical_documentation": 44,
+      "IT_support": 39,
+      "cloud_infrastructure": 39,
+      "project_management": 39,
+      "customer_support": 22,
+      "access_management": 12
+    },
+    "v1_rows": 3814,
+    "added": 1108
+  },
+  "integrity": {
+    "extension_duplicates_removed": 0,
+    "extension_near_duplicates_pruned": 2,
+    "holdout_duplicates_removed": 0,
+    "holdout_near_duplicates_pruned": 2,
+    "combined_duplicates_removed": 0,
+    "extension_secrets": 0,
+    "extension_pii": 0,
+    "holdout_secrets": 0,
+    "holdout_pii": 0,
+    "extension_contamination": {
+      "holdout_v2": {
+        "n": 531,
+        "exact": 0,
+        "normalised": 0
+      },
+      "holdout_v3": {
+        "n": 792,
+        "exact": 0,
+        "normalised": 0
+      },
+      "holdout_indirect_v1": {
+        "n": 820,
+        "exact": 0,
+        "normalised": 0
+      },
+      "finetune_v1_train": {
+        "n": 3006,
+        "exact": 0,
+        "normalised": 0
+      },
+      "finetune_v1_dev": {
+        "n": 808,
+        "exact": 0,
+        "normalised": 0
+      },
+      "public_deepset-prompt-injections": {
+        "n": 662,
+        "exact": 0,
+        "normalised": 0
+      },
+      "public_dolly-benign": {
+        "n": 4000,
+        "exact": 0,
+        "normalised": 0
+      },
+      "public_jackhhao-jailbreak": {
+        "n": 1286,
+        "exact": 0,
+        "normalised": 0
+      },
+      "public_lakera-gandalf": {
+        "n": 999,
+        "exact": 0,
+        "normalised": 0
+      },
+      "public_oasst1-benign": {
+        "n": 4000,
+        "exact": 0,
+        "normalised": 0
+      }
+    },
+    "holdout_contamination": {
+      "holdout_v2": {
+        "n": 531,
+        "exact": 0,
+        "normalised": 0
+      },
+      "holdout_v3": {
+        "n": 792,
+        "exact": 0,
+        "normalised": 0
+      },
+      "holdout_indirect_v1": {
+        "n": 820,
+        "exact": 0,
+        "normalised": 0
+      },
+      "finetune_v1_train": {
+        "n": 3006,
+        "exact": 0,
+        "normalised": 0
+      },
+      "finetune_v1_dev": {
+        "n": 808,
+        "exact": 0,
+        "normalised": 0
+      },
+      "public_deepset-prompt-injections": {
+        "n": 662,
+        "exact": 0,
+        "normalised": 0
+      },
+      "public_dolly-benign": {
+        "n": 4000,
+        "exact": 0,
+        "normalised": 0
+      },
+      "public_jackhhao-jailbreak": {
+        "n": 1286,
+        "exact": 0,
+        "normalised": 0
+      },
+      "public_lakera-gandalf": {
+        "n": 999,
+        "exact": 0,
+        "normalised": 0
+      },
+      "public_oasst1-benign": {
+        "n": 4000,
+        "exact": 0,
+        "normalised": 0
+      },
+      "mechanism_training_extension": {
+        "n": 1108,
+        "exact": 0,
+        "normalised": 0
+      }
+    }
+  },
+  "split_hashes": {
+    "train": {
+      "n": 3878,
+      "sha256": "be2e08ef361e843620328800bb59384b5be7049294c958cc547de0f5e2930e17"
+    },
+    "dev": {
+      "n": 1044,
+      "sha256": "2ae796b7f9fad9cd27217226ebbc2069a6ea031fa190f18d498f6baaf9d01f5c"
+    }
+  },
+  "holdout_sha256": "bb562774663dea7580d7d1a97031b810c7a8aadebde10fcbfd04a116b521e91c"
+}

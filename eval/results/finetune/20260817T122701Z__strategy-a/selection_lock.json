@@ -1,0 +1,298 @@
+{
+  "locked_at": "2026-08-17T12:27:03.349223+00:00",
+  "purpose": "The complete Strategy A model-selection decision, frozen before the hold-out was accessed. Do not modify.",
+  "selected_run_id": "stratA__lr1e-05__ep2__seed13",
+  "checkpoint_path": "artifacts/finetune/stratA__lr1e-05__ep2__seed13",
+  "checkpoint_sha256": "2995b260b5f9f97e58e5f7b1496b1e79c10b2eff2e4c3b00be212c22fe2fd9c2",
+  "checkpoint_size_bytes": 746061077,
+  "checkpoint_files": [
+    "config.json",
+    "model.safetensors",
+    "tokenizer.json",
+    "tokenizer_config.json"
+  ],
+  "base_model": "protectai/deberta-v3-base-prompt-injection-v2",
+  "model_revision": "90c9989b1a342275dd0d1a95aad283c04e075671",
+  "tokenizer_revision": "90c9989b1a342275dd0d1a95aad283c04e075671",
+  "dataset_version": "finetune-v1",
+  "train_manifest_hash": "4a83c4cd1541cd265bd6f3b2a07c8df9",
+  "dev_manifest_hash": "07a1e685aed81cdc66e233fa97f57fc8",
+  "holdout_manifest_hash": "53307bc74594aa67a552d8fee921a351",
+  "holdout_content_hash": "fd91575272056d3b282804ddfbbbde63",
+  "selected_threshold": 0.9955,
+  "selection_metrics": {
+    "dev_at_0.5": {
+      "dev_loss": 2.2e-05,
+      "dev_precision": 1.0,
+      "dev_recall": 1.0,
+      "dev_f1": 1.0,
+      "dev_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "hard_negative_fpr": 0.0,
+      "extraction_recall": 1.0
+    },
+    "dev_at_selected_threshold": {
+      "threshold": 0.995486,
+      "overall": {
+        "tp": 153,
+        "fp": 0,
+        "tn": 655,
+        "fn": 0,
+        "n": 808,
+        "n_attack": 153,
+        "n_benign": 655,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9755,
+          1.0
+        ],
+        "recall": 1.0,
+        "recall_ci95": [
+          0.9755,
+          1.0
+        ],
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0058
+        ],
+        "fnr": 0.0
+      },
+      "quoted_attack": {
+        "n": 273,
+        "fp": 0,
+        "fpr": 0.0
+      },
+      "hard_negative": {
+        "n": 517,
+        "fp": 0,
+        "fpr": 0.0
+      },
+      "extraction": {
+        "n": 58,
+        "tp": 58,
+        "recall": 1.0
+      }
+    },
+    "base_model_on_dev_at_0.5": {
+      "threshold": 0.5,
+      "overall": {
+        "tp": 145,
+        "fp": 327,
+        "tn": 328,
+        "fn": 8,
+        "n": 808,
+        "n_attack": 153,
+        "n_benign": 655,
+        "precision": 0.3072,
+        "precision_ci95": [
+          0.2673,
+          0.3502
+        ],
+        "recall": 0.9477,
+        "recall_ci95": [
+          0.9002,
+          0.9733
+        ],
+        "f1": 0.464,
+        "accuracy": 0.5854,
+        "fpr": 0.4992,
+        "fpr_ci95": [
+          0.4611,
+          0.5374
+        ],
+        "fnr": 0.0523
+      },
+      "quoted_attack": {
+        "n": 273,
+        "fp": 217,
+        "fpr": 0.7949
+      },
+      "hard_negative": {
+        "n": 517,
+        "fp": 327,
+        "fpr": 0.6325
+      },
+      "extraction": {
+        "n": 58,
+        "tp": 51,
+        "recall": 0.8793
+      },
+      "loss": 4.289105
+    }
+  },
+  "selection_criteria": {
+    "priority": [
+      "1. quoted_attack FPR (dev)",
+      "2. overall benign FPR (dev)",
+      "3. attack recall (dev), subject to >= base_on_dev - 0.05",
+      "4. system_prompt_extraction recall (dev), subject to >= base_on_dev - 0.05",
+      "tie 1: fewer epochs",
+      "tie 2: lower learning rate",
+      "tie 3: lower seed"
+    ],
+    "recall_floor_reference": "base model measured on dev, not the hold-out",
+    "max_recall_drop": 0.05,
+    "tie_break_rationale": "ADR-015 fixes only 'ties toward the earlier epoch'. A saturated dev split leaves that insufficient, so the rule is extended deterministically to lower learning rate then lower seed. Both extensions prefer the smallest departure from the base model, which is the conservative choice when nothing in the data distinguishes the candidates. Fixed before the hold-out was accessed; recorded in ADR-015.",
+    "runs_tied_on_all_four_criteria": 18,
+    "eligible_runs": 18
+  },
+  "threshold_calibration": {
+    "operating_point": {
+      "threshold": 0.9955,
+      "objective": "max_recall_at_fpr",
+      "constraint": 0.0241,
+      "constraint_satisfied": true,
+      "rationale": "highest recall (1.0000) among thresholds with FPR <= 0.0241 on the dev split",
+      "metrics": {
+        "threshold": 0.9955,
+        "tp": 153,
+        "fp": 0,
+        "tn": 655,
+        "fn": 0,
+        "n": 808,
+        "n_attack": 153,
+        "n_benign": 655,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9755,
+          1.0
+        ],
+        "recall": 1.0,
+        "recall_ci95": [
+          0.9755,
+          1.0
+        ],
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0058
+        ],
+        "fnr": 0.0
+      }
+    },
+    "quoted_attack_bound": 0.15,
+    "quoted_attack_fpr_at_threshold": 0.0,
+    "quoted_attack_bound_met": true,
+    "dev_metrics_at_threshold": {
+      "threshold": 0.995486,
+      "overall": {
+        "tp": 153,
+        "fp": 0,
+        "tn": 655,
+        "fn": 0,
+        "n": 808,
+        "n_attack": 153,
+        "n_benign": 655,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9755,
+          1.0
+        ],
+        "recall": 1.0,
+        "recall_ci95": [
+          0.9755,
+          1.0
+        ],
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0058
+        ],
+        "fnr": 0.0
+      },
+      "quoted_attack": {
+        "n": 273,
+        "fp": 0,
+        "fpr": 0.0
+      },
+      "hard_negative": {
+        "n": 517,
+        "fp": 0,
+        "fpr": 0.0
+      },
+      "extraction": {
+        "n": 58,
+        "tp": 58,
+        "recall": 1.0
+      }
+    },
+    "sweep_points": 189,
+    "separable": true
+  },
+  "holdout_used_in_selection": false,
+  "selection_basis": "dev split only (eval/datasets/finetune/dev/cases.jsonl)",
+  "training_matrix_verification": {
+    "expected_configurations": 18,
+    "executed_configurations": 18,
+    "missing_configurations": [],
+    "unexpected_configurations": [],
+    "succeeded": 18,
+    "failed": [],
+    "degenerate": [],
+    "checkpoints_present": [
+      "stratA__lr1e-05__ep2__seed13",
+      "stratA__lr1e-05__ep2__seed20260817",
+      "stratA__lr1e-05__ep2__seed31337",
+      "stratA__lr1e-05__ep3__seed13",
+      "stratA__lr1e-05__ep3__seed20260817",
+      "stratA__lr1e-05__ep3__seed31337",
+      "stratA__lr2e-05__ep2__seed13",
+      "stratA__lr2e-05__ep2__seed20260817",
+      "stratA__lr2e-05__ep2__seed31337",
+      "stratA__lr2e-05__ep3__seed13",
+      "stratA__lr2e-05__ep3__seed20260817",
+      "stratA__lr2e-05__ep3__seed31337",
+      "stratA__lr3e-05__ep2__seed13",
+      "stratA__lr3e-05__ep2__seed20260817",
+      "stratA__lr3e-05__ep2__seed31337",
+      "stratA__lr3e-05__ep3__seed13",
+      "stratA__lr3e-05__ep3__seed20260817",
+      "stratA__lr3e-05__ep3__seed31337"
+    ],
+    "checkpoints_missing": [],
+    "effective_batch_size": 16,
+    "micro_batch_size": 4,
+    "gradient_accumulation_steps": 4,
+    "micro_batch_sizes_actually_used": [
+      "4"
+    ],
+    "optimiser": "AdamW (fused on CUDA; same update, no param-sized temporaries)",
+    "seeds": [
+      13,
+      31337,
+      20260817
+    ],
+    "learning_rates": [
+      1e-05,
+      2e-05,
+      3e-05
+    ],
+    "epoch_counts": [
+      2,
+      3
+    ],
+    "matrix_complete": true
+  },
+  "git_commit": "a0e2a8de5ef922b944436975744d5f605e82f220",
+  "environment": {
+    "python": "3.12.3",
+    "torch": "2.6.0+cu124",
+    "transformers": "5.15.0",
+    "gpu": {
+      "available": true,
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "total_memory_gb": 3.95,
+      "cuda": "12.4"
+    },
+    "cpu_count": 16,
+    "uv_lock_hash": "3db9ddec3208c4f068eab6fb3a2f7621",
+    "git_commit": "a0e2a8de5ef922b944436975744d5f605e82f220"
+  }
+}

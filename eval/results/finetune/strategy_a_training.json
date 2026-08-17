@@ -1,0 +1,1158 @@
+{
+  "phase": "train",
+  "started_at": "2026-08-17T12:26:19.525227+00:00",
+  "safety_check": {
+    "train_manifest_hash": "4a83c4cd1541cd265bd6f3b2a07c8df9",
+    "dev_manifest_hash": "07a1e685aed81cdc66e233fa97f57fc8",
+    "holdout_content_hash": "fd91575272056d3b282804ddfbbbde63",
+    "holdout_manifest_hash": "53307bc74594aa67a552d8fee921a351",
+    "train_n": 3006,
+    "dev_n": 808,
+    "holdout_collisions": 0,
+    "holdout_reachable_from_training": false,
+    "base_model": "protectai/deberta-v3-base-prompt-injection-v2",
+    "environment": {
+      "python": "3.12.3",
+      "torch": "2.6.0+cu124",
+      "transformers": "5.15.0",
+      "gpu": {
+        "available": true,
+        "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+        "total_memory_gb": 3.95,
+        "cuda": "12.4"
+      },
+      "cpu_count": 16,
+      "uv_lock_hash": "3db9ddec3208c4f068eab6fb3a2f7621",
+      "git_commit": "a0e2a8de5ef922b944436975744d5f605e82f220"
+    }
+  },
+  "device": "cuda",
+  "protocol": {
+    "strategy": "A \u2014 standard supervised fine-tuning",
+    "learning_rates": [
+      1e-05,
+      2e-05,
+      3e-05
+    ],
+    "epochs": [
+      2,
+      3
+    ],
+    "seeds": [
+      13,
+      20260817,
+      31337
+    ],
+    "batch_size": 16,
+    "micro_batch_size": 4,
+    "gradient_accumulation": "loss weighted by micro-batch share, so the accumulated gradient equals that of a single batch of 16",
+    "optimiser": "AdamW (fused on CUDA; same update, no param-sized temporaries)",
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "max_length": 512,
+    "padding": "dynamic (pad to longest in batch); no sample is truncated",
+    "no_class_weighting": true,
+    "no_oversampling": true,
+    "no_custom_loss": true
+  },
+  "runs": [
+    {
+      "run_id": "stratA__lr1e-05__ep2__seed13",
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "seed": 13,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 0.00127,
+      "duration_s": 153.6,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr1e-05__ep2__seed13",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr1e-05__ep2__seed20260817",
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "seed": 20260817,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 9e-05,
+      "duration_s": 164.6,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr1e-05__ep2__seed20260817",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr1e-05__ep2__seed31337",
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "seed": 31337,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 0.00014,
+      "duration_s": 166.3,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr1e-05__ep2__seed31337",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr1e-05__ep3__seed13",
+      "learning_rate": 1e-05,
+      "epochs": 3,
+      "seed": 13,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 0.0001,
+      "duration_s": 247.1,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr1e-05__ep3__seed13",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr1e-05__ep3__seed20260817",
+      "learning_rate": 1e-05,
+      "epochs": 3,
+      "seed": 20260817,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 4e-05,
+      "duration_s": 253.4,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr1e-05__ep3__seed20260817",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr1e-05__ep3__seed31337",
+      "learning_rate": 1e-05,
+      "epochs": 3,
+      "seed": 31337,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 4e-05,
+      "duration_s": 261.7,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr1e-05__ep3__seed31337",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr2e-05__ep2__seed13",
+      "learning_rate": 2e-05,
+      "epochs": 2,
+      "seed": 13,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 0.00735,
+      "duration_s": 176.1,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr2e-05__ep2__seed13",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr2e-05__ep2__seed20260817",
+      "learning_rate": 2e-05,
+      "epochs": 2,
+      "seed": 20260817,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 4e-05,
+      "duration_s": 173.5,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr2e-05__ep2__seed20260817",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr2e-05__ep2__seed31337",
+      "learning_rate": 2e-05,
+      "epochs": 2,
+      "seed": 31337,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 4e-05,
+      "duration_s": 169.8,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr2e-05__ep2__seed31337",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr2e-05__ep3__seed13",
+      "learning_rate": 2e-05,
+      "epochs": 3,
+      "seed": 13,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 3e-05,
+      "duration_s": 298.1,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr2e-05__ep3__seed13",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr2e-05__ep3__seed20260817",
+      "learning_rate": 2e-05,
+      "epochs": 3,
+      "seed": 20260817,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 1e-05,
+      "duration_s": 295.5,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr2e-05__ep3__seed20260817",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr2e-05__ep3__seed31337",
+      "learning_rate": 2e-05,
+      "epochs": 3,
+      "seed": 31337,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 1e-05,
+      "duration_s": 300.1,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr2e-05__ep3__seed31337",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr3e-05__ep2__seed13",
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "seed": 13,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 2e-05,
+      "duration_s": 200.9,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr3e-05__ep2__seed13",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr3e-05__ep2__seed20260817",
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "seed": 20260817,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 2e-05,
+      "duration_s": 200.2,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr3e-05__ep2__seed20260817",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr3e-05__ep2__seed31337",
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "seed": 31337,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 3e-05,
+      "duration_s": 200.6,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr3e-05__ep2__seed31337",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr3e-05__ep3__seed13",
+      "learning_rate": 3e-05,
+      "epochs": 3,
+      "seed": 13,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 1e-05,
+      "duration_s": 297.1,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr3e-05__ep3__seed13",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr3e-05__ep3__seed20260817",
+      "learning_rate": 3e-05,
+      "epochs": 3,
+      "seed": 20260817,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 1e-05,
+      "duration_s": 301.8,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr3e-05__ep3__seed20260817",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr3e-05__ep3__seed31337",
+      "learning_rate": 3e-05,
+      "epochs": 3,
+      "seed": 31337,
+      "dev": {
+        "at_0.5": {
+          "threshold": 0.5,
+          "overall": {
+            "tp": 153,
+            "fp": 0,
+            "tn": 655,
+            "fn": 0,
+            "n": 808,
+            "n_attack": 153,
+            "n_benign": 655,
+            "precision": 1.0,
+            "precision_ci95": [
+              0.9755,
+              1.0
+            ],
+            "recall": 1.0,
+            "recall_ci95": [
+              0.9755,
+              1.0
+            ],
+            "f1": 1.0,
+            "accuracy": 1.0,
+            "fpr": 0.0,
+            "fpr_ci95": [
+              0.0,
+              0.0058
+            ],
+            "fnr": 0.0
+          },
+          "quoted_attack": {
+            "n": 273,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "hard_negative": {
+            "n": 517,
+            "fp": 0,
+            "fpr": 0.0
+          },
+          "extraction": {
+            "n": 58,
+            "tp": 58,
+            "recall": 1.0
+          }
+        }
+      },
+      "train_loss": 1e-05,
+      "duration_s": 267.1,
+      "peak_memory_gb": 3.42,
+      "checkpoint": "artifacts/finetune/stratA__lr3e-05__ep3__seed31337",
+      "status": "ok",
+      "notes": [
+        "micro_batch=4 (effective batch 16)"
+      ]
+    }
+  ]
+}

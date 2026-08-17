@@ -1,0 +1,331 @@
+{
+  "phase": "train",
+  "started_at": "2026-08-17T11:15:33.086000+00:00",
+  "safety_check": {
+    "train_manifest_hash": "4a83c4cd1541cd265bd6f3b2a07c8df9",
+    "dev_manifest_hash": "07a1e685aed81cdc66e233fa97f57fc8",
+    "holdout_content_hash": "fd91575272056d3b282804ddfbbbde63",
+    "holdout_manifest_hash": "53307bc74594aa67a552d8fee921a351",
+    "train_n": 3006,
+    "dev_n": 808,
+    "holdout_collisions": 0,
+    "holdout_reachable_from_training": false,
+    "base_model": "protectai/deberta-v3-base-prompt-injection-v2",
+    "environment": {
+      "python": "3.12.3",
+      "torch": "2.6.0+cu124",
+      "transformers": "5.15.0",
+      "gpu": {
+        "available": true,
+        "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+        "total_memory_gb": 3.95,
+        "cuda": "12.4"
+      },
+      "cpu_count": 16,
+      "uv_lock_hash": "3db9ddec3208c4f068eab6fb3a2f7621",
+      "git_commit": "a0e2a8de5ef922b944436975744d5f605e82f220"
+    }
+  },
+  "device": "cuda",
+  "protocol": {
+    "strategy": "A \u2014 standard supervised fine-tuning",
+    "learning_rates": [
+      1e-05,
+      2e-05,
+      3e-05
+    ],
+    "epochs": [
+      2,
+      3
+    ],
+    "seeds": [
+      13,
+      20260817,
+      31337
+    ],
+    "batch_size": 16,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "max_length": 512,
+    "padding": "dynamic (pad to longest in batch); no sample is truncated",
+    "no_class_weighting": true,
+    "no_oversampling": true,
+    "no_custom_loss": true
+  },
+  "runs": [
+    {
+      "run_id": "stratA__lr1e-05__ep2__seed13",
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "seed": 13,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 22.00 MiB is free. Including non-PyTorch memory, this process has 3.64 GiB memory in use. Of the allocated memory 3.53 GiB is allocated by PyTorch, and 10.78 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr1e-05__ep2__seed20260817",
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "seed": 20260817,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 24.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 42.00 MiB is free. Including non-PyTorch memory, this process has 3.62 GiB memory in use. Of the allocated memory 3.47 GiB is allocated by PyTorch, and 52.74 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr1e-05__ep2__seed31337",
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "seed": 31337,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 20.00 MiB is free. Including non-PyTorch memory, this process has 3.64 GiB memory in use. Of the allocated memory 3.52 GiB is allocated by PyTorch, and 27.90 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr1e-05__ep3__seed13",
+      "learning_rate": 1e-05,
+      "epochs": 3,
+      "seed": 13,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 22.00 MiB is free. Including non-PyTorch memory, this process has 3.64 GiB memory in use. Of the allocated memory 3.53 GiB is allocated by PyTorch, and 10.78 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr1e-05__ep3__seed20260817",
+      "learning_rate": 1e-05,
+      "epochs": 3,
+      "seed": 20260817,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 24.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 42.00 MiB is free. Including non-PyTorch memory, this process has 3.62 GiB memory in use. Of the allocated memory 3.47 GiB is allocated by PyTorch, and 52.74 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr1e-05__ep3__seed31337",
+      "learning_rate": 1e-05,
+      "epochs": 3,
+      "seed": 31337,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 20.00 MiB is free. Including non-PyTorch memory, this process has 3.64 GiB memory in use. Of the allocated memory 3.52 GiB is allocated by PyTorch, and 27.90 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr2e-05__ep2__seed13",
+      "learning_rate": 2e-05,
+      "epochs": 2,
+      "seed": 13,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 22.00 MiB is free. Including non-PyTorch memory, this process has 3.64 GiB memory in use. Of the allocated memory 3.53 GiB is allocated by PyTorch, and 10.78 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr2e-05__ep2__seed20260817",
+      "learning_rate": 2e-05,
+      "epochs": 2,
+      "seed": 20260817,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 24.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 42.00 MiB is free. Including non-PyTorch memory, this process has 3.62 GiB memory in use. Of the allocated memory 3.47 GiB is allocated by PyTorch, and 52.74 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr2e-05__ep2__seed31337",
+      "learning_rate": 2e-05,
+      "epochs": 2,
+      "seed": 31337,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 20.00 MiB is free. Including non-PyTorch memory, this process has 3.64 GiB memory in use. Of the allocated memory 3.52 GiB is allocated by PyTorch, and 27.90 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr2e-05__ep3__seed13",
+      "learning_rate": 2e-05,
+      "epochs": 3,
+      "seed": 13,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 22.00 MiB is free. Including non-PyTorch memory, this process has 3.64 GiB memory in use. Of the allocated memory 3.53 GiB is allocated by PyTorch, and 10.78 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr2e-05__ep3__seed20260817",
+      "learning_rate": 2e-05,
+      "epochs": 3,
+      "seed": 20260817,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 24.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 42.00 MiB is free. Including non-PyTorch memory, this process has 3.62 GiB memory in use. Of the allocated memory 3.47 GiB is allocated by PyTorch, and 52.74 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr2e-05__ep3__seed31337",
+      "learning_rate": 2e-05,
+      "epochs": 3,
+      "seed": 31337,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 20.00 MiB is free. Including non-PyTorch memory, this process has 3.64 GiB memory in use. Of the allocated memory 3.52 GiB is allocated by PyTorch, and 27.90 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr3e-05__ep2__seed13",
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "seed": 13,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 22.00 MiB is free. Including non-PyTorch memory, this process has 3.64 GiB memory in use. Of the allocated memory 3.53 GiB is allocated by PyTorch, and 10.78 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr3e-05__ep2__seed20260817",
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "seed": 20260817,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 24.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 42.00 MiB is free. Including non-PyTorch memory, this process has 3.62 GiB memory in use. Of the allocated memory 3.47 GiB is allocated by PyTorch, and 52.74 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr3e-05__ep2__seed31337",
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "seed": 31337,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 20.00 MiB is free. Including non-PyTorch memory, this process has 3.64 GiB memory in use. Of the allocated memory 3.52 GiB is allocated by PyTorch, and 27.90 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr3e-05__ep3__seed13",
+      "learning_rate": 3e-05,
+      "epochs": 3,
+      "seed": 13,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 22.00 MiB is free. Including non-PyTorch memory, this process has 3.64 GiB memory in use. Of the allocated memory 3.53 GiB is allocated by PyTorch, and 10.78 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr3e-05__ep3__seed20260817",
+      "learning_rate": 3e-05,
+      "epochs": 3,
+      "seed": 20260817,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 24.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 42.00 MiB is free. Including non-PyTorch memory, this process has 3.62 GiB memory in use. Of the allocated memory 3.47 GiB is allocated by PyTorch, and 52.74 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    },
+    {
+      "run_id": "stratA__lr3e-05__ep3__seed31337",
+      "learning_rate": 3e-05,
+      "epochs": 3,
+      "seed": 31337,
+      "dev": {},
+      "train_loss": NaN,
+      "duration_s": 0.0,
+      "peak_memory_gb": null,
+      "checkpoint": null,
+      "status": "failed",
+      "notes": [
+        "OutOfMemoryError: CUDA out of memory. Tried to allocate 20.00 MiB. GPU 0 has a total capacity of 3.68 GiB of which 20.00 MiB is free. Including non-PyTorch memory, this process has 3.64 GiB memory in use. Of the allocated memory 3.52 GiB is allocated by PyTorch, and 27.90 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+      ]
+    }
+  ],
+  "discarded": {
+    "reason": "All 18 configurations failed with CUDA OOM before any training step. The multi-tensor AdamW path allocated a 394 MB param-sized temporary for the 128k-token embedding, exhausting the 3.68 GiB card. Superseded by the run with fused AdamW and 4x4 gradient accumulation. No checkpoint or metric from this attempt is used anywhere.",
+    "superseded_by": "strategy_a_training.json"
+  }
+}

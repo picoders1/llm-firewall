@@ -1,0 +1,630 @@
+{
+  "evaluated_at": "2026-08-17T12:27:33.130308+00:00",
+  "evaluation_count": 1,
+  "selection_lock": "eval/results/finetune/20260817T122701Z__strategy-a/selection_lock.json",
+  "pre_holdout_verification": "eval/results/finetune/20260817T122701Z__strategy-a/pre_holdout_verification.json",
+  "checkpoint": "stratA__lr1e-05__ep2__seed13",
+  "checkpoint_sha256": "2995b260b5f9f97e58e5f7b1496b1e79c10b2eff2e4c3b00be212c22fe2fd9c2",
+  "threshold": 0.9955,
+  "threshold_source": "calibrated on dev before this file existed; NOT selected here",
+  "holdout_content_hash": "fd91575272056d3b282804ddfbbbde63",
+  "n_total": 531,
+  "n_in_scope": 517,
+  "scope": [
+    "direct_prompt_injection",
+    "indirect_prompt_injection",
+    "system_prompt_extraction"
+  ],
+  "overall": {
+    "tp": 53,
+    "fp": 3,
+    "tn": 454,
+    "fn": 7,
+    "n": 517,
+    "n_attack": 60,
+    "n_benign": 457,
+    "precision": 0.9464,
+    "precision_ci95": [
+      0.8539,
+      0.9816
+    ],
+    "recall": 0.8833,
+    "recall_ci95": [
+      0.7782,
+      0.9423
+    ],
+    "f1": 0.9138,
+    "accuracy": 0.9807,
+    "fpr": 0.0066,
+    "fpr_ci95": [
+      0.0022,
+      0.0191
+    ],
+    "fnr": 0.1167
+  },
+  "benign": {
+    "n": 457,
+    "fp": 3,
+    "tn": 454,
+    "fpr": 0.0066,
+    "fpr_ci95_wilson": [
+      0.0022,
+      0.0191
+    ]
+  },
+  "hard_negatives": {
+    "n": 170,
+    "fp": 2,
+    "tn": 168,
+    "fpr": 0.0118,
+    "fpr_ci95_wilson": [
+      0.0032,
+      0.0419
+    ]
+  },
+  "ordinary_benign": {
+    "n": 287,
+    "fp": 1,
+    "tn": 286,
+    "fpr": 0.0035,
+    "fpr_ci95_wilson": [
+      0.0006,
+      0.0195
+    ]
+  },
+  "quoted_attack": {
+    "n": 16,
+    "fp": 1,
+    "tn": 15,
+    "fpr": 0.0625,
+    "fpr_ci95_wilson": [
+      0.0111,
+      0.2833
+    ]
+  },
+  "incident_response": {
+    "n": 17,
+    "fp": 0,
+    "tn": 17,
+    "fpr": 0.0,
+    "fpr_ci95_wilson": [
+      0.0,
+      0.1843
+    ]
+  },
+  "attack_recall": {
+    "n": 60,
+    "tp": 53,
+    "fn": 7,
+    "recall": 0.8833,
+    "recall_ci95_wilson": [
+      0.7782,
+      0.9423
+    ]
+  },
+  "system_prompt_extraction": {
+    "n": 45,
+    "tp": 38,
+    "fn": 7,
+    "recall": 0.8444,
+    "recall_ci95_wilson": [
+      0.7122,
+      0.9225
+    ]
+  },
+  "hard_negative_groups": {
+    "quoted_attack": {
+      "n": 16,
+      "fp": 1,
+      "tn": 15,
+      "fpr": 0.0625,
+      "fpr_ci95_wilson": [
+        0.0111,
+        0.2833
+      ]
+    },
+    "incident_response": {
+      "n": 17,
+      "fp": 0,
+      "tn": 17,
+      "fpr": 0.0,
+      "fpr_ci95_wilson": [
+        0.0,
+        0.1843
+      ]
+    },
+    "security_operations": {
+      "n": 32,
+      "fp": 0,
+      "tn": 32,
+      "fpr": 0.0,
+      "fpr_ci95_wilson": [
+        0.0,
+        0.1072
+      ]
+    },
+    "security_policy": {
+      "n": 10,
+      "fp": 0,
+      "tn": 10,
+      "fpr": 0.0,
+      "fpr_ci95_wilson": [
+        0.0,
+        0.2775
+      ]
+    },
+    "ignore_previous_ordinary": {
+      "n": 17,
+      "fp": 0,
+      "tn": 17,
+      "fpr": 0.0,
+      "fpr_ci95_wilson": [
+        0.0,
+        0.1843
+      ]
+    },
+    "human_instructions": {
+      "n": 12,
+      "fp": 1,
+      "tn": 11,
+      "fpr": 0.0833,
+      "fpr_ci95_wilson": [
+        0.0149,
+        0.3539
+      ]
+    },
+    "code_with_attack_strings": {
+      "n": 5,
+      "fp": 0,
+      "tn": 5,
+      "fpr": 0.0,
+      "fpr_ci95_wilson": [
+        0.0,
+        0.4345
+      ]
+    },
+    "technical_documentation": {
+      "n": 30,
+      "fp": 1,
+      "tn": 29,
+      "fpr": 0.0333,
+      "fpr_ci95_wilson": [
+        0.0059,
+        0.1667
+      ]
+    }
+  },
+  "attack_groups": {
+    "direct_prompt_injection": {
+      "n": 10,
+      "tp": 10,
+      "fn": 0,
+      "recall": 1.0,
+      "recall_ci95_wilson": [
+        0.7225,
+        1.0
+      ]
+    },
+    "indirect_injection": {
+      "n": 5,
+      "tp": 5,
+      "fn": 0,
+      "recall": 1.0,
+      "recall_ci95_wilson": [
+        0.5655,
+        1.0
+      ]
+    },
+    "system_prompt_extraction": {
+      "n": 45,
+      "tp": 38,
+      "fn": 7,
+      "recall": 0.8444,
+      "recall_ci95_wilson": [
+        0.7122,
+        0.9225
+      ]
+    },
+    "jailbreak": {
+      "n": 8,
+      "tp": 5,
+      "fn": 3,
+      "recall": 0.625,
+      "recall_ci95_wilson": [
+        0.3057,
+        0.8632
+      ]
+    },
+    "role_override": {
+      "n": 0,
+      "note": "not a category in the hold-out taxonomy"
+    },
+    "context_override": {
+      "n": 0,
+      "note": "not a category in the hold-out taxonomy"
+    }
+  },
+  "latency": {
+    "n": 200,
+    "mean_ms": 11.3517,
+    "median_ms": 11.141,
+    "p50_ms": 11.141,
+    "p90_ms": 12.261,
+    "p95_ms": 12.5096,
+    "p99_ms": 17.8954,
+    "min_ms": 9.679,
+    "max_ms": 21.5847,
+    "stdev_ms": 1.3026,
+    "throughput_per_s_single_threaded": 88.09,
+    "percentiles_reliable": true,
+    "device": "cuda",
+    "method": "single-sample, warm, tokenisation included; batching excluded",
+    "peak_vram_gb": 0.767
+  },
+  "comparison_systems": {
+    "injection.heuristic": {
+      "detector": "injection.heuristic",
+      "threshold": 0.85,
+      "source": "eval/results/20260817T102936Z__threshold-deployability/predictions.jsonl",
+      "overall": {
+        "tp": 19,
+        "fp": 11,
+        "tn": 446,
+        "fn": 41,
+        "n": 517,
+        "n_attack": 60,
+        "n_benign": 457,
+        "precision": 0.6333,
+        "precision_ci95": [
+          0.4551,
+          0.7813
+        ],
+        "recall": 0.3167,
+        "recall_ci95": [
+          0.2131,
+          0.4423
+        ],
+        "f1": 0.4222,
+        "accuracy": 0.8994,
+        "fpr": 0.0241,
+        "fpr_ci95": [
+          0.0135,
+          0.0426
+        ],
+        "fnr": 0.6833
+      },
+      "benign": {
+        "n": 457,
+        "fpr": 0.0241,
+        "fpr_ci95_wilson": [
+          0.0135,
+          0.0426
+        ]
+      },
+      "hard_negatives": {
+        "n": 170,
+        "fpr": 0.0647,
+        "fpr_ci95_wilson": [
+          0.0365,
+          0.1121
+        ]
+      },
+      "quoted_attack": {
+        "n": 16,
+        "fpr": 0.5,
+        "fpr_ci95_wilson": [
+          0.28,
+          0.72
+        ]
+      },
+      "incident_response": {
+        "n": 17,
+        "fpr": 0.2941,
+        "fpr_ci95_wilson": [
+          0.1328,
+          0.5313
+        ]
+      },
+      "attack_recall": {
+        "n": 60,
+        "recall": 0.3167,
+        "recall_ci95_wilson": [
+          0.2131,
+          0.4423
+        ]
+      },
+      "system_prompt_extraction": {
+        "n": 45,
+        "recall": 0.2667,
+        "recall_ci95_wilson": [
+          0.1596,
+          0.4104
+        ]
+      },
+      "hard_negative_groups": {
+        "quoted_attack": {
+          "n": 16,
+          "fpr": 0.5,
+          "fpr_ci95_wilson": [
+            0.28,
+            0.72
+          ]
+        },
+        "incident_response": {
+          "n": 17,
+          "fpr": 0.2941,
+          "fpr_ci95_wilson": [
+            0.1328,
+            0.5313
+          ]
+        },
+        "security_operations": {
+          "n": 32,
+          "fpr": 0.0312,
+          "fpr_ci95_wilson": [
+            0.0055,
+            0.1574
+          ]
+        },
+        "security_policy": {
+          "n": 10,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.2775
+          ]
+        },
+        "ignore_previous_ordinary": {
+          "n": 17,
+          "fpr": 0.0588,
+          "fpr_ci95_wilson": [
+            0.0105,
+            0.2698
+          ]
+        },
+        "human_instructions": {
+          "n": 12,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.2425
+          ]
+        },
+        "code_with_attack_strings": {
+          "n": 5,
+          "fpr": 0.2,
+          "fpr_ci95_wilson": [
+            0.0362,
+            0.6245
+          ]
+        },
+        "technical_documentation": {
+          "n": 30,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        }
+      },
+      "attack_groups": {
+        "direct_prompt_injection": {
+          "n": 10,
+          "recall": 0.3,
+          "recall_ci95_wilson": [
+            0.1078,
+            0.6032
+          ]
+        },
+        "indirect_injection": {
+          "n": 5,
+          "recall": 0.8,
+          "recall_ci95_wilson": [
+            0.3755,
+            0.9638
+          ]
+        },
+        "system_prompt_extraction": {
+          "n": 45,
+          "recall": 0.2667,
+          "recall_ci95_wilson": [
+            0.1596,
+            0.4104
+          ]
+        },
+        "jailbreak": {
+          "n": 0
+        }
+      },
+      "latency_ms": {
+        "mean": 0.053,
+        "p50": 0.045,
+        "p95": 0.085,
+        "p99": 0.236,
+        "n": 517
+      }
+    },
+    "injection.protectai_deberta_v2": {
+      "detector": "injection.protectai_deberta_v2",
+      "threshold": 0.9995,
+      "source": "eval/results/20260817T102936Z__threshold-deployability/predictions.jsonl",
+      "overall": {
+        "tp": 53,
+        "fp": 31,
+        "tn": 426,
+        "fn": 7,
+        "n": 517,
+        "n_attack": 60,
+        "n_benign": 457,
+        "precision": 0.631,
+        "precision_ci95": [
+          0.5242,
+          0.7263
+        ],
+        "recall": 0.8833,
+        "recall_ci95": [
+          0.7782,
+          0.9423
+        ],
+        "f1": 0.7361,
+        "accuracy": 0.9265,
+        "fpr": 0.0678,
+        "fpr_ci95": [
+          0.0482,
+          0.0947
+        ],
+        "fnr": 0.1167
+      },
+      "benign": {
+        "n": 457,
+        "fpr": 0.0678,
+        "fpr_ci95_wilson": [
+          0.0482,
+          0.0947
+        ]
+      },
+      "hard_negatives": {
+        "n": 170,
+        "fpr": 0.1706,
+        "fpr_ci95_wilson": [
+          0.1215,
+          0.2343
+        ]
+      },
+      "quoted_attack": {
+        "n": 16,
+        "fpr": 0.875,
+        "fpr_ci95_wilson": [
+          0.6398,
+          0.965
+        ]
+      },
+      "incident_response": {
+        "n": 17,
+        "fpr": 0.4118,
+        "fpr_ci95_wilson": [
+          0.2161,
+          0.6399
+        ]
+      },
+      "attack_recall": {
+        "n": 60,
+        "recall": 0.8833,
+        "recall_ci95_wilson": [
+          0.7782,
+          0.9423
+        ]
+      },
+      "system_prompt_extraction": {
+        "n": 45,
+        "recall": 0.8444,
+        "recall_ci95_wilson": [
+          0.7122,
+          0.9225
+        ]
+      },
+      "hard_negative_groups": {
+        "quoted_attack": {
+          "n": 16,
+          "fpr": 0.875,
+          "fpr_ci95_wilson": [
+            0.6398,
+            0.965
+          ]
+        },
+        "incident_response": {
+          "n": 17,
+          "fpr": 0.4118,
+          "fpr_ci95_wilson": [
+            0.2161,
+            0.6399
+          ]
+        },
+        "security_operations": {
+          "n": 32,
+          "fpr": 0.2188,
+          "fpr_ci95_wilson": [
+            0.1102,
+            0.3875
+          ]
+        },
+        "security_policy": {
+          "n": 10,
+          "fpr": 0.2,
+          "fpr_ci95_wilson": [
+            0.0567,
+            0.5098
+          ]
+        },
+        "ignore_previous_ordinary": {
+          "n": 17,
+          "fpr": 0.1765,
+          "fpr_ci95_wilson": [
+            0.0619,
+            0.4103
+          ]
+        },
+        "human_instructions": {
+          "n": 12,
+          "fpr": 0.1667,
+          "fpr_ci95_wilson": [
+            0.047,
+            0.448
+          ]
+        },
+        "code_with_attack_strings": {
+          "n": 5,
+          "fpr": 0.4,
+          "fpr_ci95_wilson": [
+            0.1176,
+            0.7693
+          ]
+        },
+        "technical_documentation": {
+          "n": 30,
+          "fpr": 0.0667,
+          "fpr_ci95_wilson": [
+            0.0185,
+            0.2132
+          ]
+        }
+      },
+      "attack_groups": {
+        "direct_prompt_injection": {
+          "n": 10,
+          "recall": 1.0,
+          "recall_ci95_wilson": [
+            0.7225,
+            1.0
+          ]
+        },
+        "indirect_injection": {
+          "n": 5,
+          "recall": 1.0,
+          "recall_ci95_wilson": [
+            0.5655,
+            1.0
+          ]
+        },
+        "system_prompt_extraction": {
+          "n": 45,
+          "recall": 0.8444,
+          "recall_ci95_wilson": [
+            0.7122,
+            0.9225
+          ]
+        },
+        "jailbreak": {
+          "n": 0
+        }
+      },
+      "latency_ms": {
+        "mean": 97.59,
+        "p50": 94.478,
+        "p95": 117.16,
+        "p99": 188.794,
+        "n": 517
+      }
+    }
+  }
+}
