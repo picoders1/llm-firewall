@@ -1,0 +1,25 @@
+{
+  "run": "20260817T125002Z__holdout-v3-validation",
+  "purpose": "Single frozen evaluation of Strategy A on hold-out v3",
+  "dataset": "eval/datasets/holdout/v3/cases.jsonl",
+  "dataset_sha256": "0e26dd6b7d0f545c0bd68b64c2a0b4b60397f8ad41436754dc38b679fbbb28bf",
+  "checkpoint_sha256": "2995b260b5f9f97e58e5f7b1496b1e79c10b2eff2e4c3b00be212c22fe2fd9c2",
+  "threshold": 0.9955,
+  "selection_lock": "eval/results/finetune/20260817T122701Z__strategy-a/selection_lock.json",
+  "tuning_performed": false,
+  "device": "cuda",
+  "environment": {
+    "python": "3.12.3",
+    "torch": "2.6.0+cu124",
+    "transformers": "5.15.0",
+    "gpu": {
+      "available": true,
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "total_memory_gb": 3.95,
+      "cuda": "12.4"
+    },
+    "cpu_count": 16,
+    "uv_lock_hash": "3db9ddec3208c4f068eab6fb3a2f7621",
+    "git_commit": "a0e2a8de5ef922b944436975744d5f605e82f220"
+  }
+}

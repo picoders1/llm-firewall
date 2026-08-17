@@ -1,0 +1,71 @@
+{
+  "dataset_sha256": "0e26dd6b7d0f545c0bd68b64c2a0b4b60397f8ad41436754dc38b679fbbb28bf",
+  "manifest_sha256": "f8928a9060fb1c7a057436cf843d9c3648999c9e87801b6d88d0186ef08b1949",
+  "frozen_at": "2026-08-17T12:47:41.731817+00:00",
+  "internal_duplicates_removed": 0,
+  "near_duplicates_pruned": 4,
+  "near_duplicates_pruned_ids": [
+    "holdout3-ext-0075",
+    "holdout3-ext-0123",
+    "holdout3-ext-0296",
+    "holdout3-ext-0298"
+  ],
+  "secrets": 0,
+  "pii": 0,
+  "contamination": {
+    "holdout_v2": {
+      "n": 531,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "finetune_train": {
+      "n": 3006,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "finetune_dev": {
+      "n": 808,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "smoke": {
+      "n": 31,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "public_deepset-prompt-injections": {
+      "n": 662,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "public_dolly-benign": {
+      "n": 4000,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "public_jackhhao-jailbreak": {
+      "n": 1286,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "public_lakera-gandalf": {
+      "n": 999,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "public_oasst1-benign": {
+      "n": 4000,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    }
+  },
+  "near_duplicates": {
+    "jaccard_threshold": 0.9,
+    "internal_violations": 0,
+    "internal_rate": 0.0,
+    "ceiling": 0.02,
+    "within_ceiling": true,
+    "cross_version_v2_near_duplicates": 0,
+    "examples": []
+  }
+}

@@ -1,0 +1,313 @@
+{
+  "dataset_version": "holdout-v3",
+  "built_at": "2026-08-17T12:47:41.731817+00:00",
+  "seed": 20260818,
+  "supersedes": null,
+  "relationship_to_v2": "v3 is an ADDITIONAL, independently authored hold-out. v2 remains immutable and remains the artefact behind the Strategy A result.",
+  "composition": {
+    "total": 792,
+    "benign": 436,
+    "attacks": 356,
+    "attacks_in_injection_scope": 356,
+    "hard_negatives": 240,
+    "ordinary_benign": 196,
+    "by_category": {
+      "benign": 436,
+      "system_prompt_extraction": 296,
+      "direct_prompt_injection": 40,
+      "indirect_prompt_injection": 20
+    },
+    "by_sub_category": {
+      "transform_extraction": 276,
+      "routine_request": 150,
+      "quoted_attack": 70,
+      "instruction_override": 40,
+      "code_with_attack_strings": 24,
+      "direct_extraction": 20,
+      "embedded_document": 20,
+      "short_form": 16,
+      "secops_ordinary": 12,
+      "developer_documentation": 12,
+      "human_instructions": 12,
+      "analyst_notes": 10,
+      "escalation": 10,
+      "customer_notification": 10,
+      "security_policy": 10,
+      "ignore_previous_ordinary": 10,
+      "handoff": 9,
+      "newsletter": 9,
+      "containment": 9,
+      "post_incident_review": 9,
+      "forensic_timeline": 8,
+      "ir_summary": 8,
+      "ticket": 8,
+      "communication": 6,
+      "authoring": 6,
+      "process": 5,
+      "design": 4,
+      "explanation": 4,
+      "analysis": 3,
+      "troubleshooting": 1,
+      "query": 1
+    },
+    "by_domain": {
+      "attack": 356,
+      "incident_response": 110,
+      "software_engineering": 43,
+      "security_operations": 41,
+      "project_management": 33,
+      "data_analysis": 25,
+      "finance_operations": 22,
+      "customer_support": 20,
+      "api_documentation": 17,
+      "hr_workflows": 17,
+      "compliance": 15,
+      "technical_documentation": 14,
+      "reporting": 13,
+      "it_support": 11,
+      "database_sql": 10,
+      "performance": 10,
+      "business_email": 9,
+      "system_administration": 8,
+      "authoring": 7,
+      "cloud_infrastructure": 6,
+      "ai_safety": 3,
+      "explanation": 1,
+      "communication": 1
+    },
+    "by_difficulty": {
+      "hard": 416,
+      "easy": 203,
+      "medium": 173
+    },
+    "benign_by_sub_category": {
+      "routine_request": 150,
+      "quoted_attack": 70,
+      "code_with_attack_strings": 24,
+      "short_form": 16,
+      "secops_ordinary": 12,
+      "developer_documentation": 12,
+      "human_instructions": 12,
+      "analyst_notes": 10,
+      "escalation": 10,
+      "customer_notification": 10,
+      "security_policy": 10,
+      "ignore_previous_ordinary": 10,
+      "handoff": 9,
+      "newsletter": 9,
+      "containment": 9,
+      "post_incident_review": 9,
+      "forensic_timeline": 8,
+      "ir_summary": 8,
+      "ticket": 8,
+      "communication": 6,
+      "authoring": 6,
+      "process": 5,
+      "design": 4,
+      "explanation": 4,
+      "analysis": 3,
+      "troubleshooting": 1,
+      "query": 1
+    },
+    "benign_by_domain": {
+      "incident_response": 110,
+      "software_engineering": 43,
+      "security_operations": 41,
+      "project_management": 33,
+      "data_analysis": 25,
+      "finance_operations": 22,
+      "customer_support": 20,
+      "api_documentation": 17,
+      "hr_workflows": 17,
+      "compliance": 15,
+      "technical_documentation": 14,
+      "reporting": 13,
+      "it_support": 11,
+      "database_sql": 10,
+      "performance": 10,
+      "business_email": 9,
+      "system_administration": 8,
+      "authoring": 7,
+      "cloud_infrastructure": 6,
+      "ai_safety": 3,
+      "explanation": 1,
+      "communication": 1
+    }
+  },
+  "sizing_analysis": {
+    "method": "Smallest n for which the Wilson 95% interval, evaluated at the rate Strategy A actually achieved on v2, falls entirely on the satisfying side of the bound. Bounds are ADR-015's, unchanged.",
+    "rates_source": "eval/results/finetune/20260817T122701Z__strategy-a/holdout_metrics.json",
+    "requirements": [
+      {
+        "category": "quoted_attack",
+        "criterion": "FPR <= 0.15",
+        "observed_rate_on_v2": 0.0625,
+        "minimum_n": 55,
+        "expected_hits_at_minimum": 3,
+        "v3_target": 70,
+        "margin_over_minimum": 15
+      },
+      {
+        "category": "incident_response",
+        "criterion": "FPR <= 0.1",
+        "observed_rate_on_v2": 0.0333,
+        "minimum_n": 69,
+        "expected_hits_at_minimum": 2,
+        "v3_target": 90,
+        "margin_over_minimum": 21
+      },
+      {
+        "category": "hard_negative (all)",
+        "criterion": "FPR <= 0.1",
+        "observed_rate_on_v2": 0.0118,
+        "minimum_n": 35,
+        "expected_hits_at_minimum": 0,
+        "v3_target": 250,
+        "margin_over_minimum": 215
+      },
+      {
+        "category": "benign (overall)",
+        "criterion": "FPR <= 0.0241",
+        "observed_rate_on_v2": 0.0066,
+        "minimum_n": 299,
+        "expected_hits_at_minimum": 2,
+        "v3_target": 420,
+        "margin_over_minimum": 121
+      },
+      {
+        "category": "attack recall (in scope)",
+        "criterion": "recall >= 0.8",
+        "observed_rate_on_v2": 0.8833,
+        "minimum_n": 81,
+        "expected_hits_at_minimum": 72,
+        "v3_target": 360,
+        "margin_over_minimum": 279
+      },
+      {
+        "category": "system_prompt_extraction",
+        "criterion": "recall >= 0.8",
+        "observed_rate_on_v2": 0.8444,
+        "minimum_n": 292,
+        "expected_hits_at_minimum": 247,
+        "v3_target": 300,
+        "margin_over_minimum": 8
+      }
+    ]
+  },
+  "sizing_check": {
+    "per_category": [
+      {
+        "category": "quoted_attack",
+        "minimum_n": 55,
+        "actual_n": 70,
+        "satisfied": true,
+        "margin": 15
+      },
+      {
+        "category": "incident_response",
+        "minimum_n": 69,
+        "actual_n": 110,
+        "satisfied": true,
+        "margin": 41
+      },
+      {
+        "category": "hard_negative (all)",
+        "minimum_n": 35,
+        "actual_n": 240,
+        "satisfied": true,
+        "margin": 205
+      },
+      {
+        "category": "benign (overall)",
+        "minimum_n": 299,
+        "actual_n": 436,
+        "satisfied": true,
+        "margin": 137
+      },
+      {
+        "category": "attack recall (in scope)",
+        "minimum_n": 81,
+        "actual_n": 356,
+        "satisfied": true,
+        "margin": 275
+      },
+      {
+        "category": "system_prompt_extraction",
+        "minimum_n": 292,
+        "actual_n": 296,
+        "satisfied": true,
+        "margin": 4
+      }
+    ],
+    "all_satisfied": true
+  },
+  "integrity": {
+    "internal_duplicates_removed": 0,
+    "near_duplicates_pruned": 4,
+    "near_duplicates_pruned_ids": [
+      "holdout3-ext-0075",
+      "holdout3-ext-0123",
+      "holdout3-ext-0296",
+      "holdout3-ext-0298"
+    ],
+    "secrets": 0,
+    "pii": 0,
+    "contamination": {
+      "holdout_v2": {
+        "n": 531,
+        "exact_collisions": 0,
+        "normalised_collisions": 0
+      },
+      "finetune_train": {
+        "n": 3006,
+        "exact_collisions": 0,
+        "normalised_collisions": 0
+      },
+      "finetune_dev": {
+        "n": 808,
+        "exact_collisions": 0,
+        "normalised_collisions": 0
+      },
+      "smoke": {
+        "n": 31,
+        "exact_collisions": 0,
+        "normalised_collisions": 0
+      },
+      "public_deepset-prompt-injections": {
+        "n": 662,
+        "exact_collisions": 0,
+        "normalised_collisions": 0
+      },
+      "public_dolly-benign": {
+        "n": 4000,
+        "exact_collisions": 0,
+        "normalised_collisions": 0
+      },
+      "public_jackhhao-jailbreak": {
+        "n": 1286,
+        "exact_collisions": 0,
+        "normalised_collisions": 0
+      },
+      "public_lakera-gandalf": {
+        "n": 999,
+        "exact_collisions": 0,
+        "normalised_collisions": 0
+      },
+      "public_oasst1-benign": {
+        "n": 4000,
+        "exact_collisions": 0,
+        "normalised_collisions": 0
+      }
+    },
+    "near_duplicates": {
+      "jaccard_threshold": 0.9,
+      "internal_violations": 0,
+      "internal_rate": 0.0,
+      "ceiling": 0.02,
+      "within_ceiling": true,
+      "cross_version_v2_near_duplicates": 0,
+      "examples": []
+    }
+  },
+  "dataset_sha256": "0e26dd6b7d0f545c0bd68b64c2a0b4b60397f8ad41436754dc38b679fbbb28bf"
+}
