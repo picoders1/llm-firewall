@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="126" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">
+<text x="16" y="24" font-size="14" font-weight="600">Attack recall: content-only vs provenance-aware</text>
+<rect x="250" y="38" width="10" height="10" fill="#64748b"/>
+<text x="266" y="47" fill="#475569">content-only</text>
+<rect x="360" y="38" width="10" height="10" fill="#1d4ed8"/>
+<text x="376" y="47" fill="#475569">provenance-aware</text>
+<text x="16" y="81" fill="#334155">overall (n=520)</text>
+<rect x="250" y="68" width="54.1" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="79" width="203.9" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="81" fill="#15803d">0.142→0.536 (+0.394)</text>
+</svg>

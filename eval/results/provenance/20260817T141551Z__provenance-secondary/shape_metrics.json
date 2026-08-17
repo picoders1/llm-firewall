@@ -1,0 +1,1388 @@
+{
+  "A0_content_only_flat": {
+    "attacks": {
+      "alt_text": {
+        "n": 30,
+        "tp": 7,
+        "recall": 0.2333,
+        "recall_ci95_wilson": [
+          0.1179,
+          0.4093
+        ]
+      },
+      "code_comment": {
+        "n": 50,
+        "tp": 1,
+        "recall": 0.02,
+        "recall_ci95_wilson": [
+          0.0035,
+          0.105
+        ]
+      },
+      "complicit_directive": {
+        "n": 40,
+        "tp": 29,
+        "recall": 0.725,
+        "recall_ci95_wilson": [
+          0.5717,
+          0.8389
+        ]
+      },
+      "document_footer_header": {
+        "n": 30,
+        "tp": 1,
+        "recall": 0.0333,
+        "recall_ci95_wilson": [
+          0.0059,
+          0.1667
+        ]
+      },
+      "html_comment": {
+        "n": 50,
+        "tp": 11,
+        "recall": 0.22,
+        "recall_ci95_wilson": [
+          0.1275,
+          0.3524
+        ]
+      },
+      "json_metadata": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "markdown_hidden": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "prose_addressed": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "quoted_prose": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "system_marker": {
+        "n": 30,
+        "tp": 17,
+        "recall": 0.5667,
+        "recall_ci95_wilson": [
+          0.392,
+          0.7262
+        ]
+      },
+      "tool_retrieval_metadata": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "xml_markup": {
+        "n": 50,
+        "tp": 8,
+        "recall": 0.16,
+        "recall_ci95_wilson": [
+          0.0834,
+          0.2851
+        ]
+      },
+      "yaml_config": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      }
+    },
+    "benign_controls": {
+      "alt_text": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "code_comment": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "document_footer_header": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "html_comment": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "json_metadata": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "markdown_hidden": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "prose_addressed": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "quoted_prose": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "system_marker": {
+        "n": 25,
+        "fp": 5,
+        "fpr": 0.2,
+        "fpr_ci95_wilson": [
+          0.0886,
+          0.3913
+        ]
+      },
+      "tool_retrieval_metadata": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "xml_markup": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "yaml_config": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      }
+    }
+  },
+  "A1_provenance_aware_flat": {
+    "attacks": {
+      "alt_text": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "code_comment": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "complicit_directive": {
+        "n": 40,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0876
+        ]
+      },
+      "document_footer_header": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "html_comment": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "json_metadata": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "markdown_hidden": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "prose_addressed": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "quoted_prose": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "system_marker": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "tool_retrieval_metadata": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "xml_markup": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "yaml_config": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      }
+    },
+    "benign_controls": {
+      "alt_text": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "code_comment": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "document_footer_header": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "html_comment": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "json_metadata": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "markdown_hidden": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "prose_addressed": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "quoted_prose": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "system_marker": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "tool_retrieval_metadata": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "xml_markup": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "yaml_config": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      }
+    }
+  },
+  "A2_provenance_aware_split": {
+    "attacks": {
+      "alt_text": {
+        "n": 30,
+        "tp": 17,
+        "recall": 0.5667,
+        "recall_ci95_wilson": [
+          0.392,
+          0.7262
+        ]
+      },
+      "code_comment": {
+        "n": 50,
+        "tp": 27,
+        "recall": 0.54,
+        "recall_ci95_wilson": [
+          0.404,
+          0.6703
+        ]
+      },
+      "complicit_directive": {
+        "n": 40,
+        "tp": 25,
+        "recall": 0.625,
+        "recall_ci95_wilson": [
+          0.4703,
+          0.7578
+        ]
+      },
+      "document_footer_header": {
+        "n": 30,
+        "tp": 15,
+        "recall": 0.5,
+        "recall_ci95_wilson": [
+          0.3315,
+          0.6685
+        ]
+      },
+      "html_comment": {
+        "n": 50,
+        "tp": 26,
+        "recall": 0.52,
+        "recall_ci95_wilson": [
+          0.3851,
+          0.652
+        ]
+      },
+      "json_metadata": {
+        "n": 50,
+        "tp": 25,
+        "recall": 0.5,
+        "recall_ci95_wilson": [
+          0.3664,
+          0.6336
+        ]
+      },
+      "markdown_hidden": {
+        "n": 30,
+        "tp": 16,
+        "recall": 0.5333,
+        "recall_ci95_wilson": [
+          0.3614,
+          0.6977
+        ]
+      },
+      "prose_addressed": {
+        "n": 50,
+        "tp": 29,
+        "recall": 0.58,
+        "recall_ci95_wilson": [
+          0.4423,
+          0.7062
+        ]
+      },
+      "quoted_prose": {
+        "n": 30,
+        "tp": 14,
+        "recall": 0.4667,
+        "recall_ci95_wilson": [
+          0.3023,
+          0.6386
+        ]
+      },
+      "system_marker": {
+        "n": 30,
+        "tp": 15,
+        "recall": 0.5,
+        "recall_ci95_wilson": [
+          0.3315,
+          0.6685
+        ]
+      },
+      "tool_retrieval_metadata": {
+        "n": 50,
+        "tp": 26,
+        "recall": 0.52,
+        "recall_ci95_wilson": [
+          0.3851,
+          0.652
+        ]
+      },
+      "xml_markup": {
+        "n": 50,
+        "tp": 28,
+        "recall": 0.56,
+        "recall_ci95_wilson": [
+          0.4231,
+          0.6884
+        ]
+      },
+      "yaml_config": {
+        "n": 30,
+        "tp": 16,
+        "recall": 0.5333,
+        "recall_ci95_wilson": [
+          0.3614,
+          0.6977
+        ]
+      }
+    },
+    "benign_controls": {
+      "alt_text": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "code_comment": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "document_footer_header": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "html_comment": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "json_metadata": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "markdown_hidden": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "prose_addressed": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "quoted_prose": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "system_marker": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "tool_retrieval_metadata": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "xml_markup": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "yaml_config": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      }
+    }
+  },
+  "A3_content_only_split": {
+    "attacks": {
+      "alt_text": {
+        "n": 30,
+        "tp": 17,
+        "recall": 0.5667,
+        "recall_ci95_wilson": [
+          0.392,
+          0.7262
+        ]
+      },
+      "code_comment": {
+        "n": 50,
+        "tp": 27,
+        "recall": 0.54,
+        "recall_ci95_wilson": [
+          0.404,
+          0.6703
+        ]
+      },
+      "complicit_directive": {
+        "n": 40,
+        "tp": 39,
+        "recall": 0.975,
+        "recall_ci95_wilson": [
+          0.8712,
+          0.9956
+        ]
+      },
+      "document_footer_header": {
+        "n": 30,
+        "tp": 15,
+        "recall": 0.5,
+        "recall_ci95_wilson": [
+          0.3315,
+          0.6685
+        ]
+      },
+      "html_comment": {
+        "n": 50,
+        "tp": 26,
+        "recall": 0.52,
+        "recall_ci95_wilson": [
+          0.3851,
+          0.652
+        ]
+      },
+      "json_metadata": {
+        "n": 50,
+        "tp": 25,
+        "recall": 0.5,
+        "recall_ci95_wilson": [
+          0.3664,
+          0.6336
+        ]
+      },
+      "markdown_hidden": {
+        "n": 30,
+        "tp": 16,
+        "recall": 0.5333,
+        "recall_ci95_wilson": [
+          0.3614,
+          0.6977
+        ]
+      },
+      "prose_addressed": {
+        "n": 50,
+        "tp": 29,
+        "recall": 0.58,
+        "recall_ci95_wilson": [
+          0.4423,
+          0.7062
+        ]
+      },
+      "quoted_prose": {
+        "n": 30,
+        "tp": 14,
+        "recall": 0.4667,
+        "recall_ci95_wilson": [
+          0.3023,
+          0.6386
+        ]
+      },
+      "system_marker": {
+        "n": 30,
+        "tp": 23,
+        "recall": 0.7667,
+        "recall_ci95_wilson": [
+          0.5907,
+          0.8821
+        ]
+      },
+      "tool_retrieval_metadata": {
+        "n": 50,
+        "tp": 26,
+        "recall": 0.52,
+        "recall_ci95_wilson": [
+          0.3851,
+          0.652
+        ]
+      },
+      "xml_markup": {
+        "n": 50,
+        "tp": 28,
+        "recall": 0.56,
+        "recall_ci95_wilson": [
+          0.4231,
+          0.6884
+        ]
+      },
+      "yaml_config": {
+        "n": 30,
+        "tp": 16,
+        "recall": 0.5333,
+        "recall_ci95_wilson": [
+          0.3614,
+          0.6977
+        ]
+      }
+    },
+    "benign_controls": {
+      "alt_text": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "code_comment": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "document_footer_header": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "html_comment": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "json_metadata": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "markdown_hidden": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "prose_addressed": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "quoted_prose": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "system_marker": {
+        "n": 25,
+        "fp": 15,
+        "fpr": 0.6,
+        "fpr_ci95_wilson": [
+          0.4074,
+          0.766
+        ]
+      },
+      "tool_retrieval_metadata": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "xml_markup": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "yaml_config": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      }
+    }
+  },
+  "M2_provenance_removed": {
+    "attacks": {
+      "alt_text": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "code_comment": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "complicit_directive": {
+        "n": 40,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0876
+        ]
+      },
+      "document_footer_header": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "html_comment": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "json_metadata": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "markdown_hidden": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "prose_addressed": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "quoted_prose": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "system_marker": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "tool_retrieval_metadata": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "xml_markup": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "yaml_config": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      }
+    },
+    "benign_controls": {
+      "alt_text": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "code_comment": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "document_footer_header": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "html_comment": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "json_metadata": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "markdown_hidden": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "prose_addressed": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "quoted_prose": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "system_marker": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "tool_retrieval_metadata": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "xml_markup": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "yaml_config": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      }
+    }
+  },
+  "M4_provenance_inverted": {
+    "attacks": {
+      "alt_text": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "code_comment": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "complicit_directive": {
+        "n": 40,
+        "tp": 33,
+        "recall": 0.825,
+        "recall_ci95_wilson": [
+          0.6805,
+          0.9125
+        ]
+      },
+      "document_footer_header": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "html_comment": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "json_metadata": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "markdown_hidden": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "prose_addressed": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "quoted_prose": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "system_marker": {
+        "n": 30,
+        "tp": 18,
+        "recall": 0.6,
+        "recall_ci95_wilson": [
+          0.4232,
+          0.7541
+        ]
+      },
+      "tool_retrieval_metadata": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "xml_markup": {
+        "n": 50,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0713
+        ]
+      },
+      "yaml_config": {
+        "n": 30,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      }
+    },
+    "benign_controls": {
+      "alt_text": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "code_comment": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "document_footer_header": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "html_comment": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "json_metadata": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "markdown_hidden": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "prose_addressed": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "quoted_prose": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "system_marker": {
+        "n": 25,
+        "fp": 15,
+        "fpr": 0.6,
+        "fpr_ci95_wilson": [
+          0.4074,
+          0.766
+        ]
+      },
+      "tool_retrieval_metadata": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "xml_markup": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      },
+      "yaml_config": {
+        "n": 25,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1332
+        ]
+      }
+    }
+  }
+}

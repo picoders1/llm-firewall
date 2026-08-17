@@ -1,0 +1,38 @@
+{
+  "run": "20260817T141551Z__provenance-secondary",
+  "run_type": "provenance-aware secondary evaluation",
+  "corpus": "eval/datasets/holdout/indirect-v1/cases.jsonl",
+  "corpus_sha256": "3ef8c0ec75d9aed9669332dd2e70987993459b39629a6f7109241e13f96d6e17",
+  "corpus_modified": false,
+  "previous_evaluation": "20260817T130736Z__indirect-delivery-shape",
+  "checkpoint_sha256": "2995b260b5f9f97e58e5f7b1496b1e79c10b2eff2e4c3b00be212c22fe2fd9c2",
+  "model_revision": "90c9989b1a342275dd0d1a95aad283c04e075671",
+  "tokenizer_revision": "90c9989b1a342275dd0d1a95aad283c04e075671",
+  "threshold": 0.9955,
+  "recalibrated": false,
+  "retrained": false,
+  "protocol": "docs/adr/ADR-018-provenance-aware-detector-evaluation.md",
+  "arms": [
+    "A0_content_only_flat",
+    "A1_provenance_aware_flat",
+    "A2_provenance_aware_split",
+    "A3_content_only_split",
+    "M2_provenance_removed",
+    "M4_provenance_inverted"
+  ],
+  "device": "cuda",
+  "environment": {
+    "python": "3.12.3",
+    "torch": "2.6.0+cu124",
+    "transformers": "5.15.0",
+    "gpu": {
+      "available": true,
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "total_memory_gb": 3.95,
+      "cuda": "12.4"
+    },
+    "cpu_count": 16,
+    "uv_lock_hash": "3db9ddec3208c4f068eab6fb3a2f7621",
+    "git_commit": "a0e2a8de5ef922b944436975744d5f605e82f220"
+  }
+}

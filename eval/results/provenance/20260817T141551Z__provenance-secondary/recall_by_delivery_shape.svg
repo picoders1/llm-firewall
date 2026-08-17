@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="486" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">
+<text x="16" y="24" font-size="14" font-weight="600">Attack recall by delivery shape: content-only vs provenance-aware</text>
+<rect x="250" y="38" width="10" height="10" fill="#64748b"/>
+<text x="266" y="47" fill="#475569">content-only</text>
+<rect x="360" y="38" width="10" height="10" fill="#1d4ed8"/>
+<text x="376" y="47" fill="#475569">provenance-aware</text>
+<text x="16" y="81" fill="#334155">alt_text (n=30)</text>
+<rect x="250" y="68" width="88.7" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="79" width="215.3" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="81" fill="#15803d">0.233→0.567 (+0.333)</text>
+<text x="16" y="111" fill="#334155">code_comment (n=50)</text>
+<rect x="250" y="98" width="7.6" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="109" width="205.2" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="111" fill="#15803d">0.020→0.540 (+0.520)</text>
+<text x="16" y="141" fill="#334155">complicit_directive (n=40)</text>
+<rect x="250" y="128" width="275.5" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="139" width="237.5" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="141" fill="#b91c1c">0.725→0.625 (-0.100)</text>
+<text x="16" y="171" fill="#334155">document_footer_header (n=30)</text>
+<rect x="250" y="158" width="12.7" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="169" width="190.0" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="171" fill="#15803d">0.033→0.500 (+0.467)</text>
+<text x="16" y="201" fill="#334155">html_comment (n=50)</text>
+<rect x="250" y="188" width="83.6" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="199" width="197.6" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="201" fill="#15803d">0.220→0.520 (+0.300)</text>
+<text x="16" y="231" fill="#334155">json_metadata (n=50)</text>
+<rect x="250" y="218" width="1.0" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="229" width="190.0" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="231" fill="#15803d">0.000→0.500 (+0.500)</text>
+<text x="16" y="261" fill="#334155">markdown_hidden (n=30)</text>
+<rect x="250" y="248" width="1.0" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="259" width="202.7" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="261" fill="#15803d">0.000→0.533 (+0.533)</text>
+<text x="16" y="291" fill="#334155">prose_addressed (n=50)</text>
+<rect x="250" y="278" width="1.0" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="289" width="220.4" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="291" fill="#15803d">0.000→0.580 (+0.580)</text>
+<text x="16" y="321" fill="#334155">quoted_prose (n=30)</text>
+<rect x="250" y="308" width="1.0" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="319" width="177.3" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="321" fill="#15803d">0.000→0.467 (+0.467)</text>
+<text x="16" y="351" fill="#334155">system_marker (n=30)</text>
+<rect x="250" y="338" width="215.3" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="349" width="190.0" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="351" fill="#b91c1c">0.567→0.500 (-0.067)</text>
+<text x="16" y="381" fill="#334155">tool_retrieval_metadata (n=50)</text>
+<rect x="250" y="368" width="1.0" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="379" width="197.6" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="381" fill="#15803d">0.000→0.520 (+0.520)</text>
+<text x="16" y="411" fill="#334155">xml_markup (n=50)</text>
+<rect x="250" y="398" width="60.8" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="409" width="212.8" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="411" fill="#15803d">0.160→0.560 (+0.400)</text>
+<text x="16" y="441" fill="#334155">yaml_config (n=30)</text>
+<rect x="250" y="428" width="1.0" height="9" fill="#64748b" rx="1"/>
+<rect x="250" y="439" width="202.7" height="9" fill="#1d4ed8" rx="1"/>
+<text x="638" y="441" fill="#15803d">0.000→0.533 (+0.533)</text>
+</svg>

@@ -1,0 +1,122 @@
+{
+  "A0_content_only_flat": {
+    "complicit_directive": {
+      "n": 40,
+      "tp": 29,
+      "recall": 0.725,
+      "recall_ci95_wilson": [
+        0.5717,
+        0.8389
+      ]
+    },
+    "innocent_processing": {
+      "n": 480,
+      "tp": 45,
+      "recall": 0.0938,
+      "recall_ci95_wilson": [
+        0.0708,
+        0.1231
+      ]
+    }
+  },
+  "A1_provenance_aware_flat": {
+    "complicit_directive": {
+      "n": 40,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0876
+      ]
+    },
+    "innocent_processing": {
+      "n": 480,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0079
+      ]
+    }
+  },
+  "A2_provenance_aware_split": {
+    "complicit_directive": {
+      "n": 40,
+      "tp": 25,
+      "recall": 0.625,
+      "recall_ci95_wilson": [
+        0.4703,
+        0.7578
+      ]
+    },
+    "innocent_processing": {
+      "n": 480,
+      "tp": 254,
+      "recall": 0.5292,
+      "recall_ci95_wilson": [
+        0.4845,
+        0.5734
+      ]
+    }
+  },
+  "A3_content_only_split": {
+    "complicit_directive": {
+      "n": 40,
+      "tp": 39,
+      "recall": 0.975,
+      "recall_ci95_wilson": [
+        0.8712,
+        0.9956
+      ]
+    },
+    "innocent_processing": {
+      "n": 480,
+      "tp": 262,
+      "recall": 0.5458,
+      "recall_ci95_wilson": [
+        0.5011,
+        0.5898
+      ]
+    }
+  },
+  "M2_provenance_removed": {
+    "complicit_directive": {
+      "n": 40,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0876
+      ]
+    },
+    "innocent_processing": {
+      "n": 480,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0079
+      ]
+    }
+  },
+  "M4_provenance_inverted": {
+    "complicit_directive": {
+      "n": 40,
+      "tp": 33,
+      "recall": 0.825,
+      "recall_ci95_wilson": [
+        0.6805,
+        0.9125
+      ]
+    },
+    "innocent_processing": {
+      "n": 480,
+      "tp": 18,
+      "recall": 0.0375,
+      "recall_ci95_wilson": [
+        0.0239,
+        0.0585
+      ]
+    }
+  }
+}

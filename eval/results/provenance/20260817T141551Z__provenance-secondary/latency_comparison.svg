@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="138" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">
+<text x="16" y="26" font-size="14" font-weight="600">Detector latency per forward pass (ms, lower is better)</text>
+<line x1="5210.68" y1="44" x2="5210.68" y2="112" stroke="#b91c1c" stroke-dasharray="4 3"/>
+<text x="16" y="69" fill="#334155">flat whole message</text>
+<rect x="250" y="59" width="4960.7" height="14" fill="#15803d" rx="2"/>
+<text x="5216.68" y="70" fill="#475569">12.402 (n=200)</text>
+<text x="16" y="95" fill="#334155">split embedded span</text>
+<rect x="250" y="85" width="4278.6" height="14" fill="#b45309" rx="2"/>
+<text x="4534.64" y="96" fill="#475569">10.697 (n=200)</text>
+</svg>

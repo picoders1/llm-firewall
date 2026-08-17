@@ -1,0 +1,2447 @@
+{
+  "evaluated_at": "2026-08-17T14:16:05.202386+00:00",
+  "run_type": "provenance-aware secondary evaluation",
+  "corpus": "holdout-indirect-v1",
+  "corpus_sha256": "3ef8c0ec75d9aed9669332dd2e70987993459b39629a6f7109241e13f96d6e17",
+  "corpus_previously_evaluated_in": "20260817T130736Z__indirect-delivery-shape",
+  "checkpoint": "stratA__lr1e-05__ep2__seed13",
+  "checkpoint_sha256": "2995b260b5f9f97e58e5f7b1496b1e79c10b2eff2e4c3b00be212c22fe2fd9c2",
+  "model_revision": "90c9989b1a342275dd0d1a95aad283c04e075671",
+  "threshold": 0.9955,
+  "threshold_source": "frozen in selection_lock.json; NOT recalibrated",
+  "retrained": false,
+  "pre_evaluation_checks": {
+    "corpus_hash_matches_pin": true,
+    "corpus_hash_matches_its_freeze": true,
+    "checkpoint_present": true,
+    "threshold_is_the_frozen_one": true,
+    "prior_evaluation_exists": true
+  },
+  "n": 820,
+  "forward_passes": 911,
+  "arms": {
+    "A0_content_only_flat": {
+      "arm": "A0_content_only_flat",
+      "segmentation": "flat",
+      "consumes_provenance": false,
+      "provenance_mode": "correct",
+      "description": "Control. Scores the whole message; replicates the ADR-016 run.",
+      "is_control": true,
+      "wall_clock_s": 4.6,
+      "threshold": 0.9955,
+      "overall": {
+        "tp": 74,
+        "fp": 5,
+        "tn": 295,
+        "fn": 446,
+        "n": 820,
+        "n_attack": 520,
+        "n_benign": 300,
+        "precision": 0.9367,
+        "precision_ci95": [
+          0.8603,
+          0.9727
+        ],
+        "recall": 0.1423,
+        "recall_ci95": [
+          0.1149,
+          0.175
+        ],
+        "f1": 0.2471,
+        "accuracy": 0.45,
+        "fpr": 0.0167,
+        "fpr_ci95": [
+          0.0071,
+          0.0384
+        ],
+        "fnr": 0.8577
+      },
+      "attack_recall": {
+        "n": 520,
+        "tp": 74,
+        "recall": 0.1423,
+        "recall_ci95_wilson": [
+          0.1149,
+          0.175
+        ]
+      },
+      "benign_control_fpr": {
+        "n": 300,
+        "fp": 5,
+        "fpr": 0.0167,
+        "fpr_ci95_wilson": [
+          0.0071,
+          0.0384
+        ]
+      },
+      "by_delivery_shape": {
+        "alt_text": {
+          "n": 30,
+          "tp": 7,
+          "recall": 0.2333,
+          "recall_ci95_wilson": [
+            0.1179,
+            0.4093
+          ]
+        },
+        "code_comment": {
+          "n": 50,
+          "tp": 1,
+          "recall": 0.02,
+          "recall_ci95_wilson": [
+            0.0035,
+            0.105
+          ]
+        },
+        "complicit_directive": {
+          "n": 40,
+          "tp": 29,
+          "recall": 0.725,
+          "recall_ci95_wilson": [
+            0.5717,
+            0.8389
+          ]
+        },
+        "document_footer_header": {
+          "n": 30,
+          "tp": 1,
+          "recall": 0.0333,
+          "recall_ci95_wilson": [
+            0.0059,
+            0.1667
+          ]
+        },
+        "html_comment": {
+          "n": 50,
+          "tp": 11,
+          "recall": 0.22,
+          "recall_ci95_wilson": [
+            0.1275,
+            0.3524
+          ]
+        },
+        "json_metadata": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "markdown_hidden": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "prose_addressed": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "quoted_prose": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "system_marker": {
+          "n": 30,
+          "tp": 17,
+          "recall": 0.5667,
+          "recall_ci95_wilson": [
+            0.392,
+            0.7262
+          ]
+        },
+        "tool_retrieval_metadata": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "xml_markup": {
+          "n": 50,
+          "tp": 8,
+          "recall": 0.16,
+          "recall_ci95_wilson": [
+            0.0834,
+            0.2851
+          ]
+        },
+        "yaml_config": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        }
+      },
+      "by_attack_mechanism": {
+        "context_injection": {
+          "n": 73,
+          "tp": 10,
+          "recall": 0.137,
+          "recall_ci95_wilson": [
+            0.0761,
+            0.2341
+          ]
+        },
+        "data_exfiltration": {
+          "n": 71,
+          "tp": 16,
+          "recall": 0.2254,
+          "recall_ci95_wilson": [
+            0.1437,
+            0.3352
+          ]
+        },
+        "instruction_override": {
+          "n": 67,
+          "tp": 16,
+          "recall": 0.2388,
+          "recall_ci95_wilson": [
+            0.1527,
+            0.3533
+          ]
+        },
+        "retrieval_poisoning": {
+          "n": 64,
+          "tp": 2,
+          "recall": 0.0312,
+          "recall_ci95_wilson": [
+            0.0086,
+            0.107
+          ]
+        },
+        "role_manipulation": {
+          "n": 61,
+          "tp": 4,
+          "recall": 0.0656,
+          "recall_ci95_wilson": [
+            0.0258,
+            0.1568
+          ]
+        },
+        "safety_bypass": {
+          "n": 64,
+          "tp": 6,
+          "recall": 0.0938,
+          "recall_ci95_wilson": [
+            0.0437,
+            0.1898
+          ]
+        },
+        "system_prompt_extraction": {
+          "n": 61,
+          "tp": 18,
+          "recall": 0.2951,
+          "recall_ci95_wilson": [
+            0.1956,
+            0.4189
+          ]
+        },
+        "tool_use_manipulation": {
+          "n": 59,
+          "tp": 2,
+          "recall": 0.0339,
+          "recall_ci95_wilson": [
+            0.0093,
+            0.1154
+          ]
+        }
+      },
+      "by_user_framing": {
+        "complicit_directive": {
+          "n": 40,
+          "tp": 29,
+          "recall": 0.725,
+          "recall_ci95_wilson": [
+            0.5717,
+            0.8389
+          ]
+        },
+        "innocent_processing": {
+          "n": 480,
+          "tp": 45,
+          "recall": 0.0938,
+          "recall_ci95_wilson": [
+            0.0708,
+            0.1231
+          ]
+        }
+      },
+      "benign_by_delivery_shape": {
+        "alt_text": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "code_comment": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "document_footer_header": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "html_comment": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "json_metadata": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "markdown_hidden": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "prose_addressed": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "quoted_prose": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "system_marker": {
+          "n": 25,
+          "fp": 5,
+          "fpr": 0.2,
+          "fpr_ci95_wilson": [
+            0.0886,
+            0.3913
+          ]
+        },
+        "tool_retrieval_metadata": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "xml_markup": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "yaml_config": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        }
+      }
+    },
+    "A1_provenance_aware_flat": {
+      "arm": "A1_provenance_aware_flat",
+      "segmentation": "flat",
+      "consumes_provenance": true,
+      "provenance_mode": "correct",
+      "description": "Provenance available but constant across classes. Tests whether the field's mere presence changes anything.",
+      "is_control": false,
+      "wall_clock_s": 0.0,
+      "threshold": 0.9955,
+      "overall": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 300,
+        "fn": 520,
+        "n": 820,
+        "n_attack": 520,
+        "n_benign": 300,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.0
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.0073
+        ],
+        "f1": 0.0,
+        "accuracy": 0.3659,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0126
+        ],
+        "fnr": 1.0
+      },
+      "attack_recall": {
+        "n": 520,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0073
+        ]
+      },
+      "benign_control_fpr": {
+        "n": 300,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.0126
+        ]
+      },
+      "by_delivery_shape": {
+        "alt_text": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "code_comment": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "complicit_directive": {
+          "n": 40,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0876
+          ]
+        },
+        "document_footer_header": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "html_comment": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "json_metadata": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "markdown_hidden": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "prose_addressed": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "quoted_prose": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "system_marker": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "tool_retrieval_metadata": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "xml_markup": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "yaml_config": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        }
+      },
+      "by_attack_mechanism": {
+        "context_injection": {
+          "n": 73,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.05
+          ]
+        },
+        "data_exfiltration": {
+          "n": 71,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0513
+          ]
+        },
+        "instruction_override": {
+          "n": 67,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0542
+          ]
+        },
+        "retrieval_poisoning": {
+          "n": 64,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0566
+          ]
+        },
+        "role_manipulation": {
+          "n": 61,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0592
+          ]
+        },
+        "safety_bypass": {
+          "n": 64,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0566
+          ]
+        },
+        "system_prompt_extraction": {
+          "n": 61,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0592
+          ]
+        },
+        "tool_use_manipulation": {
+          "n": 59,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0611
+          ]
+        }
+      },
+      "by_user_framing": {
+        "complicit_directive": {
+          "n": 40,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0876
+          ]
+        },
+        "innocent_processing": {
+          "n": 480,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0079
+          ]
+        }
+      },
+      "benign_by_delivery_shape": {
+        "alt_text": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "code_comment": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "document_footer_header": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "html_comment": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "json_metadata": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "markdown_hidden": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "prose_addressed": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "quoted_prose": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "system_marker": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "tool_retrieval_metadata": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "xml_markup": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "yaml_config": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        }
+      }
+    },
+    "A2_provenance_aware_split": {
+      "arm": "A2_provenance_aware_split",
+      "segmentation": "split",
+      "consumes_provenance": true,
+      "provenance_mode": "correct",
+      "description": "Treatment. Scores only spans the gateway marked UNTRUSTED: an instruction inside untrusted data is illegitimate, the user's own instruction is not.",
+      "is_control": false,
+      "wall_clock_s": 0.42,
+      "threshold": 0.9955,
+      "overall": {
+        "tp": 279,
+        "fp": 0,
+        "tn": 300,
+        "fn": 241,
+        "n": 820,
+        "n_attack": 520,
+        "n_benign": 300,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9864,
+          1.0
+        ],
+        "recall": 0.5365,
+        "recall_ci95": [
+          0.4936,
+          0.579
+        ],
+        "f1": 0.6984,
+        "accuracy": 0.7061,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0126
+        ],
+        "fnr": 0.4635
+      },
+      "attack_recall": {
+        "n": 520,
+        "tp": 279,
+        "recall": 0.5365,
+        "recall_ci95_wilson": [
+          0.4936,
+          0.579
+        ]
+      },
+      "benign_control_fpr": {
+        "n": 300,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.0126
+        ]
+      },
+      "by_delivery_shape": {
+        "alt_text": {
+          "n": 30,
+          "tp": 17,
+          "recall": 0.5667,
+          "recall_ci95_wilson": [
+            0.392,
+            0.7262
+          ]
+        },
+        "code_comment": {
+          "n": 50,
+          "tp": 27,
+          "recall": 0.54,
+          "recall_ci95_wilson": [
+            0.404,
+            0.6703
+          ]
+        },
+        "complicit_directive": {
+          "n": 40,
+          "tp": 25,
+          "recall": 0.625,
+          "recall_ci95_wilson": [
+            0.4703,
+            0.7578
+          ]
+        },
+        "document_footer_header": {
+          "n": 30,
+          "tp": 15,
+          "recall": 0.5,
+          "recall_ci95_wilson": [
+            0.3315,
+            0.6685
+          ]
+        },
+        "html_comment": {
+          "n": 50,
+          "tp": 26,
+          "recall": 0.52,
+          "recall_ci95_wilson": [
+            0.3851,
+            0.652
+          ]
+        },
+        "json_metadata": {
+          "n": 50,
+          "tp": 25,
+          "recall": 0.5,
+          "recall_ci95_wilson": [
+            0.3664,
+            0.6336
+          ]
+        },
+        "markdown_hidden": {
+          "n": 30,
+          "tp": 16,
+          "recall": 0.5333,
+          "recall_ci95_wilson": [
+            0.3614,
+            0.6977
+          ]
+        },
+        "prose_addressed": {
+          "n": 50,
+          "tp": 29,
+          "recall": 0.58,
+          "recall_ci95_wilson": [
+            0.4423,
+            0.7062
+          ]
+        },
+        "quoted_prose": {
+          "n": 30,
+          "tp": 14,
+          "recall": 0.4667,
+          "recall_ci95_wilson": [
+            0.3023,
+            0.6386
+          ]
+        },
+        "system_marker": {
+          "n": 30,
+          "tp": 15,
+          "recall": 0.5,
+          "recall_ci95_wilson": [
+            0.3315,
+            0.6685
+          ]
+        },
+        "tool_retrieval_metadata": {
+          "n": 50,
+          "tp": 26,
+          "recall": 0.52,
+          "recall_ci95_wilson": [
+            0.3851,
+            0.652
+          ]
+        },
+        "xml_markup": {
+          "n": 50,
+          "tp": 28,
+          "recall": 0.56,
+          "recall_ci95_wilson": [
+            0.4231,
+            0.6884
+          ]
+        },
+        "yaml_config": {
+          "n": 30,
+          "tp": 16,
+          "recall": 0.5333,
+          "recall_ci95_wilson": [
+            0.3614,
+            0.6977
+          ]
+        }
+      },
+      "by_attack_mechanism": {
+        "context_injection": {
+          "n": 73,
+          "tp": 73,
+          "recall": 1.0,
+          "recall_ci95_wilson": [
+            0.95,
+            1.0
+          ]
+        },
+        "data_exfiltration": {
+          "n": 71,
+          "tp": 71,
+          "recall": 1.0,
+          "recall_ci95_wilson": [
+            0.9487,
+            1.0
+          ]
+        },
+        "instruction_override": {
+          "n": 67,
+          "tp": 55,
+          "recall": 0.8209,
+          "recall_ci95_wilson": [
+            0.7125,
+            0.8945
+          ]
+        },
+        "retrieval_poisoning": {
+          "n": 64,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0566
+          ]
+        },
+        "role_manipulation": {
+          "n": 61,
+          "tp": 19,
+          "recall": 0.3115,
+          "recall_ci95_wilson": [
+            0.2094,
+            0.4359
+          ]
+        },
+        "safety_bypass": {
+          "n": 64,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0566
+          ]
+        },
+        "system_prompt_extraction": {
+          "n": 61,
+          "tp": 61,
+          "recall": 1.0,
+          "recall_ci95_wilson": [
+            0.9408,
+            1.0
+          ]
+        },
+        "tool_use_manipulation": {
+          "n": 59,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0611
+          ]
+        }
+      },
+      "by_user_framing": {
+        "complicit_directive": {
+          "n": 40,
+          "tp": 25,
+          "recall": 0.625,
+          "recall_ci95_wilson": [
+            0.4703,
+            0.7578
+          ]
+        },
+        "innocent_processing": {
+          "n": 480,
+          "tp": 254,
+          "recall": 0.5292,
+          "recall_ci95_wilson": [
+            0.4845,
+            0.5734
+          ]
+        }
+      },
+      "benign_by_delivery_shape": {
+        "alt_text": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "code_comment": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "document_footer_header": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "html_comment": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "json_metadata": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "markdown_hidden": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "prose_addressed": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "quoted_prose": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "system_marker": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "tool_retrieval_metadata": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "xml_markup": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "yaml_config": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        }
+      }
+    },
+    "A3_content_only_split": {
+      "arm": "A3_content_only_split",
+      "segmentation": "split",
+      "consumes_provenance": false,
+      "provenance_mode": "correct",
+      "description": "Isolates segmentation from provenance. Scores every span and takes the maximum. If A2 == A3, the benefit is segmentation.",
+      "is_control": false,
+      "wall_clock_s": 0.0,
+      "threshold": 0.9955,
+      "overall": {
+        "tp": 301,
+        "fp": 15,
+        "tn": 285,
+        "fn": 219,
+        "n": 820,
+        "n_attack": 520,
+        "n_benign": 300,
+        "precision": 0.9525,
+        "precision_ci95": [
+          0.9232,
+          0.971
+        ],
+        "recall": 0.5788,
+        "recall_ci95": [
+          0.536,
+          0.6206
+        ],
+        "f1": 0.7201,
+        "accuracy": 0.7146,
+        "fpr": 0.05,
+        "fpr_ci95": [
+          0.0305,
+          0.0808
+        ],
+        "fnr": 0.4212
+      },
+      "attack_recall": {
+        "n": 520,
+        "tp": 301,
+        "recall": 0.5788,
+        "recall_ci95_wilson": [
+          0.536,
+          0.6206
+        ]
+      },
+      "benign_control_fpr": {
+        "n": 300,
+        "fp": 15,
+        "fpr": 0.05,
+        "fpr_ci95_wilson": [
+          0.0305,
+          0.0808
+        ]
+      },
+      "by_delivery_shape": {
+        "alt_text": {
+          "n": 30,
+          "tp": 17,
+          "recall": 0.5667,
+          "recall_ci95_wilson": [
+            0.392,
+            0.7262
+          ]
+        },
+        "code_comment": {
+          "n": 50,
+          "tp": 27,
+          "recall": 0.54,
+          "recall_ci95_wilson": [
+            0.404,
+            0.6703
+          ]
+        },
+        "complicit_directive": {
+          "n": 40,
+          "tp": 39,
+          "recall": 0.975,
+          "recall_ci95_wilson": [
+            0.8712,
+            0.9956
+          ]
+        },
+        "document_footer_header": {
+          "n": 30,
+          "tp": 15,
+          "recall": 0.5,
+          "recall_ci95_wilson": [
+            0.3315,
+            0.6685
+          ]
+        },
+        "html_comment": {
+          "n": 50,
+          "tp": 26,
+          "recall": 0.52,
+          "recall_ci95_wilson": [
+            0.3851,
+            0.652
+          ]
+        },
+        "json_metadata": {
+          "n": 50,
+          "tp": 25,
+          "recall": 0.5,
+          "recall_ci95_wilson": [
+            0.3664,
+            0.6336
+          ]
+        },
+        "markdown_hidden": {
+          "n": 30,
+          "tp": 16,
+          "recall": 0.5333,
+          "recall_ci95_wilson": [
+            0.3614,
+            0.6977
+          ]
+        },
+        "prose_addressed": {
+          "n": 50,
+          "tp": 29,
+          "recall": 0.58,
+          "recall_ci95_wilson": [
+            0.4423,
+            0.7062
+          ]
+        },
+        "quoted_prose": {
+          "n": 30,
+          "tp": 14,
+          "recall": 0.4667,
+          "recall_ci95_wilson": [
+            0.3023,
+            0.6386
+          ]
+        },
+        "system_marker": {
+          "n": 30,
+          "tp": 23,
+          "recall": 0.7667,
+          "recall_ci95_wilson": [
+            0.5907,
+            0.8821
+          ]
+        },
+        "tool_retrieval_metadata": {
+          "n": 50,
+          "tp": 26,
+          "recall": 0.52,
+          "recall_ci95_wilson": [
+            0.3851,
+            0.652
+          ]
+        },
+        "xml_markup": {
+          "n": 50,
+          "tp": 28,
+          "recall": 0.56,
+          "recall_ci95_wilson": [
+            0.4231,
+            0.6884
+          ]
+        },
+        "yaml_config": {
+          "n": 30,
+          "tp": 16,
+          "recall": 0.5333,
+          "recall_ci95_wilson": [
+            0.3614,
+            0.6977
+          ]
+        }
+      },
+      "by_attack_mechanism": {
+        "context_injection": {
+          "n": 73,
+          "tp": 73,
+          "recall": 1.0,
+          "recall_ci95_wilson": [
+            0.95,
+            1.0
+          ]
+        },
+        "data_exfiltration": {
+          "n": 71,
+          "tp": 71,
+          "recall": 1.0,
+          "recall_ci95_wilson": [
+            0.9487,
+            1.0
+          ]
+        },
+        "instruction_override": {
+          "n": 67,
+          "tp": 56,
+          "recall": 0.8358,
+          "recall_ci95_wilson": [
+            0.7294,
+            0.9058
+          ]
+        },
+        "retrieval_poisoning": {
+          "n": 64,
+          "tp": 4,
+          "recall": 0.0625,
+          "recall_ci95_wilson": [
+            0.0246,
+            0.15
+          ]
+        },
+        "role_manipulation": {
+          "n": 61,
+          "tp": 22,
+          "recall": 0.3607,
+          "recall_ci95_wilson": [
+            0.2517,
+            0.4861
+          ]
+        },
+        "safety_bypass": {
+          "n": 64,
+          "tp": 7,
+          "recall": 0.1094,
+          "recall_ci95_wilson": [
+            0.054,
+            0.209
+          ]
+        },
+        "system_prompt_extraction": {
+          "n": 61,
+          "tp": 61,
+          "recall": 1.0,
+          "recall_ci95_wilson": [
+            0.9408,
+            1.0
+          ]
+        },
+        "tool_use_manipulation": {
+          "n": 59,
+          "tp": 7,
+          "recall": 0.1186,
+          "recall_ci95_wilson": [
+            0.0587,
+            0.2252
+          ]
+        }
+      },
+      "by_user_framing": {
+        "complicit_directive": {
+          "n": 40,
+          "tp": 39,
+          "recall": 0.975,
+          "recall_ci95_wilson": [
+            0.8712,
+            0.9956
+          ]
+        },
+        "innocent_processing": {
+          "n": 480,
+          "tp": 262,
+          "recall": 0.5458,
+          "recall_ci95_wilson": [
+            0.5011,
+            0.5898
+          ]
+        }
+      },
+      "benign_by_delivery_shape": {
+        "alt_text": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "code_comment": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "document_footer_header": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "html_comment": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "json_metadata": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "markdown_hidden": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "prose_addressed": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "quoted_prose": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "system_marker": {
+          "n": 25,
+          "fp": 15,
+          "fpr": 0.6,
+          "fpr_ci95_wilson": [
+            0.4074,
+            0.766
+          ]
+        },
+        "tool_retrieval_metadata": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "xml_markup": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "yaml_config": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        }
+      }
+    },
+    "M2_provenance_removed": {
+      "arm": "M2_provenance_removed",
+      "segmentation": "split",
+      "consumes_provenance": true,
+      "provenance_mode": "removed",
+      "description": "Ablation: split spans labelled UNKNOWN. A2 should collapse.",
+      "is_control": false,
+      "wall_clock_s": 0.0,
+      "threshold": 0.9955,
+      "overall": {
+        "tp": 0,
+        "fp": 0,
+        "tn": 300,
+        "fn": 520,
+        "n": 820,
+        "n_attack": 520,
+        "n_benign": 300,
+        "precision": 0.0,
+        "precision_ci95": [
+          0.0,
+          0.0
+        ],
+        "recall": 0.0,
+        "recall_ci95": [
+          0.0,
+          0.0073
+        ],
+        "f1": 0.0,
+        "accuracy": 0.3659,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0126
+        ],
+        "fnr": 1.0
+      },
+      "attack_recall": {
+        "n": 520,
+        "tp": 0,
+        "recall": 0.0,
+        "recall_ci95_wilson": [
+          0.0,
+          0.0073
+        ]
+      },
+      "benign_control_fpr": {
+        "n": 300,
+        "fp": 0,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.0126
+        ]
+      },
+      "by_delivery_shape": {
+        "alt_text": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "code_comment": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "complicit_directive": {
+          "n": 40,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0876
+          ]
+        },
+        "document_footer_header": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "html_comment": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "json_metadata": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "markdown_hidden": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "prose_addressed": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "quoted_prose": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "system_marker": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "tool_retrieval_metadata": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "xml_markup": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "yaml_config": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        }
+      },
+      "by_attack_mechanism": {
+        "context_injection": {
+          "n": 73,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.05
+          ]
+        },
+        "data_exfiltration": {
+          "n": 71,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0513
+          ]
+        },
+        "instruction_override": {
+          "n": 67,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0542
+          ]
+        },
+        "retrieval_poisoning": {
+          "n": 64,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0566
+          ]
+        },
+        "role_manipulation": {
+          "n": 61,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0592
+          ]
+        },
+        "safety_bypass": {
+          "n": 64,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0566
+          ]
+        },
+        "system_prompt_extraction": {
+          "n": 61,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0592
+          ]
+        },
+        "tool_use_manipulation": {
+          "n": 59,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0611
+          ]
+        }
+      },
+      "by_user_framing": {
+        "complicit_directive": {
+          "n": 40,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0876
+          ]
+        },
+        "innocent_processing": {
+          "n": 480,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0079
+          ]
+        }
+      },
+      "benign_by_delivery_shape": {
+        "alt_text": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "code_comment": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "document_footer_header": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "html_comment": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "json_metadata": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "markdown_hidden": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "prose_addressed": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "quoted_prose": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "system_marker": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "tool_retrieval_metadata": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "xml_markup": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "yaml_config": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        }
+      }
+    },
+    "M4_provenance_inverted": {
+      "arm": "M4_provenance_inverted",
+      "segmentation": "split",
+      "consumes_provenance": true,
+      "provenance_mode": "inverted",
+      "description": "Robustness: carrier tagged EXTERNAL, embedded span tagged USER_INPUT. Recall should collapse. Not a production scenario.",
+      "is_control": false,
+      "wall_clock_s": 0.0,
+      "threshold": 0.9955,
+      "overall": {
+        "tp": 51,
+        "fp": 15,
+        "tn": 285,
+        "fn": 469,
+        "n": 820,
+        "n_attack": 520,
+        "n_benign": 300,
+        "precision": 0.7727,
+        "precision_ci95": [
+          0.6583,
+          0.8571
+        ],
+        "recall": 0.0981,
+        "recall_ci95": [
+          0.0754,
+          0.1267
+        ],
+        "f1": 0.1741,
+        "accuracy": 0.4098,
+        "fpr": 0.05,
+        "fpr_ci95": [
+          0.0305,
+          0.0808
+        ],
+        "fnr": 0.9019
+      },
+      "attack_recall": {
+        "n": 520,
+        "tp": 51,
+        "recall": 0.0981,
+        "recall_ci95_wilson": [
+          0.0754,
+          0.1267
+        ]
+      },
+      "benign_control_fpr": {
+        "n": 300,
+        "fp": 15,
+        "fpr": 0.05,
+        "fpr_ci95_wilson": [
+          0.0305,
+          0.0808
+        ]
+      },
+      "by_delivery_shape": {
+        "alt_text": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "code_comment": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "complicit_directive": {
+          "n": 40,
+          "tp": 33,
+          "recall": 0.825,
+          "recall_ci95_wilson": [
+            0.6805,
+            0.9125
+          ]
+        },
+        "document_footer_header": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "html_comment": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "json_metadata": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "markdown_hidden": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "prose_addressed": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "quoted_prose": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        },
+        "system_marker": {
+          "n": 30,
+          "tp": 18,
+          "recall": 0.6,
+          "recall_ci95_wilson": [
+            0.4232,
+            0.7541
+          ]
+        },
+        "tool_retrieval_metadata": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "xml_markup": {
+          "n": 50,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.0713
+          ]
+        },
+        "yaml_config": {
+          "n": 30,
+          "tp": 0,
+          "recall": 0.0,
+          "recall_ci95_wilson": [
+            0.0,
+            0.1135
+          ]
+        }
+      },
+      "by_attack_mechanism": {
+        "context_injection": {
+          "n": 73,
+          "tp": 8,
+          "recall": 0.1096,
+          "recall_ci95_wilson": [
+            0.0566,
+            0.2016
+          ]
+        },
+        "data_exfiltration": {
+          "n": 71,
+          "tp": 7,
+          "recall": 0.0986,
+          "recall_ci95_wilson": [
+            0.0486,
+            0.1898
+          ]
+        },
+        "instruction_override": {
+          "n": 67,
+          "tp": 7,
+          "recall": 0.1045,
+          "recall_ci95_wilson": [
+            0.0515,
+            0.2003
+          ]
+        },
+        "retrieval_poisoning": {
+          "n": 64,
+          "tp": 4,
+          "recall": 0.0625,
+          "recall_ci95_wilson": [
+            0.0246,
+            0.15
+          ]
+        },
+        "role_manipulation": {
+          "n": 61,
+          "tp": 4,
+          "recall": 0.0656,
+          "recall_ci95_wilson": [
+            0.0258,
+            0.1568
+          ]
+        },
+        "safety_bypass": {
+          "n": 64,
+          "tp": 7,
+          "recall": 0.1094,
+          "recall_ci95_wilson": [
+            0.054,
+            0.209
+          ]
+        },
+        "system_prompt_extraction": {
+          "n": 61,
+          "tp": 7,
+          "recall": 0.1148,
+          "recall_ci95_wilson": [
+            0.0567,
+            0.2184
+          ]
+        },
+        "tool_use_manipulation": {
+          "n": 59,
+          "tp": 7,
+          "recall": 0.1186,
+          "recall_ci95_wilson": [
+            0.0587,
+            0.2252
+          ]
+        }
+      },
+      "by_user_framing": {
+        "complicit_directive": {
+          "n": 40,
+          "tp": 33,
+          "recall": 0.825,
+          "recall_ci95_wilson": [
+            0.6805,
+            0.9125
+          ]
+        },
+        "innocent_processing": {
+          "n": 480,
+          "tp": 18,
+          "recall": 0.0375,
+          "recall_ci95_wilson": [
+            0.0239,
+            0.0585
+          ]
+        }
+      },
+      "benign_by_delivery_shape": {
+        "alt_text": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "code_comment": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "document_footer_header": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "html_comment": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "json_metadata": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "markdown_hidden": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "prose_addressed": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "quoted_prose": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "system_marker": {
+          "n": 25,
+          "fp": 15,
+          "fpr": 0.6,
+          "fpr_ci95_wilson": [
+            0.4074,
+            0.766
+          ]
+        },
+        "tool_retrieval_metadata": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "xml_markup": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        },
+        "yaml_config": {
+          "n": 25,
+          "fp": 0,
+          "fpr": 0.0,
+          "fpr_ci95_wilson": [
+            0.0,
+            0.1332
+          ]
+        }
+      }
+    }
+  },
+  "paired_comparisons": {
+    "A2_vs_A0_attack_recall": {
+      "comparison": "treatment A2 vs control A0, attack detection",
+      "n": 520,
+      "both": 61,
+      "neither": 228,
+      "treatment_only": 218,
+      "control_only": 13,
+      "net": 205,
+      "control_rate": 0.1423,
+      "treatment_rate": 0.5365,
+      "mcnemar_exact_p": 0.0,
+      "significant_at_0.05": true,
+      "test": "McNemar exact binomial, two-sided, on discordant pairs"
+    },
+    "A2_vs_A0_benign_fpr": {
+      "comparison": "treatment A2 vs control A0, benign-control false positives",
+      "n": 300,
+      "both": 0,
+      "neither": 295,
+      "treatment_only": 0,
+      "control_only": 5,
+      "net": -5,
+      "control_rate": 0.0167,
+      "treatment_rate": 0.0,
+      "mcnemar_exact_p": 0.0625,
+      "significant_at_0.05": false,
+      "test": "McNemar exact binomial, two-sided, on discordant pairs"
+    },
+    "A2_vs_A3_attack_recall": {
+      "comparison": "provenance beyond segmentation: A2 vs A3, attack detection",
+      "n": 520,
+      "both": 279,
+      "neither": 219,
+      "treatment_only": 0,
+      "control_only": 22,
+      "net": -22,
+      "control_rate": 0.5788,
+      "treatment_rate": 0.5365,
+      "mcnemar_exact_p": 0.0,
+      "significant_at_0.05": true,
+      "test": "McNemar exact binomial, two-sided, on discordant pairs"
+    },
+    "A2_vs_A3_benign_fpr": {
+      "comparison": "provenance beyond segmentation: A2 vs A3, benign false positives",
+      "n": 300,
+      "both": 0,
+      "neither": 285,
+      "treatment_only": 0,
+      "control_only": 15,
+      "net": -15,
+      "control_rate": 0.05,
+      "treatment_rate": 0.0,
+      "mcnemar_exact_p": 6.1e-05,
+      "significant_at_0.05": true,
+      "test": "McNemar exact binomial, two-sided, on discordant pairs"
+    },
+    "A1_vs_A0_attack_recall": {
+      "comparison": "does the field's presence alone matter: A1 vs A0",
+      "n": 520,
+      "both": 0,
+      "neither": 446,
+      "treatment_only": 0,
+      "control_only": 74,
+      "net": -74,
+      "control_rate": 0.1423,
+      "treatment_rate": 0.0,
+      "mcnemar_exact_p": 0.0,
+      "significant_at_0.05": true,
+      "test": "McNemar exact binomial, two-sided, on discordant pairs"
+    },
+    "A3_vs_A0_attack_recall": {
+      "comparison": "segmentation alone: A3 vs A0, attack detection",
+      "n": 520,
+      "both": 74,
+      "neither": 219,
+      "treatment_only": 227,
+      "control_only": 0,
+      "net": 227,
+      "control_rate": 0.1423,
+      "treatment_rate": 0.5788,
+      "mcnemar_exact_p": 0.0,
+      "significant_at_0.05": true,
+      "test": "McNemar exact binomial, two-sided, on discordant pairs"
+    },
+    "M2_vs_A2_attack_recall": {
+      "comparison": "ablation: removing provenance from A2",
+      "n": 520,
+      "both": 0,
+      "neither": 241,
+      "treatment_only": 0,
+      "control_only": 279,
+      "net": -279,
+      "control_rate": 0.5365,
+      "treatment_rate": 0.0,
+      "mcnemar_exact_p": 0.0,
+      "significant_at_0.05": true,
+      "test": "McNemar exact binomial, two-sided, on discordant pairs"
+    },
+    "M4_vs_A2_attack_recall": {
+      "comparison": "robustness: inverting provenance in A2",
+      "n": 520,
+      "both": 29,
+      "neither": 219,
+      "treatment_only": 22,
+      "control_only": 250,
+      "net": -228,
+      "control_rate": 0.5365,
+      "treatment_rate": 0.0981,
+      "mcnemar_exact_p": 0.0,
+      "significant_at_0.05": true,
+      "test": "McNemar exact binomial, two-sided, on discordant pairs"
+    }
+  },
+  "latency": {
+    "flat_whole_message": {
+      "n": 200,
+      "mean_ms": 12.4017,
+      "median_ms": 12.1517,
+      "p50_ms": 12.1517,
+      "p90_ms": 12.7631,
+      "p95_ms": 14.8108,
+      "p99_ms": 15.629,
+      "min_ms": 11.7789,
+      "max_ms": 16.7561,
+      "stdev_ms": 0.8715,
+      "throughput_per_s_single_threaded": 80.63,
+      "percentiles_reliable": true,
+      "device": "cuda"
+    },
+    "split_embedded_span": {
+      "n": 200,
+      "mean_ms": 10.6966,
+      "median_ms": 10.7446,
+      "p50_ms": 10.7446,
+      "p90_ms": 10.9555,
+      "p95_ms": 11.0381,
+      "p99_ms": 11.1423,
+      "min_ms": 10.169,
+      "max_ms": 12.7517,
+      "stdev_ms": 0.2791,
+      "throughput_per_s_single_threaded": 93.49,
+      "percentiles_reliable": true,
+      "device": "cuda"
+    },
+    "note": "A provenance-aware split arm makes one forward pass per untrusted span rather than one per message; on this corpus that is one pass either way, but the span is shorter."
+  },
+  "decision_criteria": {
+    "1_recall_improves_significantly": true,
+    "2_benign_fpr_within_bound": true,
+    "3_provenance_beyond_segmentation": true,
+    "4_ablation_confirms_dependence": true
+  },
+  "decision": "PROVENANCE BENEFICIAL",
+  "criteria_source": "docs/adr/ADR-018-provenance-aware-detector-evaluation.md"
+}

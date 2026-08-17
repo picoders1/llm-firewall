@@ -1,0 +1,446 @@
+{
+  "A0_content_only_flat": {
+    "context_injection": {
+      "n": 73,
+      "tp": 10,
+      "recall": 0.137,
+      "recall_ci95_wilson": [
+        0.0761,
+        0.2341
+      ]
+    },
+    "data_exfiltration": {
+      "n": 71,
+      "tp": 16,
+      "recall": 0.2254,
+      "recall_ci95_wilson": [
+        0.1437,
+        0.3352
+      ]
+    },
+    "instruction_override": {
+      "n": 67,
+      "tp": 16,
+      "recall": 0.2388,
+      "recall_ci95_wilson": [
+        0.1527,
+        0.3533
+      ]
+    },
+    "retrieval_poisoning": {
+      "n": 64,
+      "tp": 2,
+      "recall": 0.0312,
+      "recall_ci95_wilson": [
+        0.0086,
+        0.107
+      ]
+    },
+    "role_manipulation": {
+      "n": 61,
+      "tp": 4,
+      "recall": 0.0656,
+      "recall_ci95_wilson": [
+        0.0258,
+        0.1568
+      ]
+    },
+    "safety_bypass": {
+      "n": 64,
+      "tp": 6,
+      "recall": 0.0938,
+      "recall_ci95_wilson": [
+        0.0437,
+        0.1898
+      ]
+    },
+    "system_prompt_extraction": {
+      "n": 61,
+      "tp": 18,
+      "recall": 0.2951,
+      "recall_ci95_wilson": [
+        0.1956,
+        0.4189
+      ]
+    },
+    "tool_use_manipulation": {
+      "n": 59,
+      "tp": 2,
+      "recall": 0.0339,
+      "recall_ci95_wilson": [
+        0.0093,
+        0.1154
+      ]
+    }
+  },
+  "A1_provenance_aware_flat": {
+    "context_injection": {
+      "n": 73,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.05
+      ]
+    },
+    "data_exfiltration": {
+      "n": 71,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0513
+      ]
+    },
+    "instruction_override": {
+      "n": 67,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0542
+      ]
+    },
+    "retrieval_poisoning": {
+      "n": 64,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0566
+      ]
+    },
+    "role_manipulation": {
+      "n": 61,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0592
+      ]
+    },
+    "safety_bypass": {
+      "n": 64,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0566
+      ]
+    },
+    "system_prompt_extraction": {
+      "n": 61,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0592
+      ]
+    },
+    "tool_use_manipulation": {
+      "n": 59,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0611
+      ]
+    }
+  },
+  "A2_provenance_aware_split": {
+    "context_injection": {
+      "n": 73,
+      "tp": 73,
+      "recall": 1.0,
+      "recall_ci95_wilson": [
+        0.95,
+        1.0
+      ]
+    },
+    "data_exfiltration": {
+      "n": 71,
+      "tp": 71,
+      "recall": 1.0,
+      "recall_ci95_wilson": [
+        0.9487,
+        1.0
+      ]
+    },
+    "instruction_override": {
+      "n": 67,
+      "tp": 55,
+      "recall": 0.8209,
+      "recall_ci95_wilson": [
+        0.7125,
+        0.8945
+      ]
+    },
+    "retrieval_poisoning": {
+      "n": 64,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0566
+      ]
+    },
+    "role_manipulation": {
+      "n": 61,
+      "tp": 19,
+      "recall": 0.3115,
+      "recall_ci95_wilson": [
+        0.2094,
+        0.4359
+      ]
+    },
+    "safety_bypass": {
+      "n": 64,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0566
+      ]
+    },
+    "system_prompt_extraction": {
+      "n": 61,
+      "tp": 61,
+      "recall": 1.0,
+      "recall_ci95_wilson": [
+        0.9408,
+        1.0
+      ]
+    },
+    "tool_use_manipulation": {
+      "n": 59,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0611
+      ]
+    }
+  },
+  "A3_content_only_split": {
+    "context_injection": {
+      "n": 73,
+      "tp": 73,
+      "recall": 1.0,
+      "recall_ci95_wilson": [
+        0.95,
+        1.0
+      ]
+    },
+    "data_exfiltration": {
+      "n": 71,
+      "tp": 71,
+      "recall": 1.0,
+      "recall_ci95_wilson": [
+        0.9487,
+        1.0
+      ]
+    },
+    "instruction_override": {
+      "n": 67,
+      "tp": 56,
+      "recall": 0.8358,
+      "recall_ci95_wilson": [
+        0.7294,
+        0.9058
+      ]
+    },
+    "retrieval_poisoning": {
+      "n": 64,
+      "tp": 4,
+      "recall": 0.0625,
+      "recall_ci95_wilson": [
+        0.0246,
+        0.15
+      ]
+    },
+    "role_manipulation": {
+      "n": 61,
+      "tp": 22,
+      "recall": 0.3607,
+      "recall_ci95_wilson": [
+        0.2517,
+        0.4861
+      ]
+    },
+    "safety_bypass": {
+      "n": 64,
+      "tp": 7,
+      "recall": 0.1094,
+      "recall_ci95_wilson": [
+        0.054,
+        0.209
+      ]
+    },
+    "system_prompt_extraction": {
+      "n": 61,
+      "tp": 61,
+      "recall": 1.0,
+      "recall_ci95_wilson": [
+        0.9408,
+        1.0
+      ]
+    },
+    "tool_use_manipulation": {
+      "n": 59,
+      "tp": 7,
+      "recall": 0.1186,
+      "recall_ci95_wilson": [
+        0.0587,
+        0.2252
+      ]
+    }
+  },
+  "M2_provenance_removed": {
+    "context_injection": {
+      "n": 73,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.05
+      ]
+    },
+    "data_exfiltration": {
+      "n": 71,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0513
+      ]
+    },
+    "instruction_override": {
+      "n": 67,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0542
+      ]
+    },
+    "retrieval_poisoning": {
+      "n": 64,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0566
+      ]
+    },
+    "role_manipulation": {
+      "n": 61,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0592
+      ]
+    },
+    "safety_bypass": {
+      "n": 64,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0566
+      ]
+    },
+    "system_prompt_extraction": {
+      "n": 61,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0592
+      ]
+    },
+    "tool_use_manipulation": {
+      "n": 59,
+      "tp": 0,
+      "recall": 0.0,
+      "recall_ci95_wilson": [
+        0.0,
+        0.0611
+      ]
+    }
+  },
+  "M4_provenance_inverted": {
+    "context_injection": {
+      "n": 73,
+      "tp": 8,
+      "recall": 0.1096,
+      "recall_ci95_wilson": [
+        0.0566,
+        0.2016
+      ]
+    },
+    "data_exfiltration": {
+      "n": 71,
+      "tp": 7,
+      "recall": 0.0986,
+      "recall_ci95_wilson": [
+        0.0486,
+        0.1898
+      ]
+    },
+    "instruction_override": {
+      "n": 67,
+      "tp": 7,
+      "recall": 0.1045,
+      "recall_ci95_wilson": [
+        0.0515,
+        0.2003
+      ]
+    },
+    "retrieval_poisoning": {
+      "n": 64,
+      "tp": 4,
+      "recall": 0.0625,
+      "recall_ci95_wilson": [
+        0.0246,
+        0.15
+      ]
+    },
+    "role_manipulation": {
+      "n": 61,
+      "tp": 4,
+      "recall": 0.0656,
+      "recall_ci95_wilson": [
+        0.0258,
+        0.1568
+      ]
+    },
+    "safety_bypass": {
+      "n": 64,
+      "tp": 7,
+      "recall": 0.1094,
+      "recall_ci95_wilson": [
+        0.054,
+        0.209
+      ]
+    },
+    "system_prompt_extraction": {
+      "n": 61,
+      "tp": 7,
+      "recall": 0.1148,
+      "recall_ci95_wilson": [
+        0.0567,
+        0.2184
+      ]
+    },
+    "tool_use_manipulation": {
+      "n": 59,
+      "tp": 7,
+      "recall": 0.1186,
+      "recall_ci95_wilson": [
+        0.0587,
+        0.2252
+      ]
+    }
+  }
+}
