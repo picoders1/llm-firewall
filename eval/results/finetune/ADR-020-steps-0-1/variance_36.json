@@ -1,0 +1,1471 @@
+{
+  "generated_at": "2026-08-17T17:57:29.828803+00:00",
+  "source": "artifacts/**/dev_scores.json \u2014 the only per-checkpoint metric persisted for all 36",
+  "gpu_used": false,
+  "protected_holdouts_read": false,
+  "what_is_not_available": "Per-checkpoint holdout-v3 and mechanisms-v1 metrics exist for exactly two checkpoints (the two selected winners). Run-to-run variance on the hold-out metrics therefore CANNOT be computed from persisted artefacts, and rescoring is not permitted. Hold-out variance is estimated only indirectly, via the Step-0 proxy at 3 seeds per family.",
+  "dev_saturation_caveat": "The dev splits separate perfectly, so dev-derived spreads are near zero by construction and are evidence of saturation, NOT evidence that run-to-run variance on unseen data is small.",
+  "per_checkpoint": {
+    "stratA__lr1e-05__ep2__seed13": {
+      "family": "strategy_a",
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "seed": 13,
+      "dev_selected_threshold": 0.9955,
+      "extraction_recall": 1.0,
+      "attack_recall": 0.9935,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr1e-05__ep2__seed20260817": {
+      "family": "strategy_a",
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "seed": 20260817,
+      "dev_selected_threshold": 0.8954,
+      "extraction_recall": 1.0,
+      "attack_recall": 0.9935,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr1e-05__ep2__seed31337": {
+      "family": "strategy_a",
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "seed": 31337,
+      "dev_selected_threshold": 0.9931,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr1e-05__ep3__seed13": {
+      "family": "strategy_a",
+      "learning_rate": 1e-05,
+      "epochs": 3,
+      "seed": 13,
+      "dev_selected_threshold": 0.9944,
+      "extraction_recall": 1.0,
+      "attack_recall": 0.9935,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr1e-05__ep3__seed20260817": {
+      "family": "strategy_a",
+      "learning_rate": 1e-05,
+      "epochs": 3,
+      "seed": 20260817,
+      "dev_selected_threshold": 0.9732,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr1e-05__ep3__seed31337": {
+      "family": "strategy_a",
+      "learning_rate": 1e-05,
+      "epochs": 3,
+      "seed": 31337,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr2e-05__ep2__seed13": {
+      "family": "strategy_a",
+      "learning_rate": 2e-05,
+      "epochs": 2,
+      "seed": 13,
+      "dev_selected_threshold": 0.9993,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr2e-05__ep2__seed20260817": {
+      "family": "strategy_a",
+      "learning_rate": 2e-05,
+      "epochs": 2,
+      "seed": 20260817,
+      "dev_selected_threshold": 0.9996,
+      "extraction_recall": 1.0,
+      "attack_recall": 0.9935,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr2e-05__ep2__seed31337": {
+      "family": "strategy_a",
+      "learning_rate": 2e-05,
+      "epochs": 2,
+      "seed": 31337,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr2e-05__ep3__seed13": {
+      "family": "strategy_a",
+      "learning_rate": 2e-05,
+      "epochs": 3,
+      "seed": 13,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr2e-05__ep3__seed20260817": {
+      "family": "strategy_a",
+      "learning_rate": 2e-05,
+      "epochs": 3,
+      "seed": 20260817,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr2e-05__ep3__seed31337": {
+      "family": "strategy_a",
+      "learning_rate": 2e-05,
+      "epochs": 3,
+      "seed": 31337,
+      "dev_selected_threshold": 0.9998,
+      "extraction_recall": 1.0,
+      "attack_recall": 0.9935,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr3e-05__ep2__seed13": {
+      "family": "strategy_a",
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "seed": 13,
+      "dev_selected_threshold": 0.9997,
+      "extraction_recall": 1.0,
+      "attack_recall": 0.9869,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr3e-05__ep2__seed20260817": {
+      "family": "strategy_a",
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "seed": 20260817,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr3e-05__ep2__seed31337": {
+      "family": "strategy_a",
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "seed": 31337,
+      "dev_selected_threshold": 0.999,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr3e-05__ep3__seed13": {
+      "family": "strategy_a",
+      "learning_rate": 3e-05,
+      "epochs": 3,
+      "seed": 13,
+      "dev_selected_threshold": 0.9998,
+      "extraction_recall": 1.0,
+      "attack_recall": 0.9869,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr3e-05__ep3__seed20260817": {
+      "family": "strategy_a",
+      "learning_rate": 3e-05,
+      "epochs": 3,
+      "seed": 20260817,
+      "dev_selected_threshold": 0.9999,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "stratA__lr3e-05__ep3__seed31337": {
+      "family": "strategy_a",
+      "learning_rate": 3e-05,
+      "epochs": 3,
+      "seed": 31337,
+      "dev_selected_threshold": 0.9989,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0
+    },
+    "mech__lr1e-05__ep2__seed13": {
+      "family": "adr_019",
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "seed": 13,
+      "dev_selected_threshold": 0.9954,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr1e-05__ep2__seed20260817": {
+      "family": "adr_019",
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "seed": 20260817,
+      "dev_selected_threshold": 0.0694,
+      "extraction_recall": 1.0,
+      "attack_recall": 0.9959,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr1e-05__ep2__seed31337": {
+      "family": "adr_019",
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "seed": 31337,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr1e-05__ep3__seed13": {
+      "family": "adr_019",
+      "learning_rate": 1e-05,
+      "epochs": 3,
+      "seed": 13,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr1e-05__ep3__seed20260817": {
+      "family": "adr_019",
+      "learning_rate": 1e-05,
+      "epochs": 3,
+      "seed": 20260817,
+      "dev_selected_threshold": 0.9972,
+      "extraction_recall": 1.0,
+      "attack_recall": 0.9959,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 0.9706,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr1e-05__ep3__seed31337": {
+      "family": "adr_019",
+      "learning_rate": 1e-05,
+      "epochs": 3,
+      "seed": 31337,
+      "dev_selected_threshold": 0.9978,
+      "extraction_recall": 1.0,
+      "attack_recall": 0.9959,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 0.9643,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr2e-05__ep2__seed13": {
+      "family": "adr_019",
+      "learning_rate": 2e-05,
+      "epochs": 2,
+      "seed": 13,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr2e-05__ep2__seed20260817": {
+      "family": "adr_019",
+      "learning_rate": 2e-05,
+      "epochs": 2,
+      "seed": 20260817,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr2e-05__ep2__seed31337": {
+      "family": "adr_019",
+      "learning_rate": 2e-05,
+      "epochs": 2,
+      "seed": 31337,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr2e-05__ep3__seed13": {
+      "family": "adr_019",
+      "learning_rate": 2e-05,
+      "epochs": 3,
+      "seed": 13,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr2e-05__ep3__seed20260817": {
+      "family": "adr_019",
+      "learning_rate": 2e-05,
+      "epochs": 3,
+      "seed": 20260817,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr2e-05__ep3__seed31337": {
+      "family": "adr_019",
+      "learning_rate": 2e-05,
+      "epochs": 3,
+      "seed": 31337,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr3e-05__ep2__seed13": {
+      "family": "adr_019",
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "seed": 13,
+      "dev_selected_threshold": 0.9997,
+      "extraction_recall": 0.9828,
+      "attack_recall": 0.9959,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr3e-05__ep2__seed20260817": {
+      "family": "adr_019",
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "seed": 20260817,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr3e-05__ep2__seed31337": {
+      "family": "adr_019",
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "seed": 31337,
+      "dev_selected_threshold": 0.9997,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr3e-05__ep3__seed13": {
+      "family": "adr_019",
+      "learning_rate": 3e-05,
+      "epochs": 3,
+      "seed": 13,
+      "dev_selected_threshold": 0.9999,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr3e-05__ep3__seed20260817": {
+      "family": "adr_019",
+      "learning_rate": 3e-05,
+      "epochs": 3,
+      "seed": 20260817,
+      "dev_selected_threshold": 0.9997,
+      "extraction_recall": 1.0,
+      "attack_recall": 0.9959,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 0.9706,
+      "safety_bypass_recall": 1.0
+    },
+    "mech__lr3e-05__ep3__seed31337": {
+      "family": "adr_019",
+      "learning_rate": 3e-05,
+      "epochs": 3,
+      "seed": 31337,
+      "dev_selected_threshold": 0.99,
+      "extraction_recall": 1.0,
+      "attack_recall": 1.0,
+      "benign_fpr": 0.0,
+      "quoted_attack_fpr": 0.0,
+      "retrieval_poisoning_recall": 1.0,
+      "tool_use_manipulation_recall": 1.0,
+      "safety_bypass_recall": 1.0
+    }
+  },
+  "summary": {
+    "strategy_a": {
+      "all_18": {
+        "extraction_recall": {
+          "n": 18,
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "range": 0.0,
+          "stdev": 0.0,
+          "iqr": 0.0
+        },
+        "attack_recall": {
+          "n": 18,
+          "mean": 0.996739,
+          "median": 1.0,
+          "min": 0.9869,
+          "max": 1.0,
+          "range": 0.0131,
+          "stdev": 0.004621,
+          "iqr": 0.0065
+        },
+        "benign_fpr": {
+          "n": 18,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "range": 0.0,
+          "stdev": 0.0,
+          "iqr": 0.0
+        },
+        "quoted_attack_fpr": {
+          "n": 18,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "range": 0.0,
+          "stdev": 0.0,
+          "iqr": 0.0
+        },
+        "dev_selected_threshold": {
+          "n": 18,
+          "mean": 0.988756,
+          "median": 0.99495,
+          "min": 0.8954,
+          "max": 0.9999,
+          "range": 0.1045,
+          "stdev": 0.024236,
+          "iqr": 0.009625
+        },
+        "retrieval_poisoning_recall": {
+          "n": 0
+        },
+        "tool_use_manipulation_recall": {
+          "n": 0
+        },
+        "safety_bypass_recall": {
+          "n": 0
+        }
+      },
+      "seed_only_cells": {
+        "lr1e-05__ep2": {
+          "extraction_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "attack_recall": {
+            "n": 3,
+            "mean": 0.995667,
+            "median": 0.9935,
+            "min": 0.9935,
+            "max": 1.0,
+            "range": 0.0065,
+            "stdev": 0.003753,
+            "iqr": 0.0065
+          },
+          "benign_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "quoted_attack_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "dev_selected_threshold": {
+            "n": 3,
+            "mean": 0.961333,
+            "median": 0.9931,
+            "min": 0.8954,
+            "max": 0.9955,
+            "range": 0.1001,
+            "stdev": 0.057113,
+            "iqr": 0.1001
+          },
+          "retrieval_poisoning_recall": {
+            "n": 0
+          },
+          "tool_use_manipulation_recall": {
+            "n": 0
+          },
+          "safety_bypass_recall": {
+            "n": 0
+          }
+        },
+        "lr1e-05__ep3": {
+          "extraction_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "attack_recall": {
+            "n": 3,
+            "mean": 0.997833,
+            "median": 1.0,
+            "min": 0.9935,
+            "max": 1.0,
+            "range": 0.0065,
+            "stdev": 0.003753,
+            "iqr": 0.0065
+          },
+          "benign_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "quoted_attack_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "dev_selected_threshold": {
+            "n": 3,
+            "mean": 0.985867,
+            "median": 0.99,
+            "min": 0.9732,
+            "max": 0.9944,
+            "range": 0.0212,
+            "stdev": 0.011188,
+            "iqr": 0.0212
+          },
+          "retrieval_poisoning_recall": {
+            "n": 0
+          },
+          "tool_use_manipulation_recall": {
+            "n": 0
+          },
+          "safety_bypass_recall": {
+            "n": 0
+          }
+        },
+        "lr2e-05__ep2": {
+          "extraction_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "attack_recall": {
+            "n": 3,
+            "mean": 0.997833,
+            "median": 1.0,
+            "min": 0.9935,
+            "max": 1.0,
+            "range": 0.0065,
+            "stdev": 0.003753,
+            "iqr": 0.0065
+          },
+          "benign_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "quoted_attack_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "dev_selected_threshold": {
+            "n": 3,
+            "mean": 0.9963,
+            "median": 0.9993,
+            "min": 0.99,
+            "max": 0.9996,
+            "range": 0.0096,
+            "stdev": 0.005458,
+            "iqr": 0.0096
+          },
+          "retrieval_poisoning_recall": {
+            "n": 0
+          },
+          "tool_use_manipulation_recall": {
+            "n": 0
+          },
+          "safety_bypass_recall": {
+            "n": 0
+          }
+        },
+        "lr2e-05__ep3": {
+          "extraction_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "attack_recall": {
+            "n": 3,
+            "mean": 0.997833,
+            "median": 1.0,
+            "min": 0.9935,
+            "max": 1.0,
+            "range": 0.0065,
+            "stdev": 0.003753,
+            "iqr": 0.0065
+          },
+          "benign_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "quoted_attack_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "dev_selected_threshold": {
+            "n": 3,
+            "mean": 0.993267,
+            "median": 0.99,
+            "min": 0.99,
+            "max": 0.9998,
+            "range": 0.0098,
+            "stdev": 0.005658,
+            "iqr": 0.0098
+          },
+          "retrieval_poisoning_recall": {
+            "n": 0
+          },
+          "tool_use_manipulation_recall": {
+            "n": 0
+          },
+          "safety_bypass_recall": {
+            "n": 0
+          }
+        },
+        "lr3e-05__ep2": {
+          "extraction_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "attack_recall": {
+            "n": 3,
+            "mean": 0.995633,
+            "median": 1.0,
+            "min": 0.9869,
+            "max": 1.0,
+            "range": 0.0131,
+            "stdev": 0.007563,
+            "iqr": 0.0131
+          },
+          "benign_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "quoted_attack_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "dev_selected_threshold": {
+            "n": 3,
+            "mean": 0.996233,
+            "median": 0.999,
+            "min": 0.99,
+            "max": 0.9997,
+            "range": 0.0097,
+            "stdev": 0.00541,
+            "iqr": 0.0097
+          },
+          "retrieval_poisoning_recall": {
+            "n": 0
+          },
+          "tool_use_manipulation_recall": {
+            "n": 0
+          },
+          "safety_bypass_recall": {
+            "n": 0
+          }
+        },
+        "lr3e-05__ep3": {
+          "extraction_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "attack_recall": {
+            "n": 3,
+            "mean": 0.995633,
+            "median": 1.0,
+            "min": 0.9869,
+            "max": 1.0,
+            "range": 0.0131,
+            "stdev": 0.007563,
+            "iqr": 0.0131
+          },
+          "benign_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "quoted_attack_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "dev_selected_threshold": {
+            "n": 3,
+            "mean": 0.999533,
+            "median": 0.9998,
+            "min": 0.9989,
+            "max": 0.9999,
+            "range": 0.001,
+            "stdev": 0.000551,
+            "iqr": 0.001
+          },
+          "retrieval_poisoning_recall": {
+            "n": 0
+          },
+          "tool_use_manipulation_recall": {
+            "n": 0
+          },
+          "safety_bypass_recall": {
+            "n": 0
+          }
+        }
+      }
+    },
+    "adr_019": {
+      "all_18": {
+        "extraction_recall": {
+          "n": 18,
+          "mean": 0.999044,
+          "median": 1.0,
+          "min": 0.9828,
+          "max": 1.0,
+          "range": 0.0172,
+          "stdev": 0.004054,
+          "iqr": 0.0
+        },
+        "attack_recall": {
+          "n": 18,
+          "mean": 0.998861,
+          "median": 1.0,
+          "min": 0.9959,
+          "max": 1.0,
+          "range": 0.0041,
+          "stdev": 0.00189,
+          "iqr": 0.0041
+        },
+        "benign_fpr": {
+          "n": 18,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "range": 0.0,
+          "stdev": 0.0,
+          "iqr": 0.0
+        },
+        "quoted_attack_fpr": {
+          "n": 18,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "range": 0.0,
+          "stdev": 0.0,
+          "iqr": 0.0
+        },
+        "dev_selected_threshold": {
+          "n": 18,
+          "mean": 0.942156,
+          "median": 0.99,
+          "min": 0.0694,
+          "max": 0.9999,
+          "range": 0.9305,
+          "stdev": 0.217854,
+          "iqr": 0.008275
+        },
+        "retrieval_poisoning_recall": {
+          "n": 18,
+          "mean": 0.998017,
+          "median": 1.0,
+          "min": 0.9643,
+          "max": 1.0,
+          "range": 0.0357,
+          "stdev": 0.008415,
+          "iqr": 0.0
+        },
+        "tool_use_manipulation_recall": {
+          "n": 18,
+          "mean": 0.996733,
+          "median": 1.0,
+          "min": 0.9706,
+          "max": 1.0,
+          "range": 0.0294,
+          "stdev": 0.009507,
+          "iqr": 0.0
+        },
+        "safety_bypass_recall": {
+          "n": 18,
+          "mean": 1.0,
+          "median": 1.0,
+          "min": 1.0,
+          "max": 1.0,
+          "range": 0.0,
+          "stdev": 0.0,
+          "iqr": 0.0
+        }
+      },
+      "seed_only_cells": {
+        "lr1e-05__ep2": {
+          "extraction_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "attack_recall": {
+            "n": 3,
+            "mean": 0.998633,
+            "median": 1.0,
+            "min": 0.9959,
+            "max": 1.0,
+            "range": 0.0041,
+            "stdev": 0.002367,
+            "iqr": 0.0041
+          },
+          "benign_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "quoted_attack_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "dev_selected_threshold": {
+            "n": 3,
+            "mean": 0.684933,
+            "median": 0.99,
+            "min": 0.0694,
+            "max": 0.9954,
+            "range": 0.926,
+            "stdev": 0.533074,
+            "iqr": 0.926
+          },
+          "retrieval_poisoning_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "tool_use_manipulation_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "safety_bypass_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          }
+        },
+        "lr1e-05__ep3": {
+          "extraction_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "attack_recall": {
+            "n": 3,
+            "mean": 0.997267,
+            "median": 0.9959,
+            "min": 0.9959,
+            "max": 1.0,
+            "range": 0.0041,
+            "stdev": 0.002367,
+            "iqr": 0.0041
+          },
+          "benign_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "quoted_attack_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "dev_selected_threshold": {
+            "n": 3,
+            "mean": 0.995,
+            "median": 0.9972,
+            "min": 0.99,
+            "max": 0.9978,
+            "range": 0.0078,
+            "stdev": 0.004341,
+            "iqr": 0.0078
+          },
+          "retrieval_poisoning_recall": {
+            "n": 3,
+            "mean": 0.9881,
+            "median": 1.0,
+            "min": 0.9643,
+            "max": 1.0,
+            "range": 0.0357,
+            "stdev": 0.020611,
+            "iqr": 0.0357
+          },
+          "tool_use_manipulation_recall": {
+            "n": 3,
+            "mean": 0.9902,
+            "median": 1.0,
+            "min": 0.9706,
+            "max": 1.0,
+            "range": 0.0294,
+            "stdev": 0.016974,
+            "iqr": 0.0294
+          },
+          "safety_bypass_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          }
+        },
+        "lr2e-05__ep2": {
+          "extraction_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "attack_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "benign_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "quoted_attack_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "dev_selected_threshold": {
+            "n": 3,
+            "mean": 0.99,
+            "median": 0.99,
+            "min": 0.99,
+            "max": 0.99,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "retrieval_poisoning_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "tool_use_manipulation_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "safety_bypass_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          }
+        },
+        "lr2e-05__ep3": {
+          "extraction_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "attack_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "benign_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "quoted_attack_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "dev_selected_threshold": {
+            "n": 3,
+            "mean": 0.99,
+            "median": 0.99,
+            "min": 0.99,
+            "max": 0.99,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "retrieval_poisoning_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "tool_use_manipulation_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "safety_bypass_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          }
+        },
+        "lr3e-05__ep2": {
+          "extraction_recall": {
+            "n": 3,
+            "mean": 0.994267,
+            "median": 1.0,
+            "min": 0.9828,
+            "max": 1.0,
+            "range": 0.0172,
+            "stdev": 0.00993,
+            "iqr": 0.0172
+          },
+          "attack_recall": {
+            "n": 3,
+            "mean": 0.998633,
+            "median": 1.0,
+            "min": 0.9959,
+            "max": 1.0,
+            "range": 0.0041,
+            "stdev": 0.002367,
+            "iqr": 0.0041
+          },
+          "benign_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "quoted_attack_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "dev_selected_threshold": {
+            "n": 3,
+            "mean": 0.996467,
+            "median": 0.9997,
+            "min": 0.99,
+            "max": 0.9997,
+            "range": 0.0097,
+            "stdev": 0.0056,
+            "iqr": 0.0097
+          },
+          "retrieval_poisoning_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "tool_use_manipulation_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "safety_bypass_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          }
+        },
+        "lr3e-05__ep3": {
+          "extraction_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "attack_recall": {
+            "n": 3,
+            "mean": 0.998633,
+            "median": 1.0,
+            "min": 0.9959,
+            "max": 1.0,
+            "range": 0.0041,
+            "stdev": 0.002367,
+            "iqr": 0.0041
+          },
+          "benign_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "quoted_attack_fpr": {
+            "n": 3,
+            "mean": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "max": 0.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "dev_selected_threshold": {
+            "n": 3,
+            "mean": 0.996533,
+            "median": 0.9997,
+            "min": 0.99,
+            "max": 0.9999,
+            "range": 0.0099,
+            "stdev": 0.005659,
+            "iqr": 0.0099
+          },
+          "retrieval_poisoning_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          },
+          "tool_use_manipulation_recall": {
+            "n": 3,
+            "mean": 0.9902,
+            "median": 1.0,
+            "min": 0.9706,
+            "max": 1.0,
+            "range": 0.0294,
+            "stdev": 0.016974,
+            "iqr": 0.0294
+          },
+          "safety_bypass_recall": {
+            "n": 3,
+            "mean": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "max": 1.0,
+            "range": 0.0,
+            "stdev": 0.0,
+            "iqr": 0.0
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,348 @@
+{
+  "generated_at": "2026-08-17T17:51:45.059552+00:00",
+  "step_0": {
+    "question": "Does the proxy reproduce the known direction of the ADR-019 change?",
+    "dev": {
+      "strategy_a_recall": 0.972,
+      "adr_019_recall": 0.952,
+      "delta": -0.02,
+      "b_strategy_a_only": 23,
+      "c_adr_019_only": 3,
+      "mcnemar_p": 8.798e-05,
+      "direction_reproduced": true,
+      "significant": true,
+      "gate_passed": true
+    },
+    "matched_fpr": {
+      "strategy_a_recall": 0.969,
+      "adr_019_recall": 0.9069,
+      "delta": -0.0621,
+      "b_strategy_a_only": 63,
+      "c_adr_019_only": 1,
+      "mcnemar_p": 0.0,
+      "direction_reproduced": true,
+      "significant": true,
+      "gate_passed": true
+    },
+    "gate_passed": true
+  },
+  "step_1": {
+    "question": "Is the regression a property of the condition or of the seed?",
+    "dev": {
+      "strategy_a_per_seed": [
+        0.972,
+        0.978,
+        0.977
+      ],
+      "adr_019_per_seed": [
+        0.952,
+        0.963,
+        0.958
+      ],
+      "strategy_a_mean": 0.9756,
+      "adr_019_mean": 0.9576,
+      "strategy_a_spread": 0.006,
+      "adr_019_spread": 0.011,
+      "max_within_condition_spread": 0.011,
+      "between_condition_gap": 0.018,
+      "gap_exceeds_seed_spread": true,
+      "families_disjoint": true,
+      "permutation": {
+        "observed_gap": 0.018,
+        "p_one_sided": 0.05,
+        "permutations": 20,
+        "smallest_attainable_p": 0.05,
+        "at_the_floor": true
+      }
+    },
+    "matched_fpr": {
+      "strategy_a_per_seed": [
+        0.969,
+        0.97,
+        0.977
+      ],
+      "adr_019_per_seed": [
+        0.9069,
+        0.9269,
+        0.9039
+      ],
+      "strategy_a_mean": 0.972,
+      "adr_019_mean": 0.9126,
+      "strategy_a_spread": 0.008,
+      "adr_019_spread": 0.023,
+      "max_within_condition_spread": 0.023,
+      "between_condition_gap": 0.0594,
+      "gap_exceeds_seed_spread": true,
+      "families_disjoint": true,
+      "permutation": {
+        "observed_gap": 0.0594,
+        "p_one_sided": 0.05,
+        "permutations": 20,
+        "smallest_attainable_p": 0.05,
+        "at_the_floor": true
+      }
+    }
+  },
+  "threshold_underdetermination": {
+    "all_dev_splits_separable": true,
+    "dev_selected_thresholds": {
+      "stratA__lr1e-05__ep2__seed13": 0.9955,
+      "stratA__lr1e-05__ep2__seed20260817": 0.8954,
+      "stratA__lr1e-05__ep2__seed31337": 0.9931,
+      "mech__lr1e-05__ep2__seed13": 0.9954,
+      "mech__lr1e-05__ep2__seed20260817": 0.0694,
+      "mech__lr1e-05__ep2__seed31337": 0.99
+    },
+    "range": [
+      0.0694,
+      0.9955
+    ],
+    "spread": 0.9261,
+    "note": "Identical methodology, identical dev split within a family, yet the chosen threshold varies by nearly the whole unit interval. Any cross-model comparison at dev-selected thresholds compares two arbitrary points inside two separating gaps; the matched-FPR rows are the commensurable ones."
+  },
+  "benign_fpr_on_proxy": {
+    "stratA__lr1e-05__ep2__seed13": {
+      "dev": {
+        "k": 11,
+        "n": 2000,
+        "rate": 0.0055,
+        "ci95": [
+          0.0031,
+          0.0098
+        ]
+      },
+      "matched_fpr": {
+        "k": 10,
+        "n": 2000,
+        "rate": 0.005,
+        "ci95": [
+          0.0027,
+          0.0092
+        ]
+      }
+    },
+    "stratA__lr1e-05__ep2__seed20260817": {
+      "dev": {
+        "k": 28,
+        "n": 2000,
+        "rate": 0.014,
+        "ci95": [
+          0.0097,
+          0.0202
+        ]
+      },
+      "matched_fpr": {
+        "k": 13,
+        "n": 2000,
+        "rate": 0.0065,
+        "ci95": [
+          0.0038,
+          0.0111
+        ]
+      }
+    },
+    "stratA__lr1e-05__ep2__seed31337": {
+      "dev": {
+        "k": 15,
+        "n": 2000,
+        "rate": 0.0075,
+        "ci95": [
+          0.0046,
+          0.0123
+        ]
+      },
+      "matched_fpr": {
+        "k": 13,
+        "n": 2000,
+        "rate": 0.0065,
+        "ci95": [
+          0.0038,
+          0.0111
+        ]
+      }
+    },
+    "mech__lr1e-05__ep2__seed13": {
+      "dev": {
+        "k": 25,
+        "n": 2000,
+        "rate": 0.0125,
+        "ci95": [
+          0.0085,
+          0.0184
+        ]
+      },
+      "matched_fpr": {
+        "k": 11,
+        "n": 2000,
+        "rate": 0.0055,
+        "ci95": [
+          0.0031,
+          0.0098
+        ]
+      }
+    },
+    "mech__lr1e-05__ep2__seed20260817": {
+      "dev": {
+        "k": 41,
+        "n": 2000,
+        "rate": 0.0205,
+        "ci95": [
+          0.0151,
+          0.0277
+        ]
+      },
+      "matched_fpr": {
+        "k": 13,
+        "n": 2000,
+        "rate": 0.0065,
+        "ci95": [
+          0.0038,
+          0.0111
+        ]
+      }
+    },
+    "mech__lr1e-05__ep2__seed31337": {
+      "dev": {
+        "k": 38,
+        "n": 2000,
+        "rate": 0.019,
+        "ci95": [
+          0.0139,
+          0.026
+        ]
+      },
+      "matched_fpr": {
+        "k": 13,
+        "n": 2000,
+        "rate": 0.0065,
+        "ci95": [
+          0.0038,
+          0.0111
+        ]
+      }
+    }
+  },
+  "deepset_attack_recall": {
+    "stratA__lr1e-05__ep2__seed13": {
+      "dev": {
+        "k": 62,
+        "n": 263,
+        "rate": 0.2357,
+        "ci95": [
+          0.1885,
+          0.2906
+        ]
+      },
+      "matched_fpr": {
+        "k": 58,
+        "n": 263,
+        "rate": 0.2205,
+        "ci95": [
+          0.1746,
+          0.2745
+        ]
+      }
+    },
+    "stratA__lr1e-05__ep2__seed20260817": {
+      "dev": {
+        "k": 72,
+        "n": 263,
+        "rate": 0.2738,
+        "ci95": [
+          0.2234,
+          0.3306
+        ]
+      },
+      "matched_fpr": {
+        "k": 59,
+        "n": 263,
+        "rate": 0.2243,
+        "ci95": [
+          0.1781,
+          0.2785
+        ]
+      }
+    },
+    "stratA__lr1e-05__ep2__seed31337": {
+      "dev": {
+        "k": 70,
+        "n": 263,
+        "rate": 0.2662,
+        "ci95": [
+          0.2164,
+          0.3227
+        ]
+      },
+      "matched_fpr": {
+        "k": 68,
+        "n": 263,
+        "rate": 0.2586,
+        "ci95": [
+          0.2094,
+          0.3147
+        ]
+      }
+    },
+    "mech__lr1e-05__ep2__seed13": {
+      "dev": {
+        "k": 75,
+        "n": 263,
+        "rate": 0.2852,
+        "ci95": [
+          0.234,
+          0.3425
+        ]
+      },
+      "matched_fpr": {
+        "k": 54,
+        "n": 263,
+        "rate": 0.2053,
+        "ci95": [
+          0.1609,
+          0.2582
+        ]
+      }
+    },
+    "mech__lr1e-05__ep2__seed20260817": {
+      "dev": {
+        "k": 98,
+        "n": 263,
+        "rate": 0.3726,
+        "ci95": [
+          0.3164,
+          0.4325
+        ]
+      },
+      "matched_fpr": {
+        "k": 52,
+        "n": 263,
+        "rate": 0.1977,
+        "ci95": [
+          0.1541,
+          0.2501
+        ]
+      }
+    },
+    "mech__lr1e-05__ep2__seed31337": {
+      "dev": {
+        "k": 91,
+        "n": 263,
+        "rate": 0.346,
+        "ci95": [
+          0.2911,
+          0.4053
+        ]
+      },
+      "matched_fpr": {
+        "k": 52,
+        "n": 263,
+        "rate": 0.1977,
+        "ci95": [
+          0.1541,
+          0.2501
+        ]
+      }
+    }
+  },
+  "contamination_note": "Absolute values here are NOT capability claims. These corpora were used in ADR-014 and are plausibly in the base model's pretraining."
+}

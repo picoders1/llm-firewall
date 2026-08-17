@@ -1,0 +1,200 @@
+{
+  "protocol": "docs/adr/ADR-020-retention-preserving-training.md",
+  "purpose": "Immutable reference points for the ADR-020 retention experiment. Generated from artefacts; no value hand-entered.",
+  "generated_from": "eval/results/ + eval/datasets/ as committed",
+  "production_state_at_design_time": {
+    "detector_registry": [
+      "injection.heuristic",
+      "jailbreak.heuristic",
+      "pii.regex",
+      "output.stub"
+    ],
+    "heuristic_threshold": 0.85,
+    "provenance_overlays_enabled": 0,
+    "blocking_enabled": false
+  },
+  "corpus_sha256": {
+    "finetune-v1/train": "4a83c4cd1541cd265bd6f3b2a07c8df9c260d6f0afa0d840df9063d1ca593a64",
+    "finetune-v1/dev": "07a1e685aed81cdc66e233fa97f57fc8c1a5c1917d75a63745c7c01e27cdd123",
+    "finetune-v2/train": "be2e08ef361e843620328800bb59384b5be7049294c958cc547de0f5e2930e17",
+    "finetune-v2/dev": "2ae796b7f9fad9cd27217226ebbc2069a6ea031fa190f18d498f6baaf9d01f5c",
+    "holdout-v2": "fd91575272056d3b282804ddfbbbde6357f9d20bbf9e98ed49e145b674a28237",
+    "holdout-v3": "0e26dd6b7d0f545c0bd68b64c2a0b4b60397f8ad41436754dc38b679fbbb28bf",
+    "holdout-indirect-v1": "3ef8c0ec75d9aed9669332dd2e70987993459b39629a6f7109241e13f96d6e17",
+    "holdout-mechanisms-v1": "bb562774663dea7580d7d1a97031b810c7a8aadebde10fcbfd04a116b521e91c"
+  },
+  "corpus_profile": {
+    "finetune-v1": {
+      "n": 3814,
+      "n_attack": 740,
+      "attack_fraction": 0.194022,
+      "extraction_share_of_attacks": 0.389189,
+      "extraction_count": 288,
+      "train_split_n": 3006,
+      "steps_per_epoch_at_batch16_train_split": 188,
+      "total_steps_at_2_epochs": 376
+    },
+    "finetune-v2": {
+      "n": 4922,
+      "n_attack": 1190,
+      "attack_fraction": 0.241772,
+      "extraction_share_of_attacks": 0.242017,
+      "extraction_count": 288,
+      "train_split_n": 3878,
+      "steps_per_epoch_at_batch16_train_split": 243,
+      "total_steps_at_2_epochs": 486
+    },
+    "_note": "n / n_attack / fractions are over train+dev combined. Step counts use the train split and the exact ceiling formula at scripts/finetune_strategy_a.py:284, steps_per_epoch = (n + BATCH_SIZE - 1) // BATCH_SIZE."
+  },
+  "selection_proxy_candidate_sha256": {
+    "lakera-gandalf": "613957cf6519a72638a73c6d19af7b067a4db47086d8d55898bab6d93653b47e",
+    "deepset-prompt-injections": "3a83ad015f2fc313605810feaf8ef635931736533b62b57d29b45cb22b65e436",
+    "jackhhao-jailbreak": "075c4cd8a12902bbe8e8135c99d141b3727bcc98eabda64a56f4bbb0d7b7a1dc",
+    "dolly-benign": "6a0b3089194768f1b74821923dae90aa7ed1a20d9b056fcc3380fb004881fa01",
+    "oasst1-benign": "7dd7d427a37d330aa4403b979fec2171000166bb8d021381dc2a2c1512bd0347"
+  },
+  "selection_proxy_sizes": {
+    "lakera-gandalf": 999,
+    "deepset-prompt-injections": 662,
+    "jackhhao-jailbreak": 1286,
+    "dolly-benign": 4000,
+    "oasst1-benign": 4000
+  },
+  "baselines": {
+    "strategy_a": {
+      "checkpoint": "stratA__lr1e-05__ep2__seed13",
+      "checkpoint_sha256": "2995b260b5f9f97e58e5f7b1496b1e79c10b2eff2e4c3b00be212c22fe2fd9c2",
+      "dev_selected_threshold": 0.9955,
+      "training_corpus": "finetune-v1",
+      "holdout_v3": {
+        "benign_fpr": 0.0092,
+        "benign_n": 436,
+        "quoted_attack_fpr": 0.0429,
+        "quoted_attack_n": 70,
+        "attack_recall": 0.8174,
+        "attack_n": 356,
+        "attack_tp": 291,
+        "extraction_recall": 0.8446,
+        "extraction_n": 296,
+        "extraction_tp": 250
+      },
+      "latency": {
+        "n": 200,
+        "mean_ms": 11.7503,
+        "median_ms": 11.959,
+        "p50_ms": 11.959,
+        "p90_ms": 12.2096,
+        "p95_ms": 12.3078,
+        "p99_ms": 14.793,
+        "min_ms": 10.2914,
+        "max_ms": 16.7917,
+        "stdev_ms": 0.7731,
+        "throughput_per_s_single_threaded": 85.1,
+        "percentiles_reliable": true,
+        "device": "cuda",
+        "method": "single-sample, warm, tokenisation included",
+        "peak_vram_gb": 0.759
+      }
+    },
+    "adr_019": {
+      "checkpoint": "mech__lr1e-05__ep2__seed13",
+      "checkpoint_sha256": "2bf3950b0d89c0436a1a4d13f0c5e469811d863562d056939337fd5b0d7fcbea",
+      "dev_selected_threshold": 0.9954,
+      "training_corpus": "finetune-v2",
+      "verdict": "FAILURE",
+      "holdout_v3": {
+        "benign_fpr": 0.0161,
+        "quoted_attack_fpr": 0.0571,
+        "attack_recall": 0.764,
+        "extraction_recall": 0.7534
+      },
+      "mechanisms_v1": {
+        "retrieval_poisoning": {
+          "recall": 0.7333,
+          "n": 60,
+          "tp": 44
+        },
+        "tool_use_manipulation": {
+          "recall": 0.7333,
+          "n": 60,
+          "tp": 44
+        },
+        "safety_bypass": {
+          "recall": 0.9667,
+          "n": 60,
+          "tp": 58
+        }
+      },
+      "latency": {
+        "n": 200,
+        "mean_ms": 11.8605,
+        "median_ms": 12.0247,
+        "p50_ms": 12.0247,
+        "p90_ms": 12.4697,
+        "p95_ms": 12.6095,
+        "p99_ms": 13.0796,
+        "min_ms": 10.6593,
+        "max_ms": 16.804,
+        "stdev_ms": 0.6614,
+        "throughput_per_s_single_threaded": 84.31,
+        "percentiles_reliable": true,
+        "device": "cuda",
+        "method": "single-sample, warm, tokenisation included",
+        "peak_vram_gb": 0.755
+      }
+    }
+  },
+  "holdout_usage_count_before_adr020": {
+    "holdout-v2": 1,
+    "holdout-v3": 2,
+    "holdout-indirect-v1": 2,
+    "holdout-mechanisms-v1": 1
+  },
+  "holdout_budget_declared_for_adr020": {
+    "holdout-v3": 1,
+    "holdout-mechanisms-v1": 1,
+    "note": "Single selected winner only. Any further scoring requires a new ADR."
+  },
+  "retained_checkpoints": {
+    "artifacts/finetune": [
+      "stratA__lr1e-05__ep2__seed13",
+      "stratA__lr1e-05__ep2__seed20260817",
+      "stratA__lr1e-05__ep2__seed31337",
+      "stratA__lr1e-05__ep3__seed13",
+      "stratA__lr1e-05__ep3__seed20260817",
+      "stratA__lr1e-05__ep3__seed31337",
+      "stratA__lr2e-05__ep2__seed13",
+      "stratA__lr2e-05__ep2__seed20260817",
+      "stratA__lr2e-05__ep2__seed31337",
+      "stratA__lr2e-05__ep3__seed13",
+      "stratA__lr2e-05__ep3__seed20260817",
+      "stratA__lr2e-05__ep3__seed31337",
+      "stratA__lr3e-05__ep2__seed13",
+      "stratA__lr3e-05__ep2__seed20260817",
+      "stratA__lr3e-05__ep2__seed31337",
+      "stratA__lr3e-05__ep3__seed13",
+      "stratA__lr3e-05__ep3__seed20260817",
+      "stratA__lr3e-05__ep3__seed31337"
+    ],
+    "artifacts/finetune-mechanisms": [
+      "mech__lr1e-05__ep2__seed13",
+      "mech__lr1e-05__ep2__seed20260817",
+      "mech__lr1e-05__ep2__seed31337",
+      "mech__lr1e-05__ep3__seed13",
+      "mech__lr1e-05__ep3__seed20260817",
+      "mech__lr1e-05__ep3__seed31337",
+      "mech__lr2e-05__ep2__seed13",
+      "mech__lr2e-05__ep2__seed20260817",
+      "mech__lr2e-05__ep2__seed31337",
+      "mech__lr2e-05__ep3__seed13",
+      "mech__lr2e-05__ep3__seed20260817",
+      "mech__lr2e-05__ep3__seed31337",
+      "mech__lr3e-05__ep2__seed13",
+      "mech__lr3e-05__ep2__seed20260817",
+      "mech__lr3e-05__ep2__seed31337",
+      "mech__lr3e-05__ep3__seed13",
+      "mech__lr3e-05__ep3__seed20260817",
+      "mech__lr3e-05__ep3__seed31337"
+    ]
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "checked_at": "2026-08-17T17:41:14.964213+00:00",
+  "step": "ADR-020 Step 0 precondition (\u00a75)",
+  "proxy_samples_in_use": 5661,
+  "parts": {
+    "lakera_attacks": 999,
+    "deepset_attacks": 263,
+    "deepset_benign": 399,
+    "calibration_benign": 2000,
+    "eval_benign": 2000
+  },
+  "excluded_at_construction": {
+    "sensitive": [
+      {
+        "sample_id": "dolly-benign-513d86d4dcb4454f",
+        "pattern": "email"
+      },
+      {
+        "sample_id": "oasst1-benign-18525324eeaaf745",
+        "pattern": "email"
+      },
+      {
+        "sample_id": "oasst1-benign-e5e45212aa1b08e8",
+        "pattern": "email"
+      }
+    ],
+    "duplicate": [
+      "dolly-benign-318f903a83b4d30d",
+      "oasst1-benign-0ab60986ffbd49a1",
+      "oasst1-benign-318f903a83b4d30d",
+      "oasst1-benign-b3edcb6f1e0201ef"
+    ],
+    "rule": "Uniform filters over the whole eligible pool applied before any draw: cross-corpus de-duplication by normalised key, and exclusion of samples carrying validated secrets/PII. Not targeted repairs of individual rows."
+  },
+  "calibration_eval_overlap": 0,
+  "screened_but_not_validated": {
+    "card_like": 1
+  },
+  "corpus_sha256": {
+    "deepset-prompt-injections.jsonl": "3a83ad015f2fc313605810feaf8ef635931736533b62b57d29b45cb22b65e436",
+    "dolly-benign.jsonl": "6a0b3089194768f1b74821923dae90aa7ed1a20d9b056fcc3380fb004881fa01",
+    "jackhhao-jailbreak.jsonl": "075c4cd8a12902bbe8e8135c99d141b3727bcc98eabda64a56f4bbb0d7b7a1dc",
+    "lakera-gandalf.jsonl": "613957cf6519a72638a73c6d19af7b067a4db47086d8d55898bab6d93653b47e",
+    "oasst1-benign.jsonl": "7dd7d427a37d330aa4403b979fec2171000166bb8d021381dc2a2c1512bd0347"
+  },
+  "exact_collisions_total": 0,
+  "normalised_collisions_total": 0,
+  "collisions_by_corpus": {
+    "eval/datasets/finetune/train/cases.jsonl": {
+      "normalised": 0
+    },
+    "eval/datasets/finetune/dev/cases.jsonl": {
+      "normalised": 0
+    },
+    "eval/datasets/finetune/v2/train/cases.jsonl": {
+      "normalised": 0
+    },
+    "eval/datasets/finetune/v2/dev/cases.jsonl": {
+      "normalised": 0
+    },
+    "eval/datasets/holdout/cases.jsonl": {
+      "normalised": 0
+    },
+    "eval/datasets/holdout/v3/cases.jsonl": {
+      "normalised": 0
+    },
+    "eval/datasets/holdout/indirect-v1/cases.jsonl": {
+      "normalised": 0
+    },
+    "eval/datasets/holdout/mechanisms-v1/cases.jsonl": {
+      "normalised": 0
+    }
+  },
+  "duplicates_within_proxy": 0,
+  "near_duplicates": {
+    "lakera_attacks": {
+      "n": 999,
+      "near_duplicates": 1,
+      "rate": 0.001
+    },
+    "deepset_attacks": {
+      "n": 263,
+      "near_duplicates": 8,
+      "rate": 0.0304
+    },
+    "deepset_benign": {
+      "n": 399,
+      "near_duplicates": 1,
+      "rate": 0.0025
+    },
+    "calibration_benign": {
+      "n": 2000,
+      "near_duplicates": 0,
+      "rate": 0.0
+    },
+    "eval_benign": {
+      "n": 2000,
+      "near_duplicates": 0,
+      "rate": 0.0
+    }
+  },
+  "secret_or_pii_hits": {},
+  "licences": {
+    "deepset-prompt-injections": {
+      "licence": "apache-2.0",
+      "commercial_use": "permitted",
+      "contamination_risk": "high",
+      "source": "https://huggingface.co/datasets/deepset/prompt-injections"
+    },
+    "lakera-gandalf": {
+      "licence": "mit",
+      "commercial_use": "permitted",
+      "contamination_risk": "high",
+      "source": "https://huggingface.co/datasets/Lakera/gandalf_ignore_instructions"
+    },
+    "oasst1-benign": {
+      "licence": "apache-2.0",
+      "commercial_use": "permitted",
+      "contamination_risk": "medium",
+      "source": "https://huggingface.co/datasets/OpenAssistant/oasst1"
+    },
+    "dolly-benign": {
+      "licence": "cc-by-sa-3.0",
+      "commercial_use": "permitted-with-share-alike",
+      "contamination_risk": "medium",
+      "source": "https://huggingface.co/datasets/databricks/databricks-dolly-15k"
+    }
+  },
+  "used_in_any_training_run": false,
+  "is_a_frozen_project_holdout": false,
+  "admissible": true,
+  "contamination_note": "Used for base-model selection in ADR-014 and plausibly present in the base model's pretraining. Absolute numbers are NOT claimable as capability; admissible only for ranking fine-tunes of the same base (docs/13, R-51)."
+}
