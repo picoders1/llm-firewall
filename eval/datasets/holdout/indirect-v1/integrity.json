@@ -1,0 +1,72 @@
+{
+  "dataset_sha256": "3ef8c0ec75d9aed9669332dd2e70987993459b39629a6f7109241e13f96d6e17",
+  "manifest_sha256": "ec342876f13c3a510896f91ffcbc9f83d6461cfbeaff3114361823972d742058",
+  "frozen_at": "2026-08-17T13:06:05.691563+00:00",
+  "taxonomy_version": "delivery-shape-v1",
+  "seed": 20260819,
+  "internal_duplicates_removed": 0,
+  "near_duplicates_pruned": 0,
+  "near_duplicates_pruned_ids": [],
+  "secrets": 0,
+  "pii": 0,
+  "lexical_independence": {
+    "payloads": 27,
+    "overlap_with_finetuning_phrases": [],
+    "overlap_with_holdout_v3_payloads": [],
+    "disjoint": true
+  },
+  "contamination": {
+    "holdout_v2": {
+      "n": 531,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "holdout_v3": {
+      "n": 792,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "finetune_train": {
+      "n": 3006,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "finetune_dev": {
+      "n": 808,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "smoke": {
+      "n": 31,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "public_deepset-prompt-injections": {
+      "n": 662,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "public_dolly-benign": {
+      "n": 4000,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "public_jackhhao-jailbreak": {
+      "n": 1286,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "public_lakera-gandalf": {
+      "n": 999,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    },
+    "public_oasst1-benign": {
+      "n": 4000,
+      "exact_collisions": 0,
+      "normalised_collisions": 0
+    }
+  },
+  "cross_version_near_duplicates": 0,
+  "jaccard_threshold": 0.9
+}

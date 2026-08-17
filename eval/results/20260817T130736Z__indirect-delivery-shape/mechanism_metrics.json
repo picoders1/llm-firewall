@@ -1,0 +1,90 @@
+{
+  "retrieval_poisoning": {
+    "n": 64,
+    "tp": 2,
+    "fn": 62,
+    "recall": 0.0312,
+    "recall_ci95_wilson": [
+      0.0086,
+      0.107
+    ],
+    "verdict": "SYSTEMATICALLY MISSED"
+  },
+  "tool_use_manipulation": {
+    "n": 59,
+    "tp": 2,
+    "fn": 57,
+    "recall": 0.0339,
+    "recall_ci95_wilson": [
+      0.0093,
+      0.1154
+    ],
+    "verdict": "SYSTEMATICALLY MISSED"
+  },
+  "role_manipulation": {
+    "n": 61,
+    "tp": 4,
+    "fn": 57,
+    "recall": 0.0656,
+    "recall_ci95_wilson": [
+      0.0258,
+      0.1568
+    ],
+    "verdict": "SYSTEMATICALLY MISSED"
+  },
+  "safety_bypass": {
+    "n": 64,
+    "tp": 6,
+    "fn": 58,
+    "recall": 0.0938,
+    "recall_ci95_wilson": [
+      0.0437,
+      0.1898
+    ],
+    "verdict": "SYSTEMATICALLY MISSED"
+  },
+  "context_injection": {
+    "n": 73,
+    "tp": 10,
+    "fn": 63,
+    "recall": 0.137,
+    "recall_ci95_wilson": [
+      0.0761,
+      0.2341
+    ],
+    "verdict": "SYSTEMATICALLY MISSED"
+  },
+  "data_exfiltration": {
+    "n": 71,
+    "tp": 16,
+    "fn": 55,
+    "recall": 0.2254,
+    "recall_ci95_wilson": [
+      0.1437,
+      0.3352
+    ],
+    "verdict": "SYSTEMATICALLY MISSED"
+  },
+  "instruction_override": {
+    "n": 67,
+    "tp": 16,
+    "fn": 51,
+    "recall": 0.2388,
+    "recall_ci95_wilson": [
+      0.1527,
+      0.3533
+    ],
+    "verdict": "SYSTEMATICALLY MISSED"
+  },
+  "system_prompt_extraction": {
+    "n": 61,
+    "tp": 18,
+    "fn": 43,
+    "recall": 0.2951,
+    "recall_ci95_wilson": [
+      0.1956,
+      0.4189
+    ],
+    "verdict": "SYSTEMATICALLY MISSED"
+  }
+}

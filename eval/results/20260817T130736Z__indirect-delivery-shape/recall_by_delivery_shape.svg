@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="422" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">
+<text x="16" y="26" font-size="14" font-weight="600">Indirect-injection recall by delivery shape (threshold 0.9955)</text>
+<line x1="546.0" y1="42" x2="546.0" y2="396" stroke="#b91c1c" stroke-dasharray="4 3"/>
+<text x="550.0" y="38" fill="#b91c1c">bound 0.8</text>
+<text x="16" y="67" fill="#334155">prose_addressed</text>
+<rect x="210" y="57" width="1.0" height="14" fill="#b91c1c" rx="2"/>
+<text x="217" y="68" fill="#475569">0.000 (n=50)</text>
+<text x="16" y="93" fill="#334155">json_metadata</text>
+<rect x="210" y="83" width="1.0" height="14" fill="#b91c1c" rx="2"/>
+<text x="217" y="94" fill="#475569">0.000 (n=50)</text>
+<text x="16" y="119" fill="#334155">tool_retrieval_metadata</text>
+<rect x="210" y="109" width="1.0" height="14" fill="#b91c1c" rx="2"/>
+<text x="217" y="120" fill="#475569">0.000 (n=50)</text>
+<text x="16" y="145" fill="#334155">markdown_hidden</text>
+<rect x="210" y="135" width="1.0" height="14" fill="#b91c1c" rx="2"/>
+<text x="217" y="146" fill="#475569">0.000 (n=30)</text>
+<text x="16" y="171" fill="#334155">yaml_config</text>
+<rect x="210" y="161" width="1.0" height="14" fill="#b91c1c" rx="2"/>
+<text x="217" y="172" fill="#475569">0.000 (n=30)</text>
+<text x="16" y="197" fill="#334155">quoted_prose</text>
+<rect x="210" y="187" width="1.0" height="14" fill="#b91c1c" rx="2"/>
+<text x="217" y="198" fill="#475569">0.000 (n=30)</text>
+<text x="16" y="223" fill="#334155">code_comment</text>
+<rect x="210" y="213" width="8.4" height="14" fill="#b91c1c" rx="2"/>
+<text x="224.4" y="224" fill="#475569">0.020 (n=50)</text>
+<text x="16" y="249" fill="#334155">document_footer_header</text>
+<rect x="210" y="239" width="14.0" height="14" fill="#b91c1c" rx="2"/>
+<text x="229.986" y="250" fill="#475569">0.033 (n=30)</text>
+<text x="16" y="275" fill="#334155">xml_markup</text>
+<rect x="210" y="265" width="67.2" height="14" fill="#b91c1c" rx="2"/>
+<text x="283.2" y="276" fill="#475569">0.160 (n=50)</text>
+<text x="16" y="301" fill="#334155">html_comment</text>
+<rect x="210" y="291" width="92.4" height="14" fill="#b91c1c" rx="2"/>
+<text x="308.4" y="302" fill="#475569">0.220 (n=50)</text>
+<text x="16" y="327" fill="#334155">alt_text</text>
+<rect x="210" y="317" width="98.0" height="14" fill="#b91c1c" rx="2"/>
+<text x="313.986" y="328" fill="#475569">0.233 (n=30)</text>
+<text x="16" y="353" fill="#334155">system_marker</text>
+<rect x="210" y="343" width="238.0" height="14" fill="#b45309" rx="2"/>
+<text x="454.014" y="354" fill="#475569">0.567 (n=30)</text>
+<text x="16" y="379" fill="#334155">complicit_directive</text>
+<rect x="210" y="369" width="304.5" height="14" fill="#b45309" rx="2"/>
+<text x="520.5" y="380" fill="#475569">0.725 (n=40)</text>
+</svg>
