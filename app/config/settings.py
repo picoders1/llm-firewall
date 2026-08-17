@@ -139,6 +139,17 @@ class Settings(BaseSettings):
     # --- Request limits ----------------------------------------------------
     max_request_bytes: int = Field(default=256 * 1024, gt=0)
 
+    # --- Provenance (ADR-017) ----------------------------------------------
+    # Whether an inline `x-firewall-provenance` claim on a message or content
+    # part is honoured at all. **Off by default, and deliberately here rather
+    # than in policy YAML**: this is a trust-boundary switch, so it belongs to
+    # whoever deploys the process, not to a policy file that config management
+    # may rotate independently.
+    #
+    # Even when enabled, a claim can only *lower* trust (app/core/provenance.py),
+    # and no caller-supplied trust value is ever read.
+    trust_inline_provenance_claims: bool = False
+
     # --- Detectors ---------------------------------------------------------
     policy_file: Path = Path("config/policies/default.yaml")
     detector_default_timeout_ms: int = Field(default=250, gt=0)

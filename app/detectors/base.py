@@ -38,6 +38,17 @@ class Detector(Protocol):
     directions: frozenset[Direction]
     emits_spans: bool
 
+    # Advertisement, not a requirement (ADR-017). A detector declaring `True`
+    # may read `ctx.provenance` / `ctx.trust`; one declaring `False` ignores them
+    # and behaves exactly as it did before provenance existed.
+    #
+    # There is deliberately no `requires_provenance`: such a detector would fail
+    # on every request whose origin is UNKNOWN, and the only safe response —
+    # failing closed per ADR-007 — would block ordinary traffic. A capability
+    # mismatch must never become an outage. A detector that wants provenance must
+    # degrade gracefully without it.
+    consumes_provenance: bool
+
     async def detect(self, ctx: DetectionContext) -> DetectionResult:
         """Inspect one piece of text and return evidence.
 
@@ -66,6 +77,9 @@ class BaseDetector(abc.ABC):
     category: Category = Category.PROMPT_INJECTION
     directions: frozenset[Direction] = BOTH_DIRECTIONS
     emits_spans: bool = False
+    # Default False so every existing detector keeps its exact behaviour without
+    # being edited.
+    consumes_provenance: bool = False
 
     def __init__(self, policy: DetectorPolicy | None = None) -> None:
         self.policy = policy
@@ -85,6 +99,7 @@ class BaseDetector(abc.ABC):
             name=cls.name,
             emits_spans=cls.emits_spans,
             directions=cls.directions,
+            consumes_provenance=cls.consumes_provenance,
         )
 
     def _result(

@@ -29,7 +29,7 @@ import yaml
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.core.exceptions import ConfigurationError
-from app.core.types import Action, Direction, ErrorPolicy, Role
+from app.core.types import ACTION_PRECEDENCE, Action, Direction, ErrorPolicy, Role, TrustLevel
 
 # Substrings that make a key look like a credential. Heuristic by nature — it is a
 # safety net beneath the rule that secrets live in the environment, backed up by
@@ -61,6 +61,29 @@ class DetectorCapabilities(BaseModel):
     name: str
     emits_spans: bool = False
     directions: frozenset[Direction] = frozenset({Direction.INPUT, Direction.OUTPUT})
+    # Reported so an operator can see which detectors actually read provenance;
+    # policy validation does not require it (ADR-017).
+    consumes_provenance: bool = False
+
+
+class TrustOverlay(BaseModel):
+    """A provenance-conditional adjustment to one detector's policy.
+
+    **May only tighten.** A lower threshold or a more severe action is permitted;
+    the reverse is rejected when the policy is loaded, not when a request arrives
+    (ADR-017 §4/§11).
+
+    That direction is the whole reason provenance is safe to accept from a
+    semi-trusted integration: an attacker's best possible lie buys no relaxation,
+    because relaxation is not expressible. The cost is that provenance can never
+    be used to *reduce* false positives, which is deliberate — a relaxation is
+    exactly what would be forged.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    threshold: float | None = Field(default=None, ge=0.0, le=1.0)
+    action: Action | None = None
 
 
 class DetectorPolicy(BaseModel):
@@ -81,9 +104,71 @@ class DetectorPolicy(BaseModel):
     on_error: ErrorPolicy = ErrorPolicy.FAIL_CLOSED
     timeout_ms: int = Field(default=250, gt=0, le=60_000)
 
+    # Provenance-conditional tightening, keyed by the gateway-derived trust level
+    # (ADR-017). Absent or empty means provenance changes nothing, which is what
+    # makes a request carrying no provenance behave exactly as it did before.
+    by_trust: dict[TrustLevel, TrustOverlay] = Field(default_factory=dict)
+
     # Detector-specific settings (entity lists, custom patterns). Opaque here;
     # interpreted by the detector that owns them.
     options: dict[str, Any] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _overlays_may_only_tighten(self) -> Self:
+        """Reject a loosening overlay at load time.
+
+        Checked here rather than at request time so that a policy which could
+        weaken a decision cannot start. An operator finds out from a failed
+        deployment, not from an incident review.
+
+        An overlay with neither field set is permitted and meaningful: it records
+        that a trust level was considered and deliberately left alone.
+        """
+        for trust, overlay in self.by_trust.items():
+            if overlay.threshold is not None and overlay.threshold > self.threshold:
+                raise ValueError(
+                    f"by_trust.{trust.value}.threshold {overlay.threshold} is higher than the "
+                    f"base threshold {self.threshold}, which would make detection *less* "
+                    "sensitive for that trust level. Provenance may only tighten (ADR-017)."
+                )
+            if overlay.action is Action.ALLOW:
+                raise ValueError(
+                    f"by_trust.{trust.value}.action 'allow' is not configurable; an overlay "
+                    "exists to escalate, and ALLOW is the absence of a decision"
+                )
+            if (
+                overlay.action is not None
+                and ACTION_PRECEDENCE[overlay.action] < ACTION_PRECEDENCE[self.action]
+            ):
+                raise ValueError(
+                    f"by_trust.{trust.value}.action '{overlay.action.value}' is less severe than "
+                    f"the base action '{self.action.value}'. Provenance may only tighten "
+                    "(ADR-017)."
+                )
+        return self
+
+    def effective(self, trust: TrustLevel | None) -> tuple[float, Action, str | None]:
+        """Threshold and action for this entry at a given trust level.
+
+        Returns `(threshold, action, reason)` where `reason` is None when no
+        overlay applied. The reason is surfaced in `PolicyDecision.reasons` so a
+        provenance-driven escalation is never invisible to the operator reading an
+        audit record.
+        """
+        if trust is None:
+            return self.threshold, self.action, None
+        overlay = self.by_trust.get(trust)
+        if overlay is None:
+            return self.threshold, self.action, None
+        threshold = self.threshold if overlay.threshold is None else overlay.threshold
+        action = self.action if overlay.action is None else overlay.action
+        if threshold == self.threshold and action is self.action:
+            return self.threshold, self.action, None
+        return (
+            threshold,
+            action,
+            f"trust={trust.value}:threshold={threshold:.4f}:action={action.value}",
+        )
 
     @model_validator(mode="after")
     def _reject_allow_action(self) -> Self:

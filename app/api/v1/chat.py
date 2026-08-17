@@ -37,7 +37,14 @@ from app.core.exceptions import (
     UnsupportedFeature,
 )
 from app.core.ids import content_hash
-from app.core.types import Action, Category, DetectionContext, Direction, PolicyDecision
+from app.core.types import (
+    Action,
+    Category,
+    DetectionContext,
+    Direction,
+    PolicyDecision,
+    ProvenanceContext,
+)
 from app.gateway.openai_schema import (
     ChatCompletionRequest,
     response_texts,
@@ -191,7 +198,12 @@ async def chat_completions(request: Request) -> JSONResponse:
 
         # --- 2. Extract + normalise ----------------------------------------
         with timings.measure("normalization_ms"):
-            contexts = build_contexts(parsed, policy, request_id=request_id)
+            contexts = build_contexts(
+                parsed,
+                policy,
+                request_id=request_id,
+                trust_inline_claims=settings.trust_inline_provenance_claims,
+            )
         acc.inspected_messages = len(contexts)
         acc.truncated = any(ctx.truncated for ctx in contexts)
         input_chars = sum(len(ctx.raw_text) for ctx in contexts)
@@ -205,7 +217,9 @@ async def chat_completions(request: Request) -> JSONResponse:
             with timings.measure("detector_ms"):
                 results = await state.pipeline.run(Direction.INPUT, ctx)
             with timings.measure("policy_ms"):
-                decision = engine.evaluate(results, policy, Direction.INPUT)
+                decision = engine.evaluate(
+                    results, policy, Direction.INPUT, ProvenanceContext.from_context(ctx)
+                )
 
             acc.add_results(ctx, decision, policy)
             acc.add_event(
@@ -251,7 +265,9 @@ async def chat_completions(request: Request) -> JSONResponse:
             with timings.measure("output_detector_ms"):
                 results = await state.pipeline.run(Direction.OUTPUT, out_ctx)
             with timings.measure("policy_ms"):
-                decision = engine.evaluate(results, policy, Direction.OUTPUT)
+                decision = engine.evaluate(
+                    results, policy, Direction.OUTPUT, ProvenanceContext.from_context(out_ctx)
+                )
 
             acc.add_results(out_ctx, decision, policy)
             acc.add_event(

@@ -47,6 +47,19 @@ input:
     action: block
     on_error: fail_closed           # a firewall that stops inspecting must fail loudly (ADR-007)
     timeout_ms: 250
+    # Provenance-conditional tightening is available and DELIBERATELY UNUSED here
+    # (ADR-017). Uncommenting the block below would make detection stricter for
+    # content the gateway classified as untrusted — retrieved documents, tool
+    # output, web content:
+    #
+    #   by_trust:
+    #     untrusted:
+    #       threshold: 0.60         # lower = stricter. A HIGHER value is REJECTED
+    #       action: block           #   at startup: provenance may only tighten.
+    #
+    # It ships off because no threshold here is calibrated (OD-3) and because the
+    # false-positive cost of escalating on untrusted content has not been
+    # measured. Enabling it is a reviewable policy edit, not a default.
 
   jailbreak:
     detector: jailbreak.heuristic   # → jailbreak.transformer (Phase 2)

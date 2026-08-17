@@ -26,7 +26,9 @@ from app.core.types import (
     Direction,
     ErrorPolicy,
     PolicyDecision,
+    ProvenanceContext,
     TextSpan,
+    TrustLevel,
 )
 
 
@@ -76,8 +78,19 @@ class _Contribution:
         self.reason = reason
 
 
-def _contribution(result: DetectionResult, entry: DetectorPolicy) -> _Contribution | None:
-    """Map one detection result to a contribution, or None if it contributes nothing."""
+def _contribution(
+    result: DetectionResult,
+    entry: DetectorPolicy,
+    trust: TrustLevel | None,
+) -> _Contribution | None:
+    """Map one detection result to a contribution, or None if it contributes nothing.
+
+    `trust` selects the effective threshold and action via `entry.effective()`.
+    A detector *failure* is deliberately unaffected by provenance: failing closed
+    is about availability of inspection, not about how much the source is trusted,
+    and making it trust-conditional would let a policy author accidentally turn a
+    fail-closed detector into a fail-open one for some origins (ADR-007).
+    """
     if result.errored:
         if entry.on_error is ErrorPolicy.FAIL_CLOSED:
             # A detector that stopped inspecting is an availability failure, not
@@ -91,12 +104,18 @@ def _contribution(result: DetectionResult, entry: DetectorPolicy) -> _Contributi
             )
         return None
 
-    if result.score >= entry.threshold:
+    threshold, action, provenance_reason = entry.effective(trust)
+    if result.score >= threshold:
+        reason = f"{result.detector}:score={result.score:.4f}>=threshold={threshold:.4f}"
+        if provenance_reason:
+            # Surfaced so a provenance-driven escalation is visible in the audit
+            # record rather than being an unexplained change of action.
+            reason = f"{reason}:{provenance_reason}"
         return _Contribution(
-            action=entry.action,
+            action=action,
             category=result.category,
             detector=result.detector,
-            reason=f"{result.detector}:score={result.score:.4f}>=threshold={entry.threshold:.4f}",
+            reason=reason,
         )
     return None
 
@@ -105,6 +124,7 @@ def evaluate(
     results: Sequence[DetectionResult],
     config: PolicyConfig,
     direction: Direction,
+    provenance: ProvenanceContext | None = None,
 ) -> PolicyDecision:
     """Convert detection evidence into exactly one action.
 
@@ -120,7 +140,15 @@ def evaluate(
     the absence of evidence of one particular attack, so it never outvotes a
     positive finding. The cost — false positives compound across detectors — is
     real, measured, and the reason ``WARN`` exists as a staging state.
+
+    `provenance` carries **only** origin facts — never the text — so the function
+    stays pure and its truth table stays enumerable (ADR-017). Passing ``None``
+    means "no provenance-conditional adjustment", which is exactly how a request
+    that declares no origin behaves: identically to one evaluated before
+    provenance existed. Any adjustment can only ever *tighten*, enforced when the
+    policy is loaded rather than here.
     """
+    trust = provenance.trust if provenance is not None else None
     contributions: list[_Contribution] = []
     considered: list[DetectionResult] = []
     redaction_spans: list[TextSpan] = []
@@ -134,7 +162,7 @@ def evaluate(
             continue
 
         considered.append(result)
-        contribution = _contribution(result, entry)
+        contribution = _contribution(result, entry, trust)
         if contribution is None:
             continue
         contributions.append(contribution)
