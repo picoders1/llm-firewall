@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="620" height="300" font-family="ui-sans-serif,system-ui,sans-serif" font-size="11">
+<text x="16" y="22" font-size="14" font-weight="600">Score distribution on mechanisms-v1</text>
+<rect x="60" y="34" width="10" height="10" fill="#b91c1c"/><text x="76" y="43">attacks</text>
+<rect x="150" y="34" width="10" height="10" fill="#15803d"/><text x="166" y="43">controls</text>
+<rect x="60.0" y="237.1" width="12.0" height="2.9" fill="#b91c1c" opacity="0.85"/>
+<rect x="73.0" y="70.0" width="12.0" height="170.0" fill="#15803d" opacity="0.85"/>
+<rect x="86.0" y="240.0" width="12.0" height="0.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="99.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="112.0" y="239.0" width="12.0" height="1.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="125.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="138.0" y="240.0" width="12.0" height="0.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="151.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="164.0" y="239.0" width="12.0" height="1.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="177.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="190.0" y="240.0" width="12.0" height="0.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="203.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="216.0" y="240.0" width="12.0" height="0.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="229.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="242.0" y="240.0" width="12.0" height="0.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="255.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="268.0" y="240.0" width="12.0" height="0.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="281.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="294.0" y="240.0" width="12.0" height="0.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="307.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="320.0" y="240.0" width="12.0" height="0.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="333.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="346.0" y="239.0" width="12.0" height="1.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="359.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="372.0" y="239.0" width="12.0" height="1.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="385.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="398.0" y="240.0" width="12.0" height="0.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="411.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="424.0" y="240.0" width="12.0" height="0.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="437.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="450.0" y="239.0" width="12.0" height="1.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="463.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="476.0" y="239.0" width="12.0" height="1.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="489.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="502.0" y="239.0" width="12.0" height="1.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="515.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="528.0" y="239.0" width="12.0" height="1.0" fill="#b91c1c" opacity="0.85"/>
+<rect x="541.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<rect x="554.0" y="78.6" width="12.0" height="161.4" fill="#b91c1c" opacity="0.85"/>
+<rect x="567.0" y="240.0" width="12.0" height="0.0" fill="#15803d" opacity="0.85"/>
+<line x1="577.6" y1="55" x2="577.6" y2="240" stroke="#1d4ed8" stroke-dasharray="4 3"/>
+<text x="481.6" y="256" fill="#1d4ed8">threshold 0.9954</text>
+<line x1="60" y1="240" x2="580" y2="240" stroke="#334155"/>
+<text x="52.0" y="270" fill="#475569">0.00</text>
+<text x="182.0" y="270" fill="#475569">0.25</text>
+<text x="312.0" y="270" fill="#475569">0.50</text>
+<text x="442.0" y="270" fill="#475569">0.75</text>
+<text x="572.0" y="270" fill="#475569">1.00</text>
+</svg>

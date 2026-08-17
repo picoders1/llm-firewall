@@ -1,0 +1,123 @@
+{
+  "dataset_sha256": "bb562774663dea7580d7d1a97031b810c7a8aadebde10fcbfd04a116b521e91c",
+  "manifest_sha256": "baf665cb352d338ec4a7a442ed3174ecc7e18bda266fbc4e15c63b4d11d9ac02",
+  "frozen_at": "2026-08-17T14:44:14.343446+00:00",
+  "extension_duplicates_removed": 0,
+  "extension_near_duplicates_pruned": 2,
+  "holdout_duplicates_removed": 0,
+  "holdout_near_duplicates_pruned": 2,
+  "combined_duplicates_removed": 0,
+  "extension_secrets": 0,
+  "extension_pii": 0,
+  "holdout_secrets": 0,
+  "holdout_pii": 0,
+  "extension_contamination": {
+    "holdout_v2": {
+      "n": 531,
+      "exact": 0,
+      "normalised": 0
+    },
+    "holdout_v3": {
+      "n": 792,
+      "exact": 0,
+      "normalised": 0
+    },
+    "holdout_indirect_v1": {
+      "n": 820,
+      "exact": 0,
+      "normalised": 0
+    },
+    "finetune_v1_train": {
+      "n": 3006,
+      "exact": 0,
+      "normalised": 0
+    },
+    "finetune_v1_dev": {
+      "n": 808,
+      "exact": 0,
+      "normalised": 0
+    },
+    "public_deepset-prompt-injections": {
+      "n": 662,
+      "exact": 0,
+      "normalised": 0
+    },
+    "public_dolly-benign": {
+      "n": 4000,
+      "exact": 0,
+      "normalised": 0
+    },
+    "public_jackhhao-jailbreak": {
+      "n": 1286,
+      "exact": 0,
+      "normalised": 0
+    },
+    "public_lakera-gandalf": {
+      "n": 999,
+      "exact": 0,
+      "normalised": 0
+    },
+    "public_oasst1-benign": {
+      "n": 4000,
+      "exact": 0,
+      "normalised": 0
+    }
+  },
+  "holdout_contamination": {
+    "holdout_v2": {
+      "n": 531,
+      "exact": 0,
+      "normalised": 0
+    },
+    "holdout_v3": {
+      "n": 792,
+      "exact": 0,
+      "normalised": 0
+    },
+    "holdout_indirect_v1": {
+      "n": 820,
+      "exact": 0,
+      "normalised": 0
+    },
+    "finetune_v1_train": {
+      "n": 3006,
+      "exact": 0,
+      "normalised": 0
+    },
+    "finetune_v1_dev": {
+      "n": 808,
+      "exact": 0,
+      "normalised": 0
+    },
+    "public_deepset-prompt-injections": {
+      "n": 662,
+      "exact": 0,
+      "normalised": 0
+    },
+    "public_dolly-benign": {
+      "n": 4000,
+      "exact": 0,
+      "normalised": 0
+    },
+    "public_jackhhao-jailbreak": {
+      "n": 1286,
+      "exact": 0,
+      "normalised": 0
+    },
+    "public_lakera-gandalf": {
+      "n": 999,
+      "exact": 0,
+      "normalised": 0
+    },
+    "public_oasst1-benign": {
+      "n": 4000,
+      "exact": 0,
+      "normalised": 0
+    },
+    "mechanism_training_extension": {
+      "n": 1108,
+      "exact": 0,
+      "normalised": 0
+    }
+  }
+}

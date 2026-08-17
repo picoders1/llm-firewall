@@ -1,0 +1,102 @@
+{
+  "aggregate": {
+    "legitimate_request": {
+      "n": 178,
+      "fp": 0,
+      "tn": 178,
+      "fpr": 0.0,
+      "fpr_ci95_wilson": [
+        0.0,
+        0.0211
+      ]
+    },
+    "document_carried_legitimate": {
+      "n": 90,
+      "fp": 0,
+      "tn": 90,
+      "fpr": 0.0,
+      "fpr_ci95_wilson": [
+        0.0,
+        0.0409
+      ]
+    },
+    "all_controls": {
+      "n": 178,
+      "fp": 0,
+      "tn": 178,
+      "fpr": 0.0,
+      "fpr_ci95_wilson": [
+        0.0,
+        0.0211
+      ]
+    }
+  },
+  "by_mechanism": {
+    "retrieval_poisoning": {
+      "legitimate_request": {
+        "n": 29,
+        "fp": 0,
+        "tn": 29,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.117
+        ]
+      },
+      "document_carried_legitimate": {
+        "n": 30,
+        "fp": 0,
+        "tn": 30,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      }
+    },
+    "tool_use_manipulation": {
+      "legitimate_request": {
+        "n": 29,
+        "fp": 0,
+        "tn": 29,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.117
+        ]
+      },
+      "document_carried_legitimate": {
+        "n": 30,
+        "fp": 0,
+        "tn": 30,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      }
+    },
+    "safety_bypass": {
+      "legitimate_request": {
+        "n": 30,
+        "fp": 0,
+        "tn": 30,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      },
+      "document_carried_legitimate": {
+        "n": 30,
+        "fp": 0,
+        "tn": 30,
+        "fpr": 0.0,
+        "fpr_ci95_wilson": [
+          0.0,
+          0.1135
+        ]
+      }
+    }
+  }
+}

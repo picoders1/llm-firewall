@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="216" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">
+<text x="16" y="24" font-size="14" font-weight="600">holdout-v3 retention: Strategy A vs ADR-019 model</text>
+<rect x="240" y="38" width="10" height="10" fill="#94a3b8"/><text x="256" y="47" fill="#475569">before (Strategy A)</text>
+<rect x="390" y="38" width="10" height="10" fill="#1d4ed8"/><text x="406" y="47" fill="#475569">after (ADR-019)</text>
+<line x1="259.0" y1="58" x2="259.0" y2="190" stroke="#b91c1c" stroke-dasharray="4 3"/>
+<text x="263.0" y="54" fill="#b91c1c" font-size="11"></text>
+<text x="16" y="81" fill="#334155">benign_fpr (n=436)</text>
+<rect x="240" y="68" width="3.5" height="9" fill="#94a3b8" rx="1"/>
+<rect x="240" y="79" width="6.1" height="9" fill="#1d4ed8" rx="1"/>
+<text x="628" y="81" fill="#15803d">0.009→0.016 (+0.007)</text>
+<text x="16" y="111" fill="#334155">quoted_attack_fpr (n=70)</text>
+<rect x="240" y="98" width="16.3" height="9" fill="#94a3b8" rx="1"/>
+<rect x="240" y="109" width="21.7" height="9" fill="#1d4ed8" rx="1"/>
+<text x="628" y="111" fill="#15803d">0.043→0.057 (+0.014)</text>
+<text x="16" y="141" fill="#334155">attack_recall (n=356)</text>
+<rect x="240" y="128" width="310.6" height="9" fill="#94a3b8" rx="1"/>
+<rect x="240" y="139" width="290.3" height="9" fill="#1d4ed8" rx="1"/>
+<text x="628" y="141" fill="#b91c1c">0.817→0.764 (-0.053)</text>
+<text x="16" y="171" fill="#334155">extraction_recall (n=296)</text>
+<rect x="240" y="158" width="320.9" height="9" fill="#94a3b8" rx="1"/>
+<rect x="240" y="169" width="286.3" height="9" fill="#1d4ed8" rx="1"/>
+<text x="628" y="171" fill="#b91c1c">0.845→0.753 (-0.091)</text>
+</svg>

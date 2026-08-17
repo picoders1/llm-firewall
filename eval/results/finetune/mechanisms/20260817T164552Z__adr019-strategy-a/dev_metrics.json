@@ -1,0 +1,109 @@
+{
+  "corpus": "finetune-v2 dev",
+  "n": 1044,
+  "selected_run": "mech__lr1e-05__ep2__seed13",
+  "selected_threshold": 0.9954,
+  "selected_run_dev_metrics": {
+    "dev_loss": 7e-05,
+    "dev_precision": 1.0,
+    "dev_recall": 1.0,
+    "dev_f1": 1.0,
+    "dev_fpr": 0.0
+  },
+  "calibration": {
+    "operating_point": {
+      "threshold": 0.9954,
+      "objective": "max_recall_at_fpr",
+      "constraint": 0.0241,
+      "constraint_satisfied": true,
+      "rationale": "highest recall (1.0000) among thresholds with FPR <= 0.0241 on the dev split",
+      "metrics": {
+        "threshold": 0.9954,
+        "tp": 246,
+        "fp": 0,
+        "tn": 798,
+        "fn": 0,
+        "n": 1044,
+        "n_attack": 246,
+        "n_benign": 798,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9846,
+          1.0
+        ],
+        "recall": 1.0,
+        "recall_ci95": [
+          0.9846,
+          1.0
+        ],
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0048
+        ],
+        "fnr": 0.0
+      }
+    },
+    "sweep_points": 267,
+    "dev_metrics_at_threshold": {
+      "threshold": 0.995404,
+      "overall": {
+        "tp": 246,
+        "fp": 0,
+        "tn": 798,
+        "fn": 0,
+        "n": 1044,
+        "n_attack": 246,
+        "n_benign": 798,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9846,
+          1.0
+        ],
+        "recall": 1.0,
+        "recall_ci95": [
+          0.9846,
+          1.0
+        ],
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0048
+        ],
+        "fnr": 0.0
+      },
+      "quoted_attack": {
+        "n": 273,
+        "fp": 0,
+        "fpr": 0.0
+      },
+      "hard_negative": {
+        "n": 660,
+        "fp": 0,
+        "fpr": 0.0
+      },
+      "extraction": {
+        "n": 58,
+        "tp": 58,
+        "recall": 1.0
+      }
+    }
+  },
+  "saturation": {
+    "distinct_dev_f1": [
+      0.998,
+      1.0
+    ],
+    "distinct_dev_fpr": [
+      0.0,
+      0.0013
+    ],
+    "runs_at_f1_1.0": 16,
+    "runs_tied_on_all_selection_criteria": 16,
+    "verdict": "dev could not discriminate; selection resolved by the deterministic tie-break"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "verified_at": "2026-08-17T16:46:02.315825+00:00",
+  "selected_run_id": "mech__lr1e-05__ep2__seed13",
+  "selected_threshold": 0.9954,
+  "checks": {
+    "checkpoint_present": true,
+    "checkpoint_hash_unchanged": true,
+    "threshold_is_fixed": true,
+    "v2_train_unchanged": true,
+    "v2_dev_unchanged": true,
+    "holdout_unchanged": true,
+    "holdout_not_used_in_selection": true,
+    "holdout_unreachable_from_training_source": true,
+    "holdout_not_yet_scored": true
+  },
+  "all_passed": true
+}

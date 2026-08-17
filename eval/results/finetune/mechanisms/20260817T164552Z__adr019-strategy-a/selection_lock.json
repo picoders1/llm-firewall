@@ -1,0 +1,136 @@
+{
+  "locked_at": "2026-08-17T16:45:54.330689+00:00",
+  "protocol": "docs/adr/ADR-019-mechanism-coverage-fine-tuning.md",
+  "selected_run_id": "mech__lr1e-05__ep2__seed13",
+  "checkpoint_path": "artifacts/finetune-mechanisms/mech__lr1e-05__ep2__seed13",
+  "checkpoint_sha256": "2bf3950b0d89c0436a1a4d13f0c5e469811d863562d056939337fd5b0d7fcbea",
+  "checkpoint_size_bytes": 746061077,
+  "base_model": "protectai/deberta-v3-base-prompt-injection-v2",
+  "model_revision": "90c9989b1a342275dd0d1a95aad283c04e075671",
+  "tokenizer_revision": "90c9989b1a342275dd0d1a95aad283c04e075671",
+  "training_corpus_version": "finetune-v2",
+  "selected_threshold": 0.9954,
+  "threshold_objective": "MAX_RECALL_AT_FPR <= 0.0241 on dev (ADR-015, inherited)",
+  "selection_criteria": [
+    "quoted_attack FPR (dev)",
+    "overall benign FPR (dev)",
+    "attack recall (dev)",
+    "extraction recall (dev)",
+    "tie: fewer epochs, lower lr, lower seed"
+  ],
+  "runs_tied_on_all_criteria": 16,
+  "dev_metrics": {
+    "dev_loss": 7e-05,
+    "dev_precision": 1.0,
+    "dev_recall": 1.0,
+    "dev_f1": 1.0,
+    "dev_fpr": 0.0
+  },
+  "calibration": {
+    "operating_point": {
+      "threshold": 0.9954,
+      "objective": "max_recall_at_fpr",
+      "constraint": 0.0241,
+      "constraint_satisfied": true,
+      "rationale": "highest recall (1.0000) among thresholds with FPR <= 0.0241 on the dev split",
+      "metrics": {
+        "threshold": 0.9954,
+        "tp": 246,
+        "fp": 0,
+        "tn": 798,
+        "fn": 0,
+        "n": 1044,
+        "n_attack": 246,
+        "n_benign": 798,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9846,
+          1.0
+        ],
+        "recall": 1.0,
+        "recall_ci95": [
+          0.9846,
+          1.0
+        ],
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0048
+        ],
+        "fnr": 0.0
+      }
+    },
+    "sweep_points": 267,
+    "dev_metrics_at_threshold": {
+      "threshold": 0.995404,
+      "overall": {
+        "tp": 246,
+        "fp": 0,
+        "tn": 798,
+        "fn": 0,
+        "n": 1044,
+        "n_attack": 246,
+        "n_benign": 798,
+        "precision": 1.0,
+        "precision_ci95": [
+          0.9846,
+          1.0
+        ],
+        "recall": 1.0,
+        "recall_ci95": [
+          0.9846,
+          1.0
+        ],
+        "f1": 1.0,
+        "accuracy": 1.0,
+        "fpr": 0.0,
+        "fpr_ci95": [
+          0.0,
+          0.0048
+        ],
+        "fnr": 0.0
+      },
+      "quoted_attack": {
+        "n": 273,
+        "fp": 0,
+        "fpr": 0.0
+      },
+      "hard_negative": {
+        "n": 660,
+        "fp": 0,
+        "fpr": 0.0
+      },
+      "extraction": {
+        "n": 58,
+        "tp": 58,
+        "recall": 1.0
+      }
+    }
+  },
+  "dataset_hashes": {
+    "v2_train": "be2e08ef361e843620328800bb59384b5be7049294c958cc",
+    "v2_dev": "2ae796b7f9fad9cd27217226ebbc2069a6ea031fa190f18d",
+    "mechanisms_v1": "bb562774663dea7580d7d1a97031b810c7a8aadebde10fcb",
+    "v1_train": "4a83c4cd1541cd265bd6f3b2a07c8df9c260d6f0afa0d840",
+    "v1_dev": "07a1e685aed81cdc66e233fa97f57fc8c1a5c1917d75a637"
+  },
+  "holdout_used_in_selection": false,
+  "git_commit": "a0e2a8de5ef922b944436975744d5f605e82f220",
+  "environment": {
+    "python": "3.12.3",
+    "torch": "2.6.0+cu124",
+    "transformers": "5.15.0",
+    "gpu": {
+      "available": true,
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "total_memory_gb": 3.95,
+      "cuda": "12.4"
+    },
+    "cpu_count": 16,
+    "uv_lock_sha256": "3db9ddec3208c4f068eab6fb3a2f7621",
+    "pyproject_sha256": "faa676fcaf31683f67940fcdf868d0bf",
+    "git_commit": "a0e2a8de5ef922b944436975744d5f605e82f220"
+  }
+}

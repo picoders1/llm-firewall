@@ -1,0 +1,52 @@
+{
+  "run": "20260817T164552Z__adr019-strategy-a",
+  "protocol": "docs/adr/ADR-019-mechanism-coverage-fine-tuning.md",
+  "corpus_version": "finetune-v2",
+  "matrix": {
+    "learning_rates": [
+      1e-05,
+      2e-05,
+      3e-05
+    ],
+    "epochs": [
+      2,
+      3
+    ],
+    "seeds": [
+      13,
+      20260817,
+      31337
+    ],
+    "effective_batch": 16,
+    "micro_batch": 4,
+    "gradient_accumulation": 4,
+    "objective": "binary cross-entropy, {0: SAFE, 1: INJECTION}",
+    "no_class_weighting": true,
+    "no_oversampling": true,
+    "no_custom_loss": true
+  },
+  "training_input_representation": "FULL CARRIER TEXT \u2014 the sample's `text` field verbatim, exactly as Strategy A trained on v1. NOT the isolated-span representation of ADR-018's A2 arm. ADR-019 specifies 'Strategy A repeated on v2, unchanged in every other respect' (ADR-019 \u00a79 of the task brief).",
+  "dataset_hashes": {
+    "v2_train": "be2e08ef361e843620328800bb59384b5be7049294c958cc",
+    "v2_dev": "2ae796b7f9fad9cd27217226ebbc2069a6ea031fa190f18d",
+    "mechanisms_v1": "bb562774663dea7580d7d1a97031b810c7a8aadebde10fcb",
+    "v1_train": "4a83c4cd1541cd265bd6f3b2a07c8df9c260d6f0afa0d840",
+    "v1_dev": "07a1e685aed81cdc66e233fa97f57fc8c1a5c1917d75a637"
+  },
+  "environment": {
+    "python": "3.12.3",
+    "torch": "2.6.0+cu124",
+    "transformers": "5.15.0",
+    "gpu": {
+      "available": true,
+      "name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+      "total_memory_gb": 3.95,
+      "cuda": "12.4"
+    },
+    "cpu_count": 16,
+    "uv_lock_sha256": "3db9ddec3208c4f068eab6fb3a2f7621",
+    "pyproject_sha256": "faa676fcaf31683f67940fcdf868d0bf",
+    "git_commit": "a0e2a8de5ef922b944436975744d5f605e82f220"
+  },
+  "git_commit": "a0e2a8de5ef922b944436975744d5f605e82f220"
+}
