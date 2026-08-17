@@ -194,3 +194,158 @@ the author's own.
 5. Document label-quality caveats in `notes` — this is where the honest reading of a dataset
    lives, and it is not optional.
 6. Confirm splits: existing `sample_id`s must not move between splits.
+
+---
+
+## Hold-out versioning
+
+Hold-outs are **versioned, never edited**. A frozen corpus that gains or loses a
+sample invalidates every result measured against it, so a change of content is a
+change of version.
+
+| Version | Path | n | Status |
+|---|---|---|---|
+| v2 | `eval/datasets/holdout/cases.jsonl` | 531 | **Frozen**, hash `fd91575272056d3b282804ddfbbbde63`. The artefact behind the Strategy A result. |
+| v3 | `eval/datasets/holdout/v3/` | 792 | **Frozen**, hash `0e26dd6b7d0f545c0bd68b64c2a0b4b60397f8ad41436754dc38b679fbbb28bf`. Built for statistical power. |
+| indirect-v1 | `eval/datasets/holdout/indirect-v1/` | 820 | **Frozen**, hash `3ef8c0ec75d9aed9669332dd2e70987993459b39629a6f7109241e13f96d6e17`. Built to measure indirect injection per delivery shape. |
+| mechanisms-v1 | `eval/datasets/holdout/mechanisms-v1/` | 358 | **Frozen**, hash `bb562774663dea7580d7d1a97031b810c7a8aadebde10fcbfd04a116b521e91c`. Built for the three mechanisms at zero recall ([ADR-019](adr/ADR-019-mechanism-coverage-fine-tuning.md)). |
+
+No version supersedes another. Each remains valid evidence for the runs that used
+it, and each pinned hash is asserted in CI. `indirect-v1` is topic-specific rather
+than general: it answers one question v2 and v3 were not sized to answer, and it
+carries its own taxonomy (`delivery-shape-v1`).
+
+### Why v3 was built
+
+v2's `quoted_attack` (n=16) and `incident_response` (n=17) sub-corpora were too
+small for ADR-015's confidence-interval rule to be satisfiable *at any model
+quality*. v3's denominators come from an explicit calculation
+(`build_holdout_v3.py --sizing`), not a guess. See
+[13](13-evaluation-strategy.md) for the sizing rules.
+
+### Independence requirements for a new hold-out version
+
+A new version must be independent of every corpus a result would be compared
+against, and independence is measured rather than asserted:
+
+* **0** exact and **0** normalised collisions against training, dev, every prior
+  hold-out version, the smoke fixture and all public benchmark corpora. v3 was
+  checked against 14,978 texts across nine corpora.
+* **0** internal near-duplicates at Jaccard ≥ 0.90, and 0 against the prior
+  version.
+* **Fresh authoring, not paraphrase.** The prior version's *category-level* error
+  pattern may inform which categories to expand; individual prior samples must
+  not be inspected and transformed.
+* **Deliberately different vocabulary where the phenomenon allows it.** v3's 26
+  quoted attack payloads are lexically disjoint from the 22 in the fine-tuning
+  corpus, so a model that memorised training strings earns nothing. This is what
+  makes a repeated result evidence of generalisation rather than of recall.
+* **0** secrets and **0** PII, with the same patterns the prior version used —
+  the safety contract must not weaken between versions.
+
+### Taxonomy dimensions for a topic-specific hold-out
+
+`indirect-v1` records four dimensions rather than one category, because the failure
+it was built to characterise turned out to be driven by a dimension nobody had
+measured:
+
+| Dimension | Why it is separate |
+|---|---|
+| `delivery_shape` | The syntactic channel (HTML comment, JSON field, tool metadata). **This is the variable that determines detection** — 0.0000 to 0.7250 across shapes. |
+| `attack_mechanism` | What the instruction does. Varies far less (0.03–0.30), so conflating it with shape hides the real effect. |
+| `context` | The realistic source (retrieved page, PDF, ticket, API result). |
+| `user_framing` | Whether the human's own request was innocent, complicit, or a security discussion — **recorded separately from the label**. |
+
+Hold-out v3 confounded shape with mechanism across 20 samples and could attribute
+its 0.4000 to neither. Crossing them explicitly is what made the finding legible.
+
+**Keeping `user_framing` out of the label is a deliberate methodological choice.**
+In indirect injection the innocent-user case *is* the attack — the attacker planted
+the payload and the user is the victim — so folding framing into the label would
+define the primary threat out of existence. Recording it as its own dimension
+preserved the ability to ask whether the detector reads context, and produced the
+run's central result: 0.0938 recall on planted payloads versus 0.7250 when the user
+asks for the override themselves.
+
+---
+
+## Training-corpus versioning
+
+The same rule as hold-outs: **versioned, never edited.**
+
+| Version | Path | n | Status |
+|---|---|---|---|
+| finetune-v1 | `eval/datasets/finetune/{train,dev}` | 3,814 | **Frozen.** Hashes pinned in the Strategy A selection lock; this is the record of a completed experiment. |
+| finetune-v2 | `eval/datasets/finetune/v2/{train,dev}` | 4,922 | **Frozen.** v1 + a 1,108-sample mechanism extension ([ADR-019](adr/ADR-019-mechanism-coverage-fine-tuning.md)). No training run yet. |
+
+### Extending a training corpus without invalidating a prior experiment
+
+Three rules, the second and third learned by getting them wrong first.
+
+**1. Never edit the prior version.** finetune-v1's hashes appear in
+`selection_lock.json`. Editing it would make the Strategy A result unreproducible
+and unfalsifiable at once.
+
+**2. Reproduce the split rule byte-for-byte.** v2 must place every v1 sample in the
+split it was already in. A first build used the full SHA-256 digest and a boundary of
+21 where v1 uses `hexdigest()[:8]` and 20 — which silently moved v1 samples between
+splits, **leaking Strategy A training data into v2's dev split** and corrupting any
+selection made on it. Caught before training by
+`test_v2_splits_preserve_v1_split_assignment`.
+
+**3. A shortcut is a bug even when the metrics improve.** The extension's first build
+placed every attack in a document carrier and every hard negative in a direct-request
+carrier, making the carrier a perfect predictor of the label. A model could have
+scored 100% by detecting the wrapper and would then have flagged all retrieved
+content. The fix was a third population — legitimate content inside the same
+carriers — so that no carrier carries label information. Asserted at build time and
+in CI.
+
+Corollary: **an accompanying hold-out needs its own pools for every population, not
+just the attacks.** Sharing the document-legitimate pool between train and hold-out
+produced 14 exact collisions on the first attempt.
+
+### Changing proportions without authoring a corpus
+
+ADR-020 needs a different *distribution*, not more data: the leading explanation for
+ADR-019's regression is that system-prompt extraction's share of attack mass fell from
+38.92% to 24.20% while its absolute count stayed at exactly 288 samples.
+
+**Prefer a sampler over a new corpus.** finetune-v1 and finetune-v2 are frozen and
+stay frozen; the successor arms re-weight *which rows are drawn* from v2 and author
+nothing. This keeps the corpus record intact, costs no authoring or integrity review,
+and makes the manipulated variable exactly one thing.
+
+**Measure the mixture you already have before choosing a target.** The obvious replay
+ratios — 25/75, 50/50, 75/25 v1:extension — are all useless here, because the
+extension is 1,108 of 4,922 samples and **v2's implicit ratio is already 77.5/22.5**.
+Every candidate sits at or below the v1 share ADR-019 already had. This is the same
+class of error as a criterion that cannot be met at its denominator: a knob specified
+across a range that cannot produce the effect being tested. ADR-020 uses 90/10.
+
+**Assert the realised proportions, not the configured ones.** A sampler that silently
+misses its target reintroduces the exact confound the experiment exists to remove, and
+a saturated dev split will not reveal it. The pre-flight check compares realised
+per-batch composition against `variable_matrix.csv`.
+
+**A sampler has its own failure mode.** Drawing 3,006 v1 rows at 90% for 486 steps
+repeats individual samples far more often than natural-order training does. That is a
+memorisation risk, registered in advance as an ADR-020 failure mode rather than
+discovered afterwards.
+
+### Public corpora have a third role
+
+Beyond model selection (ADR-014) and benign-corpus sourcing, the corpora in
+`eval/datasets/raw/` serve as a **selection signal that costs no hold-out budget** —
+they were never used in fine-tuning and are 0-collision disjoint from finetune-v2
+across all 10,947 samples.
+
+| Corpus | n | Role in ADR-020 |
+|---|---|---|
+| `lakera-gandalf` | 999 attacks | Human-authored system-prompt extraction — the regressed capability |
+| `deepset-prompt-injections` | 263 / 399 | Second attack family, multilingual |
+| `dolly-benign`, `oasst1-benign` | 8,000 benign | FPR signal and matched-FPR calibration pool |
+
+They are **contaminated for absolute claims** and usable only for ranking fine-tunes
+of the same base model. See docs/13, "When nothing left can rank checkpoints", for the
+admissibility rule and the gate that makes it falsifiable.

@@ -46,6 +46,34 @@ enough that people actually read it.
    └─────────────────────────────────────────────────────────┘
 ```
 
+### 2a. Provenance and the B1/B2 boundary — designed, not implemented
+
+The diagram above already places retrieved documents and tool output in
+**UNTRUSTED**, and the client application in **SEMI-TRUSTED**. The gap this
+project measured is that the firewall, sitting at B2, **cannot see the B1
+crossing**: by the time bytes reach it, a retrieved document concatenated into a
+`user` message is indistinguishable from something the human typed.
+
+[ADR-017](adr/ADR-017-provenance-aware-detection-context.md) designs a channel for
+the semi-trusted application to *declare* that crossing. Two consequences must be
+stated in the threat model rather than in the design doc, because they bound what
+the mechanism can ever achieve:
+
+* **Provenance is a cooperation mechanism, not an authentication mechanism.** The
+  caller *is* the semi-trusted application. The firewall cannot distinguish a
+  correct claim from a compromised application's lie, and no cryptographic scheme
+  fixes that while the application holds the key.
+* **This is acceptable only because provenance may only *tighten*.** A hostile or
+  compromised integration can decline to declare provenance and receive today's
+  behaviour; it cannot declare provenance to obtain anything weaker, because
+  loosening is not expressible in the policy schema. A design that allowed
+  provenance to relax a threshold would convert B2 from an inspection point into a
+  bypass.
+
+**New threat, in scope:** T-21 below. The mechanism is implemented as of Phase
+A+B; what it can achieve is bounded by the two points above, not by the quality of
+the implementation.
+
 | Boundary | Crossing | Controls |
 |---|---|---|
 | B1 | User/document content → application | Outside our control; the reason B2 must assume hostile input |
@@ -86,7 +114,8 @@ the control is designed but not yet built.
 | ID | Threat | Status | Control | Residual risk |
 |---|---|---|---|---|
 | T-01 | Direct prompt injection ("ignore previous instructions") | **Partial** | Heuristic layer (P0) + transformer classifier (P2), threshold-gated BLOCK | No classifier is complete; novel phrasings and adaptive rewording evade. Measured, not assumed — see eval reports |
-| T-02 | Indirect prompt injection via retrieved content | **Partial** | `tool`-role content inspected by default with the same detectors | Detection quality on *document-embedded* injection is materially harder than on direct injection; reported as a separate category so the gap is visible |
+| T-02 | Indirect prompt injection via retrieved content | **Largely undetected — measured** | `tool`-role content is inspected, but recall is **0.1423** (n=520) and **no delivery shape is reliably detected** ([ADR-016](adr/ADR-016-provenance-aware-detection.md)) | The gap is now quantified rather than described. Six delivery shapes recorded **zero** detections. Blocking is refused on this basis. The structural cause is that provenance is absent from the detector's input; [ADR-017](adr/ADR-017-provenance-aware-detection-context.md) designs the fix but nothing is implemented |
+| T-21 | **Spoofed provenance metadata** — a client asserts `trust=operator` on attacker-controlled content | **Mitigated (Phase A+B)** | No trust value is ever read from the wire; inline provenance claims are ignored unless `FIREWALL_TRUST_INLINE_PROVENANCE_CLAIMS` is enabled, and even then a claim may only **lower** trust | Enforced by `tests/security/test_provenance_spoofing.py` and an exhaustive monotonicity test over every role x claim pair. Loosening via policy is Phase C and is rejected at config load |
 | T-03 | Jailbreak / persona escape (DAN-style) | **Partial** | Dedicated jailbreak detector (P2) | Long-tail, and multi-turn attacks are largely undetected — see T-11 |
 | T-04 | Obfuscated payload (base64, homoglyph, zero-width, fullwidth) | **Mitigated** for the covered encodings | Index-preserving normalisation + base64 surfacing, with unit tests per evasion class | Rot13, custom ciphers, token-level splitting, image-embedded text are not covered |
 | T-05 | System-prompt extraction | **Partial** | Input rules on extraction phrasing; output-side disclosure detection (P3) | Paraphrased or piecemeal extraction is hard to detect |

@@ -25,6 +25,41 @@ they are the only claims currently permitted.
 | **FPR on independent benign traffic** | FPR over an authored, never-published corpus with a Wilson interval | `python -m scripts.validate_holdout` (457 benign, 170 hard negatives) | **Produced** — the strongest FPR evidence the project has |
 | **Hard-negative FPR** | FPR restricted to legitimate text resembling an attack | Same run | **Produced** |
 | **No threshold makes the classifier deployable** | Frozen dev-selected sweep evaluated on the hold-out | `python -m scripts.threshold_analysis` | **Produced** — `eval/results/20260817T102936Z__threshold-deployability/decision.md` |
+| **Fine-tuning reduces the enterprise FPR problem** | Hold-out FPR before/after, scored once behind a pre-hold-out lock | `python -m scripts.finetune_strategy_a --holdout` | **Produced** — `eval/results/finetune/20260817T122701Z__strategy-a/report.md` |
+| **Attack recall is retained after fine-tuning** | Per-category recall with denominators, same 60 in-scope attacks | Same run | **Produced** — 0.8833 → 0.8833; the 7 misses differ by one sample |
+| Fine-tuning makes the classifier block-ready | All six ADR-015 criteria met simultaneously | Same run | **NOT produced — the claim is refused.** Four criteria unmet; two of them unachievable at their denominators |
+| The fine-tuned model is faster | Like-for-like latency on one device | — | **NOT produced.** The two measurements are CPU vs GPU and are not comparable |
+| **The FPR improvement generalises to independent data** | Same metrics on a second, independently authored hold-out sharing no text and using different attack vocabulary | `python -m scripts.evaluate_holdout_v3` | **Produced** — `eval/results/20260817T125002Z__holdout-v3-validation/report.md` |
+| **quoted_attack and incident_response FPR meet their bounds** | Wilson interval clearing the bound at an adequate denominator | Same run | **Produced** — 0.0429 [0.0147, 0.1186] n=70; 0.0000 [0.0000, 0.0337] n=110 |
+| Blocking readiness | All six ADR-015 criteria met simultaneously | Same run | **NOT produced — the claim is refused.** Both recall criteria fail on the model's merits |
+| **Indirect-injection detection is inadequate** | Per-delivery-shape recall with adequate n, benign controls in the same containers | `python -m scripts.evaluate_indirect_v1` | **Produced** — 0.1423 (n=520); no shape reliably detected; `eval/results/20260817T130736Z__indirect-delivery-shape/report.md` |
+| **The detector classifies the user's turn, not retrieved content** | Recall split by user framing on identical payloads | Same run | **Produced** — 0.0938 (n=480) planted vs 0.7250 (n=40) user-requested |
+| **It fires on system-like markup regardless of content** | Benign controls sharing the attack container | Same run | **Produced** — `system_marker` recall 0.5667 with FPR 0.2000 (5/25 inert samples) |
+| The firewall protects RAG applications | Indirect-injection recall meeting a stated bound | — | **NOT produced — the claim is refused and must not be made.** FNR 0.8577 |
+| **The firewall can carry and act on content provenance** | Provenance model, gateway assignment and monotone policy overlay, with tests | `pytest -m "unit or security"` | **Produced** — [ADR-017](adr/ADR-017-provenance-aware-detection-context.md) Phases A+B+C; 892 tests pass |
+| The firewall uses provenance in production | A calibrated overlay enabled in the shipped policy | — | **NOT produced.** The capability ships **off**; no threshold is calibrated (OD-3) |
+| **Provenance-aware detection improves indirect-injection recall** | Paired same-corpus comparison, text held constant, provenance varied, McNemar test | `python -m scripts.evaluate_provenance` | **Produced** — 0.1423 → 0.5365 (n=520, p ≈ 0); `eval/results/provenance/20260817T141551Z__provenance-secondary/report.md` |
+| **It improves precision at the same time** | Benign-control FPR under both arms | Same run | **Produced** — 0.0167 → 0.0000, precision 1.0000 |
+| **The effect depends on provenance, not on shorter inputs** | Ablations with provenance removed and inverted, same spans | Same run | **Produced** — 0.0000 and 0.0981 against 0.5365 |
+| Provenance makes the detector blocking-ready | Indirect recall ≥ 0.80 per ADR-015 | — | **NOT produced — the claim is refused.** 0.5365; 46% still pass |
+| The measured 0.5365 is what a deployment would obtain | The untrusted boundary declared by a real integration, not an oracle | — | **NOT produced.** The split used an oracle over the authoring pools; 0.5365 is a **ceiling for a perfectly cooperating integration** (OD-30) |
+| **Coverage exists for the three undetected mechanisms** | A frozen training corpus and a disjoint hold-out, with contamination gates | `python -m scripts.datasets.build_mechanism_coverage --check` | **Produced** — `finetune-v2` (4,922) and `mechanisms-v1` (358); [ADR-019](adr/ADR-019-mechanism-coverage-fine-tuning.md) |
+| **The three unseen mechanisms are learnable from text** | Per-mechanism recall on a disjoint hold-out, scored once | `python -m scripts.finetune_mechanisms --holdout` | **Produced** — 0.0000 → 0.7333 / 0.7333 / 0.9667; `eval/results/finetune/mechanisms/20260817T164552Z__adr019-strategy-a/report.md` |
+| **The corpus did not teach it to block legitimate traffic** | Two benign-control families incl. document-carried | Same run | **Produced** — 0 FP on 178 controls, 0/90 document-carried, precision 1.0000 |
+| **Extending the corpus caused catastrophic forgetting** | Rescored baseline on a prior hold-out under pre-registered bounds | Same run | **Produced** — extraction recall 0.8446 → 0.7534 (−0.0912) |
+| The ADR-019 model is an improvement overall | All ADR-019 criteria met simultaneously | — | **NOT produced — the claim is refused.** Two regression criteria failed; the run is a FAILURE |
+| **The ADR-019 regression is not a threshold artefact** | Recall and FPR moved in opposite directions, so the model is dominated at every operating point | Published aggregates in `holdout_metrics.json` | **Produced** — argument is threshold-free; requires no re-scoring |
+| **Extraction's absolute training count never changed** | Per-sub-category counts in both frozen corpora | `eval/results/finetune/ADR-020-protocol/baseline_manifest.json` | **Produced** — 288 samples in v1 and v2; only its share of attack mass moved, 38.92% → 24.20% |
+| The cause of the ADR-019 regression is known | An ablation separating composition, adaptation budget, capacity and seed variance | — | **NOT produced — the claim is refused.** Seven candidate causes; one eliminated, six live ([ADR-020](adr/ADR-020-retention-preserving-training.md)) |
+| A retention-preserving successor works | ADR-020's retention, mechanism, benign and performance criteria met together | — | **NOT produced.** ADR-020 is a protocol; nothing has been trained |
+| **Seed variance has been measured, once** | Three seeds per family scored on a common disjoint corpus | `python -m scripts.validate_proxy --report` | **Produced** — families fully disjoint; permutation p = 0.0500, the floor at 3v3 |
+| **The ADR-019 regression is not explained by seed noise** | Between-condition gap exceeding within-condition spread across seeds | Same run | **Produced** — gap 0.0594 vs spread 0.0230 |
+| Seed variance is now fully characterised | More than three runs per condition | — | **NOT produced — the claim is refused.** n=3 bounds run-level variance no more tightly than p = 0.0500 |
+| **A disjoint public corpus can rank two fine-tunes of the same base** | Reproduction of a known effect on that corpus, by paired test | Same run | **Produced** — Strategy A > ADR-019, McNemar p < 1e-6 |
+| **Dev-selected thresholds are arbitrary when dev separates perfectly** | Thresholds chosen under identical methodology across checkpoints | `eval/results/finetune/ADR-020-steps-0-1/metrics.json` | **Produced** — span 0.0694–0.9955 |
+| Public-corpus scores are capability | An uncontaminated corpus | — | **NOT produced — the claim is refused.** Used in ADR-014 and plausibly in the base model's pretraining; admissible only to rank fine-tunes of the same base |
+
+| Provenance adds negligible overhead | Baseline vs provenance-aware path, same workload, machine metadata | — | **NOT produced.** No numeric overhead may be quoted before implementation |
 | **Dev FPR understates hold-out FPR by 5–24x** | Same run, six operating points | Same | **Produced** |
 | Jailbreak detection recall | Reported separately from injection | Same run | **Produced** — internal only |
 | The ML classifier beats the baseline by X | Both detectors, same split, same machine | `python -m eval compare` | **Produced** — internal only |
@@ -45,6 +80,82 @@ test split of `<dataset>`, at threshold T, with FPR 0.NN on N benign samples —
 
 **Phrasing that is never permitted:** "94% accurate", "blocks prompt injection",
 "state-of-the-art detection".
+
+**Permitted for the fine-tuning result:** *"Standard supervised fine-tuning reduced
+hard-negative false positives from 17.1% to 1.2% (n=170, Wilson 95% [0.3%, 4.2%]) on
+an independently authored hold-out, with attack recall unchanged at 0.8833 (n=60).
+Pre-registered blocking criteria were not met; the model remains in warn mode."*
+
+**Never permitted:** "fine-tuning fixed the false-positive problem", "the model is now
+production-ready for blocking", "93% improvement" without its denominator and interval,
+or any latency comparison between the CPU and GPU measurements.
+
+**Permitted for the v3 validation:** *"On a second, independently authored hold-out
+(n=792) sharing no text with the first and using deliberately different attack
+vocabulary, false positives on security-domain traffic met all four pre-registered
+bounds — quoted_attack 4.3% (n=70, 95% CI [1.5%, 11.9%]), incident_response 0.0%
+(n=110, [0.0%, 3.4%]). Attack recall did not meet its bound and the model remains in
+warn mode."*
+
+**Never permitted:** "validated for blocking", "the model generalises" without naming
+which half (FPR generalised; recall failed), any indirect-injection recall figure from
+either hold-out version, or an aggregate attack-recall comparison between v2 and v3 —
+their attack mixes differ by construction.
+
+**Permitted for the indirect-injection result:** *"On a dedicated 820-sample corpus
+crossing twelve delivery shapes with eight attack mechanisms, the fine-tuned detector
+recalled 14.2% of indirect injections (n=520, 95% CI [11.5%, 17.5%]). No delivery shape
+was reliably detected and six recorded zero detections. The detector is not deployed in
+blocking mode."*
+
+**Never permitted:** any statement implying the firewall defends against indirect
+injection or protects retrieval-augmented applications; quoting the aggregate 0.1423
+without noting that six shapes are at zero; quoting `complicit_directive` recall
+(0.7250) as an indirect-injection capability — it is a contrast condition measuring the
+opposite thing.
+
+**Permitted for ADR-017:** *"The architecture for provenance-aware detection is
+designed and documented ([ADR-017](adr/ADR-017-provenance-aware-detection-context.md)),
+including the trust model, normalisation compatibility, detector-compatibility
+semantics and a migration plan. It is not implemented."*
+
+**Permitted for the Phase D result:** *"On a paired comparison over 820 samples with
+the model, weights and threshold held fixed, declaring which span was untrusted raised
+indirect-injection recall from 14.2% to 53.7% (n=520, McNemar exact p < 0.001) while
+benign-control false positives fell from 1.7% to 0.0%. The detector is not deployed in
+blocking mode: 46% of indirect injections are still missed, and the measurement used
+oracle segmentation, so it is a ceiling for a perfectly cooperating integration."*
+
+**Permitted for ADR-019:** *"A pre-registered corpus extension took three previously
+undetected attack mechanisms from 0% to 73%, 73% and 97% recall (n=60 each) with zero
+false positives on 178 controls. The run was recorded as a FAILURE because
+system-prompt-extraction recall regressed 9.1 points on a prior hold-out, outside the
+bound fixed before training. The model is not deployed."*
+
+**Never permitted for ADR-019:** quoting the mechanism recalls without the regression;
+describing the run as a success; claiming the model is better than Strategy A; or
+citing `safety_bypass` at 0.9667 without noting that 29 of 34 residual misses sit just
+below a conservative frozen threshold, which is diagnostic and was excluded from the
+decision.
+
+**Permitted for ADR-020:** *"The regression was diagnosed from existing artefacts
+without further training: it is a genuine loss of discrimination rather than a
+threshold artefact, because recall fell while false positives rose. Seven candidate
+causes were identified and one eliminated. A successor protocol is pre-registered and
+has not been run."*
+
+**Never permitted for ADR-020:** describing any cause as established — the ablation
+that would separate them has not been run; quoting any number from the public proxy
+corpora as capability; calling the layered detector a decision when it is an open
+question (OD-34); or implying that ADR-019's regression is known to reproduce across
+seeds, which is exactly what Step 1 exists to find out.
+
+**Never permitted:** describing the firewall as provenance-aware, RAG-aware or
+context-aware **in production** — the capability ships off; quoting 53.7% without both
+the "46% still pass" and the oracle caveat; attributing the recall gain to the trust
+*labels* (segmentation carries most of it, and arm A3 is the evidence); quoting
+`complicit_directive` figures as indirect-injection performance; or presenting the
+policy-ablation numbers as a detector result.
 
 ---
 

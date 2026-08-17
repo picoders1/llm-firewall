@@ -233,3 +233,103 @@ evaluates the detection stack, not the web server.
 | Secret values | logs, spans, errors, audit | `SecretStr` + test |
 | Blocking call | any `async def` on the request path | ruff `ASYNC` + review |
 | Upstream response body | client error responses | test |
+
+---
+
+## Provenance-aware detection — Phases A+B+C implemented
+
+[ADR-017](adr/ADR-017-provenance-aware-detection-context.md). **Implemented:**
+`app/core/provenance.py`, the four `DetectionContext` fields, assignment in
+`build_contexts`, `consumes_provenance` on the detector protocol,
+`ProvenanceContext` as `evaluate()`'s fourth argument, and the monotone `by_trust`
+overlay with load-time rejection of any loosening.
+
+**The shipped policy configures no overlay**, so provenance remains inert in the
+default configuration and every decision is what it was before. Enabling an
+escalation is a reviewable policy edit — see the commented example in
+`config/policies/default.yaml`.
+
+### Where provenance enters, and where it is discarded today
+
+```
+                    ┌─────────────────────────────────────────────┐
+   external world   │  user typing   retrieved doc   tool result  │
+                    │       │             │              │        │
+                    │       │        web page / email / file      │
+                    └───────┼─────────────┼──────────────┼────────┘
+                            ▼             ▼              ▼
+                    ┌─────────────────────────────────────────────┐
+                    │  application / retriever / tool adapter     │  ← knows the true origin
+                    │  (inside the trust boundary)                │
+                    └───────────────────────┬─────────────────────┘
+                                            │  optional claim
+  ══════════════════════════ gateway trust boundary ══════════════════════════
+                                            ▼
+                    ┌─────────────────────────────────────────────┐
+                    │  app/api/v1/chat.py      ingress            │
+                    ├─────────────────────────────────────────────┤
+                    │  app/gateway/translate.py                   │
+                    │    ┌───────────────────────────────────┐    │
+                    │    │ SOURCE CLASSIFICATION  (Phase B)  │    │  ◀── authoritative point
+                    │    │  claim honoured only if trusted   │    │
+                    │    │  else derive from role            │    │
+                    │    └───────────────┬───────────────────┘    │
+                    │                    ▼                        │
+                    │      message-part extraction                │  one part → one context
+                    │                    ▼                        │
+                    │      app/core/normalize.py                  │  text + offsets
+                    └───────────────────────┬─────────────────────┘
+                                            ▼
+                    ┌─────────────────────────────────────────────┐
+                    │  DetectionContext  (frozen)                 │
+                    │    raw_text, normalized_text, offsets       │
+                    │    role, message_index, part_index          │
+                    │    provenance, trust, source_ref (Phase A)  │
+                    └───────────────────────┬─────────────────────┘
+                                            ▼
+                    ┌─────────────────────────────────────────────┐
+                    │  detectors    consumes_provenance = T/F     │  all ship False
+                    └───────────────────────┬─────────────────────┘
+                                            ▼
+                                    DetectionResult
+                                            ▼
+                    ┌─────────────────────────────────────────────┐
+                    │  app/policy/engine.py   evaluate(           │
+                    │      results, config, direction,            │
+                    │      ProvenanceContext | None )             │  still pure
+                    └───────────────────────┬─────────────────────┘
+                                            ▼
+                              ALLOW / WARN / REDACT / BLOCK
+```
+
+`ProvenanceContext` carries `(provenance, trust)` **only** — not the whole context.
+Handing the policy engine `raw_text` would break the property that makes its truth
+table exhaustively testable, and would put prompt content one attribute access from
+a decision path that must never log it.
+
+### Test plan — all rows implemented
+
+Every row below exists and passes.
+
+| Area | Test | Asserts |
+|---|---|---|
+| Assignment | `test_provenance_assigned_at_ingress` | Every context from `build_contexts` has a non-null provenance and trust |
+| Assignment | `test_role_derivation_table` | Each role maps to the ADR-017 default pair; `tool` → `UNTRUSTED` |
+| Assignment | `test_unrecognised_role_is_unknown_not_trusted` | Unknown role → `UNKNOWN`/`UNKNOWN`, still inspected |
+| **Spoofing** | `test_inline_claim_ignored_by_default` | A body field `x-firewall-provenance: system_config` does **not** raise trust |
+| **Spoofing** | `test_claim_may_lower_trust_never_raise` | `role=system` + claim `EXTERNAL` → `UNTRUSTED`; `role=tool` + claim `SYSTEM_CONFIG` → still `UNTRUSTED` |
+| **Spoofing** | `test_claim_honoured_only_on_trusted_channel` | Same claim, config off vs on, different result |
+| Propagation | `test_provenance_survives_part_extraction` | Per-part provenance preserved across a multi-part message |
+| Normalisation | `test_provenance_survives_normalisation` | Provenance unchanged and `normalized_offsets` invariant still holds |
+| Mixed | `test_split_parts_keep_distinct_provenance` | Two parts, two provenances, two decisions |
+| Mixed | `test_flattened_part_degrades_to_lowest_trust` | user+external in one string → `UNTRUSTED` |
+| Compatibility | `test_legacy_detectors_run_unchanged` | `consumes_provenance=False` detectors produce byte-identical results to today |
+| Compatibility | `test_request_without_provenance_reproduces_current_decisions` | Golden-file comparison against pre-change decisions |
+| Policy | `test_overlay_may_only_tighten` | A `by_trust` overlay raising a threshold is **rejected at config load** |
+| Policy | `test_overlay_tightening_applies` | Same detector score, `UNTRUSTED` vs `UNKNOWN`, more severe action for the former |
+| Policy | `test_policy_engine_remains_pure` | `evaluate` has no I/O; same inputs → same decision |
+| Policy | `test_provenance_effect_appears_in_reasons` | Any provenance-driven tightening is visible in `PolicyDecision.reasons`, never hidden |
+| Failure | `test_malformed_claim_does_not_reject_the_request` | Bad enum / oversized `source_ref` → counter incremented, request proceeds |
+| Observability | `test_provenance_never_used_as_unbounded_metric_label` | `source_kind`/`source_ref` absent from metric labels |
+| Privacy | `test_source_ref_is_not_a_url_or_path` | Validation rejects `://`, leading `/`, and >64 chars |
+| Privacy | `test_no_source_content_in_audit_or_logs` | Extends the existing log-leak canary to the new fields |

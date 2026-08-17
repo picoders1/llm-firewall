@@ -13,12 +13,14 @@ run**, not when its tasks are ticked.
 |---|---|---|
 | 0 | Foundation and vertical slice | **Substantially complete** — foundation and vertical slice built and verified; eval harness and metrics outstanding |
 | 1 | OpenAI-compatible gateway | Not started |
-| 2 | Input security (ML detectors) | **Model selected and re-validated on a 457-sample independent hold-out** ([ADR-014](adr/ADR-014-detector-selection.md)). **Fine-tuning protocol pre-registered** ([ADR-015](adr/ADR-015-fine-tuning-strategy.md)); corpus built, no training run. Blocking still closed (`eval/results/20260817T102936Z__threshold-deployability/`) |
+| 2 | Input security (ML detectors) | **ADR-020 Steps 0–1 executed → both passed** (proxy admitted, p < 1e-6; regression is not seed noise). Step 2 justified, unauthorised; **ADR-019 executed → FAILURE** (mechanisms learnable, but −9.1pt extraction regression). **Model selected** ([ADR-014](adr/ADR-014-detector-selection.md)); **Strategy A fine-tuning executed** ([ADR-015](adr/ADR-015-fine-tuning-strategy.md)) — PARTIAL SUCCESS; **validated on hold-out v3** (all four FPR criteria met, both recall criteria fail). **Indirect injection quantified**: recall **0.1423** (n=520), no delivery shape reliably detected — blocking refused on severity grounds ([ADR-016](adr/ADR-016-provenance-aware-detection.md)). Model warn-only, not integrated |
 | 3 | Output security | Not started |
 | 4 | Evaluation and benchmarking | **Framework built and validated**; corpus gaps remain (OD-17) |
 | 5 | Observability and operations | Not started |
 | 6 | Hardening | Not started |
 | 7 | Deployment | Not started |
+| 2P | **Provenance-aware detection** | **A+B+C implemented, D evaluated — PROVENANCE BENEFICIAL**; E not started — [ADR-017](adr/ADR-017-provenance-aware-detection-context.md); migration phases A–E below |
+| 8 | **Security Operations Dashboard** (productization) | Not started — **recorded, deliberately not implemented** |
 
 **Detector-quality evaluation has been run** on an 11,009-sample benchmark; results are
 in `eval/results/` and summarised in [ADR-014](adr/ADR-014-detector-selection.md).
@@ -362,7 +364,7 @@ Async audit writer, retention job, OTLP exporter, dashboards, alerts, runbook.
 | 5.2 | Retention deletion job | Enforces the documented policy |
 | 5.3 | OTLP exporter wiring | Langfuse on host **3001** (3000 occupied); content-free spans |
 | 5.4 | Grafana dashboards as code | |
-| 5.5 | Streamlit security dashboard | Built **after** the data model, per the brief |
+| 5.5 | Read-only observability APIs the dashboard will consume | The dashboard itself is **Phase 8**; Phase 5 ships the endpoints it reads |
 | 5.6 | Alert rules | Detector errors, audit failures, block-rate step change |
 | 5.7 | Runbook | One entry per alert |
 
@@ -494,13 +496,141 @@ and the dev split is dataset work belonging to Phase 4. Datasets are therefore p
 Phase 2 and the *benchmark reporting* happens in Phase 4 — recorded here so it is a planned
 overlap rather than a surprise.
 
+# Phase 2P — Provenance-aware detection (A+B+C+D done, E not started)
+
+**Design:** [ADR-017](adr/ADR-017-provenance-aware-detection-context.md).
+**Why:** indirect-injection recall is 0.1423 with no delivery shape reliably
+detected, and the cause is structural — provenance is discarded at
+`build_contexts` before any detector sees the text
+([ADR-016](adr/ADR-016-provenance-aware-detection.md)).
+
+Incremental by design. **Each phase is independently shippable and independently
+reversible**, and no phase before E changes a production decision.
+
+| Phase | Scope | Exit criterion |
+|---|---|---|
+| **A** ✅ | `Provenance`, `TrustLevel`, `TRUST_PRECEDENCE`, four `DetectionContext` fields with `UNKNOWN`/`None` defaults, `source_ref`/`source_kind` validation | **Met.** `ProvenanceContext` deferred to C — it is a policy type and no policy consumes it yet |
+| **B** ✅ | `app/core/provenance.py`: role derivation, claim parsing, monotone adjudication. Populated in `build_contexts`; inline channel off by default | **Met.** Golden-file suite green; 624 pre-existing tests unchanged; spoofing and monotonicity suites pass |
+| **C** ✅ | `consumes_provenance` on the protocol; `ProvenanceContext` as `evaluate()`'s optional fourth argument; `by_trust` overlay with load-time rejection of loosening | **Met.** All 811 prior tests unchanged; loosening rejected at load (unit + YAML); escalation visible in `reasons` and the audit record; no shipped detector consumes provenance |
+| **D** ✅ | Six arms over `holdout-indirect-v1`, same checkpoint/threshold, varying only segmentation and provenance labels; McNemar paired tests; ablations for removed and inverted provenance; policy ablation kept separate | **Met. PROVENANCE BENEFICIAL.** Recall 0.1423 → 0.5365 (p ≈ 0), benign FPR 0.0167 → 0.0000. Not blocking-ready: 46% still pass ([ADR-018](adr/ADR-018-provenance-aware-detector-evaluation.md)) |
+| **E** | **Only if D succeeds:** consider a production policy change. | A separate explicit decision, with its own ADR |
+
+**Phase A+B changed no production behaviour**, verified rather than asserted:
+`tests/security/test_provenance_golden_behaviour.py` pins status codes, upstream
+call counts, redaction output, block-response shape and the audit decision for
+eight representative requests.
+
+**Phase A–C changed no production behaviour**, because the shipped policy
+configures no overlay — verified by `test_the_shipped_policy_configures_no_overlay`
+and by the golden-file suite. The capability exists and is unused. If D shows
+provenance does not help, A–C remain a correct and harmless refactor that made the
+question askable, and E never happens.
+
+**Dependencies:** none on Phase 3–7. Phase D depends on OD-27 having a protocol.
+Phase 8's *Evaluation / Red-Team* view would surface D's results but does not gate
+it.
+
+---
+
+# Phase 8 — Security Operations Dashboard (productization)
+
+**Status: recorded, not started.** Deliberately not implemented during evaluation
+work — a dashboard built over a moving schema gets rebuilt, and one built over
+unmeasured detectors would display numbers the project has not earned.
+
+**Objective.** A premium, professional **LLM Security Operations Dashboard** — not
+a generic admin panel.
+
+**Depends on:** Phase 5 (read-only observability APIs and a settled event schema)
+and Phase 2/4 (detector behaviour measured and stable). Both are prerequisites,
+not preferences.
+
+### Technology — fixed
+
+```
+Vanilla HTML · Vanilla CSS · Vanilla JavaScript
+```
+
+**No React, Vue, Angular, Svelte, Tailwind, Bootstrap, Material UI or equivalent.**
+An exception requires an explicit ADR, not a preference expressed in a pull
+request. The rationale is recorded so it is not relitigated: this is a security
+product whose supply chain is part of its threat model, and a dashboard with no
+build step and no transitive dependency tree is auditable by the people who have
+to trust it.
+
+### Views
+
+| View | Purpose |
+|---|---|
+| Overview | System state at a glance: decision mix, block rate, health |
+| Security Events | Searchable, filterable, drill-down event log |
+| Detector & Policy Status | What is enabled, in what mode, at what threshold |
+| Traffic & Latency | Throughput, gateway overhead, upstream latency |
+| Evaluation / Red-Team | Benchmark results and hold-out evidence |
+| System Health | Readiness, dependencies, error and degradation states |
+
+### Requirements
+
+* Consumes **real backend APIs**; **never** fabricates, estimates, or interpolates
+  a metric. A panel with no data says so.
+* Never exposes secrets, credentials, or raw prompt content.
+* Explicit **loading, empty, error and degraded** states — degraded is distinct
+  from error and must be visually distinct.
+* Visually distinguishes **ALLOW / WARN / REDACT / BLOCK / FAILURE**, and not by
+  colour alone (accessibility).
+* A coherent design system built on **CSS custom properties / design tokens**.
+* Strong information hierarchy; search, filtering and drill-down where useful.
+* Responsive and accessible (keyboard navigation, contrast, semantics, ARIA where
+  it earns its place).
+
+### Entry criteria
+
+1. Phase 5 observability APIs exist, are versioned, and are documented.
+2. The security-event schema is settled and migrated.
+3. Detector metrics come from committed evaluation artefacts, not placeholders.
+
+### Exit criteria
+
+Every panel traces to a real endpoint; no fabricated value anywhere; all five
+decision states visually distinct and accessible; loading/empty/error/degraded
+states demonstrated; no framework dependency introduced.
+
+---
+
 ## Next implementation task
 
-**Detector/model selection and evaluation-design validation** — not Phase 1, and not more
-features.
+**Decide whether to authorise ADR-020 Step 2 — the six-run controlled experiment.**
 
-The vertical slice is complete and every interface is proven by a real detector, so the
-binding constraint is no longer architecture: it is that **detection quality is entirely
-unmeasured**. The baseline heuristics exist to be beaten, and choosing what beats them
-requires evidence, not a model card. Prerequisites and the exact scope are in
-[21-open-decisions.md](21-open-decisions.md) (OD-1, OD-3, OD-5).
+Steps 0 and 1 ran on 2026-08-17 and **both passed**, without training anything and
+without reading a hold-out. They were designed to be able to cancel Step 2; they did
+not.
+
+**Step 0 — the proxy is admitted.** It reproduces the known effect it was gated on:
+Strategy A beats ADR-019 on `lakera-gandalf` (999 human-authored extraction attacks)
+**0.9690 → 0.9069** at matched FPR, exact McNemar **p < 1e-6**. Integrity passed with
+0 exact and 0 normalised collisions against every training corpus and every hold-out.
+Checkpoints can now be ranked without spending hold-out budget (OD-33).
+
+**Step 1 — the regression is not seed noise.** Across three seeds per family the two
+are **fully disjoint**: every Strategy A run beats every ADR-019 run, gap 0.0594
+against a largest within-family spread of 0.0230. The exact permutation test gives
+p = 0.0500, which is the *floor* at three runs per group — the strongest run-level
+evidence this design can produce, and reported as suggestive rather than decisive.
+C7 is reduced, not eliminated.
+
+So the confound list stands at **one eliminated (C6), one reduced (C7), five live**,
+and Step 2's two arms — composition at fixed step count, then adaptation budget at a
+fixed sampler — remain the minimum sufficient test. Six runs, not eighteen; the
+control and the failed condition already exist and are not re-run.
+
+**One finding that was not registered in advance** and changes how the historical
+record reads: the dev-selected threshold is not merely underdetermined but arbitrary.
+All six checkpoints separate their dev split perfectly and their chosen thresholds
+span **0.0694 – 0.9955** — one seed picked 0.0694 where its sibling picked 0.9954,
+under identical methodology. Comparing models at dev-selected thresholds *understated*
+the ADR-019 regression threefold. Every threshold in this project's history was
+selected this way (R-53, OD-23).
+
+Evidence: [`eval/results/finetune/ADR-020-steps-0-1/report.md`](../eval/results/finetune/ADR-020-steps-0-1/report.md).
+Protocol: [ADR-020](adr/ADR-020-retention-preserving-training.md).
+Scope: [21-open-decisions.md](21-open-decisions.md) (OD-32, OD-33, OD-34).

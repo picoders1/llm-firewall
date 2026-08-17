@@ -275,3 +275,46 @@ the deployment checklist.
    `firewall_audit_write_failures_total`.
 7. Log and database retention aligned with the documented policy, backups included.
 8. `/ready`, not `/health`, wired to the load balancer.
+
+---
+
+## Provenance metadata — handling rules
+
+[ADR-017](adr/ADR-017-provenance-aware-detection-context.md) adds four metadata
+fields, implemented in Phase A+B. Provenance is metadata *about* content and is never content, so the
+`content_logging` default of `none`
+([ADR-008](adr/ADR-008-observability-and-privacy.md)) is unchanged and unaffected.
+
+| Field | Audit | Logs | Metric label | Traces | Dashboard | Eval report |
+|---|---|---|---|---|---|---|
+| `provenance` (6-value enum) | yes | yes | **yes** | yes | yes | yes |
+| `trust` (5-value enum) | yes | yes | **yes** | yes | yes | yes |
+| `source_kind` (caller string) | yes | yes | **no** | yes | yes | yes |
+| `source_ref` (caller string) | yes | yes | **no** | yes | truncated | aggregate only |
+| Source content | **never** | **never** | **never** | **never** | **never** | **never** |
+| Source URL, file path, connector credentials | **never** | **never** | **never** | **never** | **never** | **never** |
+
+Three rules, each with a reason rather than a preference:
+
+**Enums may be metric labels; caller strings may not.** `provenance` and `trust`
+are bounded at six and five values, which cannot explode a time series.
+`source_kind` and `source_ref` are attacker-controllable strings — using them as
+labels is an unbounded-cardinality denial of service against the metrics backend,
+reachable by any client. This is why `source_kind` is validated to a short
+lowercase charset even though no policy rule reads it.
+
+**`source_ref` is a correlation handle, not a locator.** Validation rejects `://`,
+leading `/`, and anything over 64 characters. A URL or file path leaks internal
+structure and sometimes credentials; an opaque connector-issued id or a hash
+carries the same correlation value with none of that.
+
+**A malformed claim never rejects the request.** Turning a metadata defect into a
+`400` would make the firewall a new availability risk on a path that has none
+today. Malformed claims are dropped and the request proceeds — asserted for
+non-strings, unknown enum values, nested objects, and 100,000-character values in
+`tests/security/test_provenance_spoofing.py`.
+
+**A rejection reason never echoes the caller's value.** Embedding an
+attacker-supplied string in a log line makes logs a reflection surface and a
+flooding vector, so `Assignment.rejected_claims` carries a fixed short reason code
+(`x-firewall-provenance:would_raise_trust`) and never the submitted value.

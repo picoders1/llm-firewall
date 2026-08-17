@@ -242,3 +242,66 @@ version change recorded in the audit trail.
 | Startup validation rejects each invalid case above | `tests/unit/test_policy_config.py` |
 | `policy_version` matches file hash and changes with the file | `tests/unit/test_policy_version.py` |
 | Redaction span merge on overlapping spans | `tests/unit/test_redaction.py` |
+
+---
+
+## Provenance as a policy input (ADR-017, Phase C)
+
+`evaluate()` takes a fourth argument:
+
+```python
+evaluate(results, config, direction, provenance: ProvenanceContext | None = None)
+```
+
+`ProvenanceContext` carries `(provenance, trust)` and **nothing else**. Passing the
+whole `DetectionContext` was rejected: it would hand the engine `raw_text`, which
+breaks the property that makes the truth table enumerable and puts prompt content
+one attribute access away from a decision path that must never log it.
+
+`None` means "no provenance-conditional adjustment" — identical to the behaviour
+before provenance existed, which is what keeps every prior caller correct.
+
+### The overlay may only tighten
+
+```yaml
+input:
+  prompt_injection:
+    detector: injection.heuristic
+    threshold: 0.85
+    action: warn
+    by_trust:
+      untrusted:
+        threshold: 0.60      # lower  = stricter → allowed
+        action: block        # severer = stricter → allowed
+```
+
+A higher threshold or a less severe action **fails at policy load**, so a policy
+that could weaken a decision cannot start. An operator learns from a failed
+deployment, not from an incident review.
+
+This inherits the engine's existing monotonicity: adding a detector can only make
+a decision more severe, and now so can declaring an origin. The accepted cost is
+that **provenance can never reduce false positives** — the obvious feature
+("relax the threshold for authenticated users") is exactly the one an attacker
+would forge, so it is unexpressible rather than discouraged.
+
+### Two things provenance deliberately does not touch
+
+**Detector failure.** `on_error: fail_closed` produces a BLOCK regardless of
+trust. Failing closed is about availability of inspection, not about trust in a
+source, and making it trust-conditional would let a policy author accidentally
+turn a fail-closed detector into a fail-open one for some origins (ADR-007).
+
+**Which messages are inspected.** `inspect_roles` gates on `role`, not provenance.
+A caller cannot claim a provenance that skips inspection.
+
+### Escalations are never silent
+
+A provenance-driven change appends its cause to the contribution reason:
+
+```
+injection.heuristic:score=0.5500>=threshold=0.3000:trust=untrusted:threshold=0.3000:action=block
+```
+
+so it reaches `PolicyDecision.reasons` and the audit record. An operator reading a
+block can always see that origin, not score, was what changed.

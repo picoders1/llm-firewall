@@ -195,3 +195,51 @@ to be the control condition in Phase 4's evaluation: the transformer detector's 
 the delta over this on the same dataset, on the same machine, with the same harness. A
 project that ships only this and calls it prompt-injection defence is doing the thing this
 repository explicitly refuses to do.
+
+---
+
+## Provenance-aware detectors — capability shipped, no consumer yet
+
+[ADR-017](adr/ADR-017-provenance-aware-detection-context.md), Phase C. The protocol
+is **extended, not forked**, and **no shipped detector consumes provenance** —
+asserted by `test_no_shipped_detector_claims_to_consume_provenance`. A detector
+that starts reading provenance is a deliberate, separately evaluated change.
+
+Legacy behaviour is pinned rather than assumed:
+`test_legacy_detectors_score_identically_regardless_of_provenance` runs every
+registered detector over the same text under five different
+provenance/trust pairs and asserts identical score, spans and reasons.
+
+```python
+class Detector(Protocol):
+    name: str
+    category: Category
+    directions: frozenset[Direction]
+    emits_spans: bool
+    consumes_provenance: bool = False  # NEW — advertisement, not a requirement
+```
+
+| Detector kind | `consumes_provenance` | Behaviour |
+|---|---|---|
+| Legacy — `injection.heuristic`, `pii.regex`, the stubs | `False` | Unchanged. Reads text, ignores provenance. Must produce byte-identical results. |
+| Provenance-aware | `True` | May read `ctx.provenance` / `ctx.trust` and score differently |
+| "Requires provenance" | — | **Deliberately not a supported category** |
+
+Two decisions worth the reasoning:
+
+**No parallel interface.** A second detector protocol would double the
+`GuardedDetector`, pipeline and registry surface, and split the policy truth table
+that [ADR-003](adr/ADR-003-policy-engine-design.md) depends on. One flag on the
+existing protocol costs a line.
+
+**No `requires_provenance`.** A detector that cannot function on `UNKNOWN`
+provenance would fail on every legacy request, and the only safe response —
+fail-closed per [ADR-007](adr/ADR-007-detector-failure-semantics.md) — would block
+ordinary traffic. A capability mismatch must not become an outage. A detector that
+wants provenance must degrade gracefully without it; one that genuinely cannot is
+disabled by configuration.
+
+**The detector still does not decide.** Provenance reaches the policy engine as its
+own explicit input rather than through detector metadata, so a provenance-driven
+change of action is declared in the policy file and visible in
+`PolicyDecision.reasons`. Detector-specific policy behaviour stays impossible.

@@ -105,6 +105,45 @@ mistaken for a clean one.
 Multi-part content (text + image blocks) has its text parts extracted; non-text parts are
 counted and recorded but not inspected in Phase 0 (documented limitation).
 
+### 3a. Source classification ([ADR-017](adr/ADR-017-provenance-aware-detection-context.md))
+
+The table above conflates two things that are not the same: the **role** the wire
+said, and where the bytes actually **came from**. A RAG application concatenates a
+retrieved document into a `user` turn, and the gateway sees `role=user` with no way
+to know that half the text is attacker-controlled. That is measured, not
+hypothetical: indirect-injection recall is 0.1423, and 7.7x lower when a payload is
+planted in a document than when the user asks for the override themselves
+([ADR-016](adr/ADR-016-provenance-aware-detection.md)).
+
+ADR-017 designs a **source-classification step here**, immediately before part
+extraction and before normalisation. It is the point at which provenance becomes
+authoritative; after it, `DetectionContext` is frozen and nothing may rewrite it.
+
+```
+message  ──▶  [ source classification ]  ──▶  part extraction  ──▶  normalisation
+                      │
+                      ├─ honour an inline claim ONLY if the channel is configured-trusted
+                      └─ otherwise derive from role:
+                           system/developer → SYSTEM_CONFIG / OPERATOR
+                           user             → USER_INPUT    / PRINCIPAL
+                           tool             → TOOL_RESULT   / UNTRUSTED
+                           unrecognised     → UNKNOWN       / UNKNOWN
+```
+
+`tool` derives `UNTRUSTED` rather than `DERIVED` — making explicit the assumption
+the `inspect_roles` default already encodes.
+
+**Implemented (Phase A+B).** `build_contexts` assigns provenance and trust here,
+before part extraction and before normalisation, and `DetectionContext` carries
+them. **Nothing acts on them yet** — the `by_trust` policy overlay is Phase C — so
+every decision is identical to the pre-provenance behaviour, which is asserted by
+`tests/security/test_provenance_golden_behaviour.py`.
+
+The inline-claim channel exists and is **off by default**
+(`FIREWALL_TRUST_INLINE_PROVENANCE_CLAIMS=false`). With it off, no caller-supplied
+value influences the assignment at all. With it on, a claim may only *lower*
+trust; no trust key is ever read from the wire.
+
 ## 4. Normalisation
 
 **Owner:** `app/core/normalize.py`
@@ -125,6 +164,15 @@ and confusable-resistant matching are mutually exclusive.
 Normalised text is used **only for inspection**. The text forwarded upstream is always the
 original (or the redacted original) — the gateway must never change the meaning of a
 request as a side effect of inspecting it.
+
+**Provenance and normalisation.** Provenance attaches to the **whole
+message part**, not to spans within it. That is a deliberate simplification: one
+provenance value per context means the `normalized_offsets` invariant gains nothing
+new to keep synchronised, and ADR-010's guarantee is preserved by construction
+rather than by care. Span-level provenance is rejected until a concrete requirement
+exists; mixed-source parts are handled by splitting them into separate parts, or —
+when that is impossible — by degrading the whole part to the **lowest** trust of its
+constituents ([ADR-017](adr/ADR-017-provenance-aware-detection-context.md) §7).
 
 ## 5. Input detector pipeline
 
