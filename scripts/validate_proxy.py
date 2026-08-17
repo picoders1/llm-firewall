@@ -21,6 +21,7 @@ is a shared constant, and nothing else.
     uv run python -m scripts.validate_proxy --integrity
     uv run python -m scripts.validate_proxy --score
     uv run python -m scripts.validate_proxy --report
+    uv run python -m scripts.validate_proxy --variance   # all 36, GPU-free, dev only
 """
 
 from __future__ import annotations
@@ -761,7 +762,11 @@ def phase_variance() -> int:
                         "quoted_attack_fpr": r["quoted_attack"]["fpr"],
                     }
                     if family == "adr_019":
-                        for mech in ("retrieval_poisoning", "tool_use_manipulation", "safety_bypass"):
+                        for mech in (
+                            "retrieval_poisoning",
+                            "tool_use_manipulation",
+                            "safety_bypass",
+                        ):
                             idx = [
                                 i
                                 for i, row in enumerate(dev_rows)
@@ -788,9 +793,7 @@ def phase_variance() -> int:
     for family in FAMILIES:
         fam = [e for e in per_checkpoint.values() if e["family"] == family]
         summary[family] = {
-            "all_18": {
-                m: describe([e[m] for e in fam if e.get(m) is not None]) for m in metrics
-            },
+            "all_18": {m: describe([e[m] for e in fam if e.get(m) is not None]) for m in metrics},
             "seed_only_cells": {
                 f"lr{lr:g}__ep{ep}": {
                     m: describe(
@@ -835,7 +838,13 @@ def phase_variance() -> int:
     for family in FAMILIES:
         s = summary[family]["all_18"]
         print(f"{family} (n=18):")
-        for m in ("extraction_recall", "attack_recall", "benign_fpr", "quoted_attack_fpr", "dev_selected_threshold"):
+        for m in (
+            "extraction_recall",
+            "attack_recall",
+            "benign_fpr",
+            "quoted_attack_fpr",
+            "dev_selected_threshold",
+        ):
             d = s[m]
             if d.get("n"):
                 print(

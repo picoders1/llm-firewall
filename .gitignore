@@ -22,8 +22,10 @@ venv/
 coverage.xml
 htmlcov/
 
-# Model weights and third-party datasets are downloaded, never committed
-models/
+# Model weights and third-party datasets are downloaded, never committed.
+# Leading slash matters: an unanchored `models/` also swallows app/models/,
+# which is source code and must be committed.
+/models/
 eval/datasets/raw/
 eval/datasets/cache/
 
