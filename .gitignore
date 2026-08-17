@@ -37,3 +37,7 @@ eval/reports/scratch/
 
 # Third-party benchmark data is fetched, never committed
 eval/datasets/raw/
+
+# Fine-tuning checkpoints (Strategy A onward). Weights are never committed;
+# reproduce with scripts/finetune_strategy_a.py at the recorded commit + seed.
+artifacts/
