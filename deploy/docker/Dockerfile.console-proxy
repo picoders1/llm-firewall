@@ -1,0 +1,20 @@
+# syntax=docker/dockerfile:1
+#
+# Development-only identity boundary. Not built by the default stack; see
+# compose.console-auth.yaml and docs/adr/ADR-023-operator-authentication.md.
+FROM nginx:1.27-alpine
+
+# htpasswd, for generating the development credential at start-up rather than
+# committing a password hash to the repository.
+RUN apk add --no-cache apache2-utils
+
+COPY deploy/docker/console-proxy/default.conf.template /etc/nginx/templates/default.conf.template
+COPY deploy/docker/console-proxy/generate-htpasswd.sh /docker-entrypoint.d/05-generate-htpasswd.sh
+RUN chmod +x /docker-entrypoint.d/05-generate-htpasswd.sh
+
+# The nginx entrypoint runs envsubst over /etc/nginx/templates. The filter is
+# load-bearing: without it, envsubst would also eat `$remote_user` and
+# `$http_upgrade`, silently emptying the identity header this proxy exists to set.
+ENV NGINX_ENVSUBST_FILTER="DEV_"
+
+EXPOSE 8080

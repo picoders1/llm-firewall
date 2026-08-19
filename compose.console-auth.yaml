@@ -1,0 +1,90 @@
+# Operator authentication overlay (ADR-023).
+#
+#   docker compose -f compose.yaml -f compose.console-auth.yaml up -d --build
+#   open http://localhost:8088/dashboard        (operator / development-only)
+#
+# What this changes:
+#
+#   * a reverse proxy appears on :8088 and becomes the ONLY way in to the console
+#   * the application starts enforcing, so :8000 refuses console requests directly —
+#     including a request that supplies the identity headers itself, because the
+#     trusted address is the proxy's alone
+#   * :8000 still serves /v1/chat/completions unchanged — application traffic is a
+#     different access class and is not what this boundary protects (OD-36)
+#
+# It is an override file rather than a profile because a profile can add a
+# service but cannot flip the application into enforcing mode, and half of this
+# arrangement is useless without the other half.
+
+name: llm-firewall
+
+# A network with a fixed subnet, so the proxy can have a fixed address and the
+# application can trust exactly that address. Without it the compose subnet is
+# assigned at runtime and the only workable trusted range would be Docker's whole
+# default pool — which would also cover the bridge gateway that relays traffic
+# from the host, making the boundary bypassable from the machine running it.
+#
+# Naming one address is also what a production deployment does. A development
+# stack that models the shape correctly is worth more than one that is merely
+# convenient.
+networks:
+  console:
+    ipam:
+      config:
+        - subnet: 172.29.71.0/24
+
+services:
+  console-proxy:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.console-proxy
+    image: llm-firewall-console-proxy:dev
+    ports:
+      - "8088:8080"
+    environment:
+      # Development credential. Obviously not a secret, obviously not production.
+      DEV_OPERATOR_USER: operator
+      DEV_OPERATOR_PASSWORD: development-only
+      # Shared with the application below. In production this comes from the
+      # platform's secret manager and is never written in a file like this.
+      DEV_PROXY_SECRET: development-proxy-secret
+    networks:
+      console:
+        ipv4_address: 172.29.71.10
+      default: {}
+    depends_on:
+      firewall-api:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+      - /var/cache/nginx:size=16m
+      - /var/run:size=1m
+      - /etc/nginx/conf.d:size=1m
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  firewall-api:
+    networks:
+      console: {}
+      default: {}
+    environment:
+      FIREWALL_CONSOLE_AUTH_MODE: proxy
+      # Exactly the proxy, by address. Nothing else on the network can assert an
+      # operator identity — including a request arriving from the host through the
+      # published port, which enters via the bridge gateway and not via this /32.
+      FIREWALL_TRUSTED_PROXIES: 172.29.71.10/32
+      FIREWALL_PROXY_SHARED_SECRET: development-proxy-secret
+      FIREWALL_OPERATOR_ROLES: operators
+      FIREWALL_CONSOLE_LOGOUT_PATH: /console/sign-out

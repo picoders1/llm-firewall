@@ -1,0 +1,67 @@
+# Development identity boundary for the Security Operations console (ADR-023).
+#
+# THIS IS NOT A PRODUCTION AUTHENTICATION MECHANISM. It exists so the boundary
+# can be exercised on a laptop without an identity provider, and so the two
+# obligations a real proxy must meet are visible as configuration rather than as
+# prose. In production this position is filled by an OIDC-aware proxy, an
+# identity-aware ingress, or an enterprise SSO edge — all of which speak the same
+# header contract as the four `proxy_set_header` lines below.
+#
+# Basic auth is used deliberately BECAUSE it is obviously unsuitable for
+# production: nobody will mistake it for the real thing and ship it.
+#
+# ---------------------------------------------------------------------------
+# The two obligations
+# ---------------------------------------------------------------------------
+#
+# 1. STRIP INBOUND COPIES. `proxy_set_header` *replaces* the named header, so a
+#    client sending its own `X-Auth-Request-User: root` has that value
+#    overwritten here and never reaches the application. This only holds for
+#    headers that are explicitly set — a fourth identity header added to the
+#    application without a matching line here would pass straight through from
+#    the client. That is why the application also refuses to read any of them
+#    from an untrusted peer: two independent controls, either one sufficient.
+#
+# 2. INJECT AUTHORITATIVE VALUES. `$remote_user` is set by nginx from the
+#    credential it just verified. It cannot be influenced by the request.
+
+map $http_upgrade $connection_upgrade { default upgrade; '' close; }
+
+server {
+    listen 8080;
+    server_name _;
+
+    # Probes stay public: a load balancer must reach them without a credential,
+    # and an unreachable readiness probe takes a healthy instance out of
+    # rotation. Nothing here reveals configuration — only check names.
+    location = /health { proxy_pass http://firewall-api:8000; }
+    location = /ready  { proxy_pass http://firewall-api:8000; }
+
+    # Basic auth has no sign-out. Returning 401 makes the browser discard the
+    # credential it has been replaying, which is the closest equivalent, and
+    # gives `FIREWALL_CONSOLE_LOGOUT_PATH` something real to point at.
+    location = /console/sign-out {
+        add_header Cache-Control "no-store" always;
+        return 401 "Signed out. Close this tab to complete sign-out.\n";
+    }
+
+    location / {
+        auth_basic           "LLM Firewall — operators";
+        auth_basic_user_file /tmp/operators.htpasswd;
+
+        # Obligation 2: authoritative identity, from the verified credential.
+        proxy_set_header X-Auth-Request-User    $remote_user;
+        proxy_set_header X-Auth-Request-Groups  "operators";
+        # Proves to the application that this request came through the proxy and
+        # not from something else that happens to share the trusted subnet.
+        proxy_set_header X-Firewall-Proxy-Secret "${DEV_PROXY_SECRET}";
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        $connection_upgrade;
+
+        proxy_pass http://firewall-api:8000;
+    }
+}
