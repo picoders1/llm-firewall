@@ -1,0 +1,652 @@
+{
+  "runs": [
+    {
+      "run_id": "T2__lr1e-05__ep2__seed13",
+      "arm": "T2",
+      "seed": 13,
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "total_steps": 486,
+      "train_loss": 0.177945,
+      "dev_loss": 0.001854,
+      "dev": {
+        "threshold": 0.5,
+        "overall": {
+          "tp": 245,
+          "fp": 0,
+          "tn": 798,
+          "fn": 1,
+          "n": 1044,
+          "n_attack": 246,
+          "n_benign": 798,
+          "precision": 1.0,
+          "precision_ci95": [
+            0.9846,
+            1.0
+          ],
+          "recall": 0.9959,
+          "recall_ci95": [
+            0.9773,
+            0.9993
+          ],
+          "f1": 0.998,
+          "accuracy": 0.999,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.0048
+          ],
+          "fnr": 0.0041
+        },
+        "quoted_attack": {
+          "n": 273,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "hard_negative": {
+          "n": 660,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "extraction": {
+          "n": 58,
+          "tp": 58,
+          "recall": 1.0
+        }
+      },
+      "duration_s": 199.63,
+      "peak_vram_gb": 3.182,
+      "dev_selected_threshold": 0.38,
+      "dev_separable": true,
+      "dev_at_selected_threshold": {
+        "threshold": 0.38,
+        "overall": {
+          "tp": 246,
+          "fp": 0,
+          "tn": 798,
+          "fn": 0,
+          "n": 1044,
+          "n_attack": 246,
+          "n_benign": 798,
+          "precision": 1.0,
+          "precision_ci95": [
+            0.9846,
+            1.0
+          ],
+          "recall": 1.0,
+          "recall_ci95": [
+            0.9846,
+            1.0
+          ],
+          "f1": 1.0,
+          "accuracy": 1.0,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.0048
+          ],
+          "fnr": 0.0
+        },
+        "quoted_attack": {
+          "n": 273,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "hard_negative": {
+          "n": 660,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "extraction": {
+          "n": 58,
+          "tp": 58,
+          "recall": 1.0
+        }
+      },
+      "checkpoint": "artifacts/finetune-retention/T2__lr1e-05__ep2__seed13",
+      "checkpoint_sha256": "b4ca4ad39b3c72dd0d07c3190e37dd640b497e25f2b16617c02ab6a06e90244b",
+      "status": "ok",
+      "notes": []
+    },
+    {
+      "run_id": "T2__lr1e-05__ep2__seed20260817",
+      "arm": "T2",
+      "seed": 20260817,
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "total_steps": 486,
+      "train_loss": 0.194153,
+      "dev_loss": 0.001037,
+      "dev": {
+        "threshold": 0.5,
+        "overall": {
+          "tp": 246,
+          "fp": 0,
+          "tn": 798,
+          "fn": 0,
+          "n": 1044,
+          "n_attack": 246,
+          "n_benign": 798,
+          "precision": 1.0,
+          "precision_ci95": [
+            0.9846,
+            1.0
+          ],
+          "recall": 1.0,
+          "recall_ci95": [
+            0.9846,
+            1.0
+          ],
+          "f1": 1.0,
+          "accuracy": 1.0,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.0048
+          ],
+          "fnr": 0.0
+        },
+        "quoted_attack": {
+          "n": 273,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "hard_negative": {
+          "n": 660,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "extraction": {
+          "n": 58,
+          "tp": 58,
+          "recall": 1.0
+        }
+      },
+      "duration_s": 212.79,
+      "peak_vram_gb": 3.182,
+      "dev_selected_threshold": 0.6296,
+      "dev_separable": true,
+      "dev_at_selected_threshold": {
+        "threshold": 0.6296,
+        "overall": {
+          "tp": 245,
+          "fp": 0,
+          "tn": 798,
+          "fn": 1,
+          "n": 1044,
+          "n_attack": 246,
+          "n_benign": 798,
+          "precision": 1.0,
+          "precision_ci95": [
+            0.9846,
+            1.0
+          ],
+          "recall": 0.9959,
+          "recall_ci95": [
+            0.9773,
+            0.9993
+          ],
+          "f1": 0.998,
+          "accuracy": 0.999,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.0048
+          ],
+          "fnr": 0.0041
+        },
+        "quoted_attack": {
+          "n": 273,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "hard_negative": {
+          "n": 660,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "extraction": {
+          "n": 58,
+          "tp": 58,
+          "recall": 1.0
+        }
+      },
+      "checkpoint": "artifacts/finetune-retention/T2__lr1e-05__ep2__seed20260817",
+      "checkpoint_sha256": "15e339b93600aa7468efbd1176420f2aa13149f94f10af9f6302099f5c96652f",
+      "status": "ok",
+      "notes": []
+    },
+    {
+      "run_id": "T2__lr1e-05__ep2__seed31337",
+      "arm": "T2",
+      "seed": 31337,
+      "learning_rate": 1e-05,
+      "epochs": 2,
+      "total_steps": 486,
+      "train_loss": 0.210933,
+      "dev_loss": 0.002241,
+      "dev": {
+        "threshold": 0.5,
+        "overall": {
+          "tp": 245,
+          "fp": 0,
+          "tn": 798,
+          "fn": 1,
+          "n": 1044,
+          "n_attack": 246,
+          "n_benign": 798,
+          "precision": 1.0,
+          "precision_ci95": [
+            0.9846,
+            1.0
+          ],
+          "recall": 0.9959,
+          "recall_ci95": [
+            0.9773,
+            0.9993
+          ],
+          "f1": 0.998,
+          "accuracy": 0.999,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.0048
+          ],
+          "fnr": 0.0041
+        },
+        "quoted_attack": {
+          "n": 273,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "hard_negative": {
+          "n": 660,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "extraction": {
+          "n": 58,
+          "tp": 58,
+          "recall": 1.0
+        }
+      },
+      "duration_s": 214.46,
+      "peak_vram_gb": 3.182,
+      "dev_selected_threshold": 0.17,
+      "dev_separable": true,
+      "dev_at_selected_threshold": {
+        "threshold": 0.17,
+        "overall": {
+          "tp": 246,
+          "fp": 0,
+          "tn": 798,
+          "fn": 0,
+          "n": 1044,
+          "n_attack": 246,
+          "n_benign": 798,
+          "precision": 1.0,
+          "precision_ci95": [
+            0.9846,
+            1.0
+          ],
+          "recall": 1.0,
+          "recall_ci95": [
+            0.9846,
+            1.0
+          ],
+          "f1": 1.0,
+          "accuracy": 1.0,
+          "fpr": 0.0,
+          "fpr_ci95": [
+            0.0,
+            0.0048
+          ],
+          "fnr": 0.0
+        },
+        "quoted_attack": {
+          "n": 273,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "hard_negative": {
+          "n": 660,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "extraction": {
+          "n": 58,
+          "tp": 58,
+          "recall": 1.0
+        }
+      },
+      "checkpoint": "artifacts/finetune-retention/T2__lr1e-05__ep2__seed31337",
+      "checkpoint_sha256": "7a98c2d9dd214adb038f288f9872dc9f807d7694012db611ee6c695686f5e685",
+      "status": "ok",
+      "notes": []
+    },
+    {
+      "run_id": "T3__lr1e-05__ep1__seed13",
+      "arm": "T3",
+      "seed": 13,
+      "learning_rate": 1e-05,
+      "epochs": 1,
+      "total_steps": 243,
+      "train_loss": 0.266583,
+      "dev_loss": 0.029715,
+      "dev": {
+        "threshold": 0.5,
+        "overall": {
+          "tp": 237,
+          "fp": 3,
+          "tn": 795,
+          "fn": 9,
+          "n": 1044,
+          "n_attack": 246,
+          "n_benign": 798,
+          "precision": 0.9875,
+          "precision_ci95": [
+            0.9639,
+            0.9957
+          ],
+          "recall": 0.9634,
+          "recall_ci95": [
+            0.9319,
+            0.9806
+          ],
+          "f1": 0.9753,
+          "accuracy": 0.9885,
+          "fpr": 0.0038,
+          "fpr_ci95": [
+            0.0013,
+            0.011
+          ],
+          "fnr": 0.0366
+        },
+        "quoted_attack": {
+          "n": 273,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "hard_negative": {
+          "n": 660,
+          "fp": 3,
+          "fpr": 0.0045
+        },
+        "extraction": {
+          "n": 58,
+          "tp": 58,
+          "recall": 1.0
+        }
+      },
+      "duration_s": 133.01,
+      "peak_vram_gb": 3.182,
+      "dev_selected_threshold": 0.1035,
+      "dev_separable": false,
+      "dev_at_selected_threshold": {
+        "threshold": 0.1035,
+        "overall": {
+          "tp": 244,
+          "fp": 14,
+          "tn": 784,
+          "fn": 2,
+          "n": 1044,
+          "n_attack": 246,
+          "n_benign": 798,
+          "precision": 0.9457,
+          "precision_ci95": [
+            0.911,
+            0.9674
+          ],
+          "recall": 0.9919,
+          "recall_ci95": [
+            0.9708,
+            0.9978
+          ],
+          "f1": 0.9683,
+          "accuracy": 0.9847,
+          "fpr": 0.0175,
+          "fpr_ci95": [
+            0.0105,
+            0.0292
+          ],
+          "fnr": 0.0081
+        },
+        "quoted_attack": {
+          "n": 273,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "hard_negative": {
+          "n": 660,
+          "fp": 14,
+          "fpr": 0.0212
+        },
+        "extraction": {
+          "n": 58,
+          "tp": 58,
+          "recall": 1.0
+        }
+      },
+      "checkpoint": "artifacts/finetune-retention/T3__lr1e-05__ep1__seed13",
+      "checkpoint_sha256": "2d5f01e19460f66707cd8bcf20f0e762f48eacbbae2bea12be892ec1be1c4b58",
+      "status": "ok",
+      "notes": []
+    },
+    {
+      "run_id": "T3__lr1e-05__ep1__seed20260817",
+      "arm": "T3",
+      "seed": 20260817,
+      "learning_rate": 1e-05,
+      "epochs": 1,
+      "total_steps": 243,
+      "train_loss": 0.301112,
+      "dev_loss": 0.048905,
+      "dev": {
+        "threshold": 0.5,
+        "overall": {
+          "tp": 240,
+          "fp": 12,
+          "tn": 786,
+          "fn": 6,
+          "n": 1044,
+          "n_attack": 246,
+          "n_benign": 798,
+          "precision": 0.9524,
+          "precision_ci95": [
+            0.9186,
+            0.9726
+          ],
+          "recall": 0.9756,
+          "recall_ci95": [
+            0.9478,
+            0.9888
+          ],
+          "f1": 0.9639,
+          "accuracy": 0.9828,
+          "fpr": 0.015,
+          "fpr_ci95": [
+            0.0086,
+            0.0261
+          ],
+          "fnr": 0.0244
+        },
+        "quoted_attack": {
+          "n": 273,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "hard_negative": {
+          "n": 660,
+          "fp": 12,
+          "fpr": 0.0182
+        },
+        "extraction": {
+          "n": 58,
+          "tp": 58,
+          "recall": 1.0
+        }
+      },
+      "duration_s": 134.41,
+      "peak_vram_gb": 3.182,
+      "dev_selected_threshold": 0.3231,
+      "dev_separable": false,
+      "dev_at_selected_threshold": {
+        "threshold": 0.3231,
+        "overall": {
+          "tp": 241,
+          "fp": 16,
+          "tn": 782,
+          "fn": 5,
+          "n": 1044,
+          "n_attack": 246,
+          "n_benign": 798,
+          "precision": 0.9377,
+          "precision_ci95": [
+            0.9013,
+            0.9613
+          ],
+          "recall": 0.9797,
+          "recall_ci95": [
+            0.9533,
+            0.9913
+          ],
+          "f1": 0.9583,
+          "accuracy": 0.9799,
+          "fpr": 0.0201,
+          "fpr_ci95": [
+            0.0124,
+            0.0323
+          ],
+          "fnr": 0.0203
+        },
+        "quoted_attack": {
+          "n": 273,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "hard_negative": {
+          "n": 660,
+          "fp": 16,
+          "fpr": 0.0242
+        },
+        "extraction": {
+          "n": 58,
+          "tp": 58,
+          "recall": 1.0
+        }
+      },
+      "checkpoint": "artifacts/finetune-retention/T3__lr1e-05__ep1__seed20260817",
+      "checkpoint_sha256": "04d277d1b8d3065a8a9016ad6fcbbdd680d1d740ee9db077d893f0ef6eeb29db",
+      "status": "ok",
+      "notes": []
+    },
+    {
+      "run_id": "T3__lr1e-05__ep1__seed31337",
+      "arm": "T3",
+      "seed": 31337,
+      "learning_rate": 1e-05,
+      "epochs": 1,
+      "total_steps": 243,
+      "train_loss": 0.323818,
+      "dev_loss": 0.034786,
+      "dev": {
+        "threshold": 0.5,
+        "overall": {
+          "tp": 236,
+          "fp": 3,
+          "tn": 795,
+          "fn": 10,
+          "n": 1044,
+          "n_attack": 246,
+          "n_benign": 798,
+          "precision": 0.9874,
+          "precision_ci95": [
+            0.9638,
+            0.9957
+          ],
+          "recall": 0.9593,
+          "recall_ci95": [
+            0.9268,
+            0.9778
+          ],
+          "f1": 0.9732,
+          "accuracy": 0.9875,
+          "fpr": 0.0038,
+          "fpr_ci95": [
+            0.0013,
+            0.011
+          ],
+          "fnr": 0.0407
+        },
+        "quoted_attack": {
+          "n": 273,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "hard_negative": {
+          "n": 660,
+          "fp": 3,
+          "fpr": 0.0045
+        },
+        "extraction": {
+          "n": 58,
+          "tp": 58,
+          "recall": 1.0
+        }
+      },
+      "duration_s": 133.87,
+      "peak_vram_gb": 3.182,
+      "dev_selected_threshold": 0.0642,
+      "dev_separable": false,
+      "dev_at_selected_threshold": {
+        "threshold": 0.0642,
+        "overall": {
+          "tp": 243,
+          "fp": 13,
+          "tn": 785,
+          "fn": 3,
+          "n": 1044,
+          "n_attack": 246,
+          "n_benign": 798,
+          "precision": 0.9492,
+          "precision_ci95": [
+            0.9151,
+            0.9701
+          ],
+          "recall": 0.9878,
+          "recall_ci95": [
+            0.9648,
+            0.9958
+          ],
+          "f1": 0.9681,
+          "accuracy": 0.9847,
+          "fpr": 0.0163,
+          "fpr_ci95": [
+            0.0095,
+            0.0277
+          ],
+          "fnr": 0.0122
+        },
+        "quoted_attack": {
+          "n": 273,
+          "fp": 0,
+          "fpr": 0.0
+        },
+        "hard_negative": {
+          "n": 660,
+          "fp": 13,
+          "fpr": 0.0197
+        },
+        "extraction": {
+          "n": 58,
+          "tp": 58,
+          "recall": 1.0
+        }
+      },
+      "checkpoint": "artifacts/finetune-retention/T3__lr1e-05__ep1__seed31337",
+      "checkpoint_sha256": "5233704c696439f1f8954dd469196c1c814ac4ab73f329ad1ab9451e62b03c0d",
+      "status": "ok",
+      "notes": []
+    }
+  ]
+}

@@ -153,7 +153,11 @@
   "holdout_budget_declared_for_adr020": {
     "holdout-v3": 1,
     "holdout-mechanisms-v1": 1,
-    "note": "Single selected winner only. Any further scoring requires a new ADR."
+    "unit": "evaluation events, not checkpoints",
+    "checkpoints_per_event": 2,
+    "checkpoints": "the best T2 (deployment candidate, if it is the pooled winner) and the best T3 (causal contrast only, not selectable)",
+    "amended": "A-3 on 2026-08-18, before any hold-out was read",
+    "note": "Two pre-registered checkpoints scored simultaneously is one look, not two. Any further scoring requires a new ADR."
   },
   "retained_checkpoints": {
     "artifacts/finetune": [

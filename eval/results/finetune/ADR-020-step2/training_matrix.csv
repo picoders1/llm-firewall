@@ -1,0 +1,7 @@
+run_id,arm,seed,learning_rate,epochs,total_steps,effective_batch,sampler,mixture_ratio,status,checkpoint_sha256
+T2__lr1e-05__ep2__seed13,T2,13,1e-05,2,486,16,stratified 90/10 v1:extension,0.9/0.1,ok,b4ca4ad39b3c72dd0d07c3190e37dd640b497e25f2b16617c02ab6a06e90244b
+T2__lr1e-05__ep2__seed20260817,T2,20260817,1e-05,2,486,16,stratified 90/10 v1:extension,0.9/0.1,ok,15e339b93600aa7468efbd1176420f2aa13149f94f10af9f6302099f5c96652f
+T2__lr1e-05__ep2__seed31337,T2,31337,1e-05,2,486,16,stratified 90/10 v1:extension,0.9/0.1,ok,7a98c2d9dd214adb038f288f9872dc9f807d7694012db611ee6c695686f5e685
+T3__lr1e-05__ep1__seed13,T3,13,1e-05,1,243,16,stratified 90/10 v1:extension,0.9/0.1,ok,2d5f01e19460f66707cd8bcf20f0e762f48eacbbae2bea12be892ec1be1c4b58
+T3__lr1e-05__ep1__seed20260817,T3,20260817,1e-05,1,243,16,stratified 90/10 v1:extension,0.9/0.1,ok,04d277d1b8d3065a8a9016ad6fcbbdd680d1d740ee9db077d893f0ef6eeb29db
+T3__lr1e-05__ep1__seed31337,T3,31337,1e-05,1,243,16,stratified 90/10 v1:extension,0.9/0.1,ok,5233704c696439f1f8954dd469196c1c814ac4ab73f329ad1ab9451e62b03c0d

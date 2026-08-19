@@ -1,0 +1,60 @@
+{
+  "checked_at": "2026-08-17T18:10:13.180680+00:00",
+  "protocol": "docs/adr/ADR-020-retention-preserving-training.md (Step 2)",
+  "training_input_representation": "FULL CARRIER TEXT, exactly as ADR-019 used. The sampler changes which rows are drawn; it does not alter, truncate, or annotate any text.",
+  "planned_mixture": {
+    "total": 3888,
+    "v1_slots": 3499,
+    "extension_slots": 389,
+    "v1_extraction": 294,
+    "v1_other_attacks": 301,
+    "v1_benign": 2904,
+    "extension_attacks_per_mechanism": 53,
+    "extension_attacks": 159,
+    "extension_benign": 230
+  },
+  "realised_mixture_seed13_epoch0": {
+    "n": 3888,
+    "unique_samples": 2579,
+    "v1_share": 0.899949,
+    "extension_share": 0.100051,
+    "attack_fraction": 0.19393,
+    "extraction_share_of_attacks": 0.38992,
+    "attacks_by_sub_category": {
+      "system_prompt_extraction": 294,
+      "direct_prompt_injection": 180,
+      "retrieval_poisoning": 53,
+      "tool_use_manipulation": 53,
+      "safety_bypass": 53,
+      "jailbreak": 47,
+      "indirect_injection": 35,
+      "role_override": 25,
+      "context_override": 14
+    },
+    "mechanism_counts": {
+      "retrieval_poisoning": 53,
+      "tool_use_manipulation": 53,
+      "safety_bypass": 53
+    }
+  },
+  "mixture_targets_met": {
+    "v1_share_0.90": true,
+    "extension_share_0.10": true,
+    "attack_fraction_pinned": true,
+    "extraction_share_at_or_above_floor": true,
+    "three_mechanisms_balanced": true
+  },
+  "hash_mismatches": {},
+  "holdout_hash_mismatches": {},
+  "isolation": {
+    "isolated": true,
+    "holdout_references_in_training_path": {}
+  },
+  "no_class_weighting": true,
+  "no_custom_loss": true,
+  "no_curriculum": true,
+  "git_commit": "ce8f6a6c2301f8ea58eeaa2d8e7c5c11ab790d0b",
+  "runs_registered": 6,
+  "dev_samples": 1044,
+  "safe_to_train": true
+}

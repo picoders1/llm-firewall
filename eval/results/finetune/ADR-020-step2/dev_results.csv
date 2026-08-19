@@ -1,0 +1,7 @@
+run_id,arm,seed,epochs,total_steps,status,train_loss,dev_loss,dev_selected_threshold,dev_separable,dev_precision,dev_recall,dev_f1,dev_fpr,dev_extraction_recall,dev_quoted_attack_fpr,dev_retrieval_poisoning_recall,dev_tool_use_manipulation_recall,dev_safety_bypass_recall
+T2__lr1e-05__ep2__seed13,T2,13,2,486,ok,0.177945,0.001854,0.38,True,1.0,0.9959,0.998,0.0,1.0,0.0,1.0,1.0,1.0
+T2__lr1e-05__ep2__seed20260817,T2,20260817,2,486,ok,0.194153,0.001037,0.6296,True,1.0,1.0,1.0,0.0,1.0,0.0,1.0,1.0,1.0
+T2__lr1e-05__ep2__seed31337,T2,31337,2,486,ok,0.210933,0.002241,0.17,True,1.0,0.9959,0.998,0.0,1.0,0.0,1.0,0.9706,1.0
+T3__lr1e-05__ep1__seed13,T3,13,1,243,ok,0.266583,0.029715,0.1035,False,0.9875,0.9634,0.9753,0.0038,1.0,0.0,0.9286,0.8235,1.0
+T3__lr1e-05__ep1__seed20260817,T3,20260817,1,243,ok,0.301112,0.048905,0.3231,False,0.9524,0.9756,0.9639,0.015,1.0,0.0,0.9643,0.8824,1.0
+T3__lr1e-05__ep1__seed31337,T3,31337,1,243,ok,0.323818,0.034786,0.0642,False,0.9874,0.9593,0.9732,0.0038,1.0,0.0,0.9643,0.7647,1.0

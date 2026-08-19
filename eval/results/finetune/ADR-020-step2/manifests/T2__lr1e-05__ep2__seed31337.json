@@ -1,0 +1,78 @@
+{
+  "run_id": "T2__lr1e-05__ep2__seed31337",
+  "arm": "T2",
+  "isolates": "composition only (steps identical to ADR-019)",
+  "seed": 31337,
+  "learning_rate": 1e-05,
+  "epochs": 2,
+  "steps_per_epoch": 243,
+  "total_steps": 486,
+  "effective_batch": 16,
+  "micro_batch": 4,
+  "gradient_accumulation": 4,
+  "sampler": "stratified 90/10 v1:extension, explicit per-epoch slot counts",
+  "mixture_ratio": {
+    "v1": 0.9,
+    "extension": 0.1
+  },
+  "planned_mixture": {
+    "total": 3888,
+    "v1_slots": 3499,
+    "extension_slots": 389,
+    "v1_extraction": 294,
+    "v1_other_attacks": 301,
+    "v1_benign": 2904,
+    "extension_attacks_per_mechanism": 53,
+    "extension_attacks": 159,
+    "extension_benign": 230
+  },
+  "realised_mixture_epoch0": {
+    "n": 3888,
+    "unique_samples": 2544,
+    "v1_share": 0.899949,
+    "extension_share": 0.100051,
+    "attack_fraction": 0.19393,
+    "extraction_share_of_attacks": 0.38992,
+    "attacks_by_sub_category": {
+      "system_prompt_extraction": 294,
+      "direct_prompt_injection": 187,
+      "tool_use_manipulation": 53,
+      "safety_bypass": 53,
+      "retrieval_poisoning": 53,
+      "jailbreak": 43,
+      "indirect_injection": 34,
+      "role_override": 23,
+      "context_override": 14
+    },
+    "mechanism_counts": {
+      "retrieval_poisoning": 53,
+      "tool_use_manipulation": 53,
+      "safety_bypass": 53
+    }
+  },
+  "mixture_targets_met": {
+    "v1_share_0.90": true,
+    "extension_share_0.10": true,
+    "attack_fraction_pinned": true,
+    "extraction_share_at_or_above_floor": true,
+    "three_mechanisms_balanced": true
+  },
+  "train_hash": "be2e08ef361e843620328800bb59384b5be7049294c958cc547de0f5e2930e17",
+  "dev_hash": "2ae796b7f9fad9cd27217226ebbc2069a6ea031fa190f18d498f6baaf9d01f5c",
+  "model_revision": "protectai/deberta-v3-base-prompt-injection-v2",
+  "tokenizer_revision": "protectai/deberta-v3-base-prompt-injection-v2",
+  "git_commit": "ce8f6a6c2301f8ea58eeaa2d8e7c5c11ab790d0b",
+  "environment": {
+    "python": "3.12.3",
+    "torch": "2.6.0+cu124",
+    "cuda": "12.4",
+    "device_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+    "platform": "Linux-7.0.0-28-generic-x86_64-with-glibc2.39"
+  },
+  "duration_s": 214.46,
+  "peak_vram_gb": 3.182,
+  "checkpoint": "artifacts/finetune-retention/T2__lr1e-05__ep2__seed31337",
+  "checkpoint_sha256": "7a98c2d9dd214adb038f288f9872dc9f807d7694012db611ee6c695686f5e685",
+  "status": "ok",
+  "holdout_accessed": false
+}
