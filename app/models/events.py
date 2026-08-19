@@ -18,7 +18,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.core.types import Action, Category, Direction
+from app.core.types import Action, Category, Direction, Provenance, TrustLevel
 
 
 def _now() -> datetime:
@@ -44,6 +44,11 @@ class DetectorOutcome(BaseModel):
     latency_ms: float
     errored: bool = False
     error_kind: str | None = None
+    # Recorded, never consulted by the decision (ADR-017). Persisting it is what
+    # lets an operator ask "was this attack carried in retrieved content?"
+    # without re-running anything.
+    provenance: Provenance = Provenance.UNKNOWN
+    trust: TrustLevel = TrustLevel.UNKNOWN
     # Rule identifiers only, never matched text.
     reasons: tuple[str, ...] = ()
 
@@ -71,6 +76,8 @@ class SecurityEvent(BaseModel):
     # proving sameness, not secrecy (docs/10-security-model.md).
     content_hash: str | None = None
     content_length: int | None = None
+    provenance: Provenance = Provenance.UNKNOWN
+    trust: TrustLevel = TrustLevel.UNKNOWN
     # Bounded and label-only: entity types and counts, rule ids, span offsets.
     details: dict[str, Any] = Field(default_factory=dict)
 
@@ -84,6 +91,9 @@ class RequestTrace(BaseModel):
     created_at: datetime = Field(default_factory=_now)
     model: str | None = None
     upstream_host: str | None = None
+    # The calling application, when caller authentication is in force. An
+    # operator-chosen label, never a credential or anything derived from one.
+    caller_id: str | None = None
     status_code: int
     # None when the request failed before or during policy evaluation (malformed
     # body, unsupported feature, upstream error). Recording ALLOW there would

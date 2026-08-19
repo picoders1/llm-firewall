@@ -25,8 +25,6 @@ import structlog
 from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel
 
-from app.core.exceptions import NotImplementedYet
-
 logger = structlog.get_logger(__name__)
 
 router = APIRouter(tags=["operations"])
@@ -106,14 +104,17 @@ async def ready(request: Request, response: Response) -> ReadyResponse:
 
 
 @router.get("/metrics", include_in_schema=False)
-async def metrics() -> Response:
-    """Prometheus exposition.
+async def metrics(request: Request) -> Response:
+    """Prometheus exposition of the catalogue in docs/12-observability.md.
 
-    Not implemented in this Phase 0 slice: the metric catalogue in
-    docs/12-observability.md lands with the request pipeline, and an endpoint
-    exposing an empty registry would be a claim of observability that does not
-    exist yet.
+    Unauthenticated by design and safe to scrape internally: every label value is
+    a route template, an enum, a registry detector name, an exception class name
+    or an HTTP status class. No label is derived from user content, and the
+    cardinality of the open-ended ones is bounded in code rather than assumed
+    (`app.observability.metrics.bounded_label`).
+
+    A freshly started process legitimately exposes counters at zero. That is an
+    empty state, not a broken one.
     """
-    raise NotImplementedYet(
-        "Metrics are not implemented yet; see docs/19-implementation-roadmap.md (Phase 0)."
-    )
+    body, content_type = request.app.state.metrics.render()
+    return Response(content=body, media_type=content_type)

@@ -65,6 +65,12 @@ class RequestTraceRow(Base):
     model: Mapped[str | None] = mapped_column(String(128))
     # Host only — never a full URL, which can carry a query string.
     upstream_host: Mapped[str | None] = mapped_column(String(255))
+    # WHICH APPLICATION called, never HOW it proved it (ADR-024 §20). The
+    # identifier is an operator-chosen label from configuration, so it carries no
+    # secret and cannot be influenced by the caller. `NULL` means the request
+    # predates caller authentication or arrived while the boundary was off —
+    # which is a different fact from "anonymous" and is recorded as such.
+    caller_id: Mapped[str | None] = mapped_column(String(64))
     status_code: Mapped[int] = mapped_column(SmallInteger, nullable=False)
 
     decision: Mapped[str] = mapped_column(String(16), nullable=False)
@@ -121,6 +127,10 @@ class DetectorResultRow(Base):
     error_kind: Mapped[str | None] = mapped_column(String(64))
     # Rule identifiers only — never matched text.
     reasons: Mapped[list[str]] = mapped_column(JSON, default=list)
+    # Bounded enums (6 and 5 values). Recorded so an operator can ask which
+    # origin an attack arrived through; never used to make the decision.
+    provenance: Mapped[str] = mapped_column(String(16), default="unknown", nullable=False)
+    trust: Mapped[str] = mapped_column(String(16), default="unknown", nullable=False)
 
     trace: Mapped[RequestTraceRow] = relationship(back_populates="detector_results")
 
@@ -164,10 +174,18 @@ class SecurityEventRow(Base):
 
     # Bounded, label-only detail: entity types and counts, rule ids, offsets.
     details: Mapped[dict[str, object]] = mapped_column(JSON, default=dict)
+    provenance: Mapped[str] = mapped_column(String(16), default="unknown", nullable=False)
+    trust: Mapped[str] = mapped_column(String(16), default="unknown", nullable=False)
 
     __table_args__ = (
         Index("ix_security_events_created_at", "created_at"),
         Index("ix_security_events_category_created_at", "category", "created_at"),
+        # The dashboard's two most common filters. Deliberately no index on
+        # provenance/trust: at present those columns are overwhelmingly one
+        # value, so an index would not be selective. Add one when the
+        # distribution justifies it, not before (docs/12-observability.md).
+        Index("ix_security_events_event_type_created_at", "event_type", "created_at"),
+        Index("ix_security_events_detector_created_at", "detector", "created_at"),
         Index("ix_security_events_content_hash", "content_hash"),
         Index("ix_security_events_request_id", "request_id"),
     )

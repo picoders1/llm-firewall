@@ -74,6 +74,7 @@ class PostgresAuditRepository:
                 request_id=trace.request_id,
                 model=trace.model,
                 upstream_host=trace.upstream_host,
+                caller_id=trace.caller_id,
                 status_code=trace.status_code,
                 decision=trace.decision.value if trace.decision else "not_evaluated",
                 block_category=trace.block_category.value if trace.block_category else None,
@@ -101,6 +102,8 @@ class PostgresAuditRepository:
                     errored=outcome.errored,
                     error_kind=outcome.error_kind,
                     reasons=list(outcome.reasons),
+                    provenance=outcome.provenance.value,
+                    trust=outcome.trust.value,
                 )
                 for outcome in trace.detector_outcomes
             ]
@@ -118,6 +121,8 @@ class PostgresAuditRepository:
                         severity=event.severity,
                         content_hash=event.content_hash,
                         content_length=event.content_length,
+                        provenance=event.provenance.value,
+                        trust=event.trust.value,
                         details=event.details,
                     )
                 )

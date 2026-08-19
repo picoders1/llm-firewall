@@ -41,6 +41,22 @@ ALLOWED_TEXT_COLUMNS = {
     ("security_events", "category"),
     ("security_events", "detector"),
     ("security_events", "content_hash"),  # fingerprint, not content
+    # Provenance and trust, added for the Phase 5 observability API. Both are
+    # closed enums derived from the message role by `app.core.provenance`
+    # (6 and 5 possible values); neither is ever read from the wire, so no
+    # caller-supplied string can reach them.
+    ("detector_results", "provenance"),
+    ("detector_results", "trust"),
+    ("security_events", "provenance"),
+    ("security_events", "trust"),
+    # Caller identity, added for the Phase 10 gateway boundary (ADR-024). It is a
+    # label from `FIREWALL_CALLER_API_KEYS` and can only ever be one of the
+    # configured values — an identity the caller asserts but the gateway does not
+    # recognise never becomes a principal, so nothing from the wire reaches this
+    # column. It holds WHICH application called, never HOW it proved it: the
+    # presented credential has no code path to the audit layer, asserted in
+    # `test_caller_boundary.py`.
+    ("request_traces", "caller_id"),
 }
 
 
