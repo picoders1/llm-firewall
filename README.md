@@ -111,6 +111,50 @@ curl -sS localhost:8000/v1/chat/completions -H 'content-type: application/json' 
 curl -sS localhost:8081/__stats
 ```
 
+### Authenticating callers
+
+Outside production `/v1` is open, which is what keeps the commands above working with no
+setup. In production it is not optional — the gateway holds your upstream API key, so
+`FIREWALL_ENVIRONMENT=production` with caller authentication disabled is a startup failure.
+
+```bash
+uv run python scripts/generate_caller_key.py web-app
+```
+
+That prints two values with different destinations: the **raw key** goes to the calling
+application, the **digest** goes in `FIREWALL_CALLER_API_KEYS` on the gateway. The gateway
+never holds the raw key, so an environment dump on its side yields nothing presentable
+([ADR-024](docs/adr/ADR-024-llm-caller-authentication.md)).
+
+Nothing changes for the client — the OpenAI SDK already sends the credential:
+
+```python
+client = OpenAI(base_url="http://localhost:8000/v1", api_key="<the raw key>")
+```
+
+### Security Operations console
+
+```bash
+open http://localhost:8000/dashboard
+```
+
+Six read-only views over real audit data — no framework, no build step, no runtime
+dependency ([ADR-022](docs/adr/ADR-022-dashboard-frontend-architecture.md)).
+
+Outside production the console is **open**, which is what keeps the quick start one
+command. Identity is terminated at a reverse proxy or ingress and enforced in-process
+([ADR-023](docs/adr/ADR-023-operator-authentication.md)); to exercise that boundary
+locally:
+
+```bash
+docker compose -f compose.yaml -f compose.console-auth.yaml up -d --build
+open http://localhost:8088/dashboard        # operator / development-only
+```
+
+The console then refuses direct access on :8000. In production the boundary is not
+optional: `FIREWALL_ENVIRONMENT=production` with an unauthenticated console is a startup
+failure, not a default.
+
 Local development without containers:
 
 ```bash
@@ -152,6 +196,11 @@ Invalid policy prevents startup. It is never silently repaired
 | Blocked requests | Never reach the upstream — asserted against a call counter, and recorded as `upstream_called` on every audit row |
 | Audit trail | No column can hold a prompt or completion; asserted against the schema |
 | Block responses | Category and request ID only — never the score, rule, or matched text |
+| Operator access | The console and its APIs require an operator identity terminated at a reverse proxy or ingress. Identity headers are read **only** from a trusted peer address; `X-Forwarded-For` is never consulted. Unknown paths default to operator-only |
+| Caller access | `/v1/**` requires a service API key, stored on the gateway as a SHA-256 digest and compared in constant time. Checked in middleware, so a refusal costs no detector inference and never reaches the model — asserted against a call counter, not a status code |
+| Upstream credential | Bound once at construction and unreachable from a request: the upstream client accepts a JSON payload and no headers, so a client's `Authorization` has no path to the provider |
+| Abuse | Per-caller sliding-window rate limit and concurrency ceiling, off by default. **Per process** — N replicas allow N times the limit |
+| Console mutation | Impossible: every operator endpoint is `GET`, and the boundary refuses other methods. Authentication protects the console; it does not turn it into a control plane |
 | Container | Non-root, read-only root filesystem, dropped capabilities |
 
 What this project explicitly does **not** claim: it does not *prevent* prompt injection, does
@@ -207,10 +256,18 @@ Testing conventions: [docs/16-testing-strategy.md](docs/16-testing-strategy.md).
 | 5 | Async audit writer, retention, exporters, dashboards | Not started |
 | 6 | Streaming inspection, rate limiting, red-team loop | Not started |
 | 7 | Production image, deployment | Not started |
+| 8 | Security Operations console | **Complete** ([ADR-022](docs/adr/ADR-022-dashboard-frontend-architecture.md)) |
+| 9 | Operator authentication and console access control | **Complete** ([ADR-023](docs/adr/ADR-023-operator-authentication.md)) |
+| 10 | Caller authentication and abuse protection | **Complete** ([ADR-024](docs/adr/ADR-024-llm-caller-authentication.md)) |
 
-Known gaps today: **detection quality is unmeasured**; the detectors are baseline heuristics,
-not classifiers; no streaming (returns `400`); no rate limiting (deploy behind a rate-limiting
-ingress); no Prometheus `/metrics` yet; no evaluation runner or report writer yet.
+Known gaps today: no streaming (returns `400`); **no edge rate limiting** — an
+*unauthenticated* flood is still free, so deploy behind a rate-limiting ingress (T-18); the
+per-caller ceiling is per process rather than global (R-63); and it bounds request count, not
+tokens, so a caller sending very large prompts outspends one sending many small ones (R-64).
+
+*(The phase table above is stale in places — Phase 5's `/metrics` and Security Operations
+API are built, and detection quality has been measured. Trust
+[docs/19-implementation-roadmap.md](docs/19-implementation-roadmap.md) and the ADRs.)*
 
 Full plan: [docs/19-implementation-roadmap.md](docs/19-implementation-roadmap.md).
 

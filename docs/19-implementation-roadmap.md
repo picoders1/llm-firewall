@@ -16,8 +16,11 @@ run**, not when its tasks are ticked.
 | 2 | Input security (ML detectors) | **Layer-2 classifier INTEGRATED, warn-only and disabled by default** ([ADR-021](adr/ADR-021-layer2-transformer-integration.md)); **ADR-020 CLOSED → FAILURE**: replay and reduced adaptation recovered 15% / 41% of the regression while collapsing mechanism coverage. Single-model replacement is not viable; layered detector (OD-34) is now primary; **ADR-019 executed → FAILURE** (mechanisms learnable, but −9.1pt extraction regression). **Model selected** ([ADR-014](adr/ADR-014-detector-selection.md)); **Strategy A fine-tuning executed** ([ADR-015](adr/ADR-015-fine-tuning-strategy.md)) — PARTIAL SUCCESS; **validated on hold-out v3** (all four FPR criteria met, both recall criteria fail). **Indirect injection quantified**: recall **0.1423** (n=520), no delivery shape reliably detected — blocking refused on severity grounds ([ADR-016](adr/ADR-016-provenance-aware-detection.md)). Model warn-only, not integrated |
 | 3 | Output security | Not started |
 | 4 | Evaluation and benchmarking | **Framework built and validated**; corpus gaps remain (OD-17) |
-| 5 | Observability and operations | Not started |
-| 6 | Hardening | Not started |
+| 5 | Observability and operations | **Backend COMPLETE**: `/metrics` implemented against the documented catalogue, read-only Security Operations API in `app/api/dashboard/`, contract in [dashboard-api-contract.md](dashboard-api-contract.md). Async audit writer and retention automation still outstanding |
+| 8 | Security Operations Dashboard | **COMPLETE** — Vanilla HTML/CSS/JS console at `/dashboard`, no framework and no build step ([ADR-022](adr/ADR-022-dashboard-frontend-architecture.md), [23-dashboard-frontend.md](23-dashboard-frontend.md)) |
+| 6 | Hardening | Not started. **Operator authentication delivered early as Phase 9** ([ADR-023](adr/ADR-023-operator-authentication.md)) because Phase 8 made the console interactive; rate limiting (T-18) remains |
+| 10 | Caller authentication and abuse protection | **COMPLETE** — service API key on `Authorization: Bearer` verified against configured digests ahead of detector inference; per-caller rate and concurrency ceilings; upstream credential isolation pinned by test ([ADR-024](adr/ADR-024-llm-caller-authentication.md)). Resolves OD-36 and R-60; opens OD-37 |
+| 9 | Operator authentication and console access control | **COMPLETE** — identity terminated at a reverse proxy or ingress, enforced in-process; access classes default to operator-only; production refuses an unauthenticated console ([ADR-023](adr/ADR-023-operator-authentication.md)). Resolves OD-35; opens OD-36 (caller authentication for `/v1/**`) |
 | 7 | Deployment | Not started |
 | 2P | **Provenance-aware detection** | **A+B+C implemented, D evaluated — PROVENANCE BENEFICIAL**; E not started — [ADR-017](adr/ADR-017-provenance-aware-detection-context.md); migration phases A–E below |
 | 8 | **Security Operations Dashboard** (productization) | Not started — **recorded, deliberately not implemented** |
@@ -599,31 +602,33 @@ states demonstrated; no framework dependency introduced.
 
 ## Next implementation task
 
-**Collect shadow-mode false-positive data by enabling layer 2 in warn mode on real traffic (OD-18).**
+**Rate-limit the boundary itself — unauthenticated request floods are still free
+(T-18).**
 
-[ADR-021](adr/ADR-021-layer2-transformer-integration.md) integrated the fine-tuned classifier
-as layer 2. It is registered, warn-only, and **disabled by default** — a default install is
-byte-identical to before. Enabling it needs the `ml` extra and a checkpoint pointed at by
-`options.model_path`, which is deliberately not committed.
+Phase 10 is complete. `/v1/**` requires a service API key, verified in
+middleware against configured SHA-256 digests before normalisation, before
+detector inference and before the upstream — every negative test asserts
+`upstream.call_count == 0`, because a `401` alone would not prove the model was
+never reached. Authenticated callers carry an identity into the audit trail and
+the metrics, and a per-caller sliding-window rate limit plus concurrency ceiling
+bound what a compromised or looping caller can spend.
 
-That closes a circular dependency: OD-18 (promoting layer 2 from warn to block) was blocked on
-shadow-mode FPR from real traffic, which could not exist while the detector never ran.
+The audit also found one thing already correct and left it alone: upstream
+credential isolation is structural, not filtered. `HttpUpstreamClient` binds its
+`authorization` header at construction and accepts only a JSON payload per
+request, so no inbound header has a path to the provider. Phase 10 added tests
+that pin the method signature rather than any code to enforce it.
 
-**Measured for that decision** — 200 samples, single-sample, warm, on the reference machine:
+What is still free is *arriving*. Both boundaries now refuse an unauthenticated
+request cheaply, but they refuse it every time, at whatever rate it is offered:
+the per-caller limiter only engages **after** a caller is identified, so it does
+nothing about a flood of anonymous requests or credential guesses. That is
+threat T-18, it was Phase 6's job before either auth phase existed, and it is now
+the largest remaining gap — the one control that bounds cost for traffic that
+never authenticates at all.
 
-| | CPU | CUDA (published) |
-|---|---|---|
-| p50 | **95.38 ms** | 11.96 ms |
-| p99 | **163.95 ms** | 14.79 ms |
-| throughput, single-threaded | **10.4/s** | 85.1/s |
-
-CPU is ~8× slower, and 10.4/s is the operationally significant number. An operator turning
-this on should plan capacity around it.
-
-**Still refused, on evidence:** blocking on ML findings. Indirect-injection recall is 0.1423
-(ADR-016) and no threshold here is calibrated against production traffic (OD-3). Promotion
-requires its own ADR citing shadow-mode data.
-
-**The other open direction** is OD-34, the layered detector, which ADR-020's failure promoted
-to primary. ADR-021 built the plumbing it needs — a second same-category detector in the
-registry, running through the guarded pipeline — so that experiment is now cheaper to design.
+The likely shape is an ingress rate limit keyed by source address, because the
+edge is the only place that sees a request before this process spends anything on
+it — the same principle that put both identity boundaries outside the
+application. A per-source limiter inside the gateway would be a second-best
+version of it, and would itself be per process (R-63).

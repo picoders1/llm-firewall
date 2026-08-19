@@ -24,6 +24,17 @@ Unresolved questions are **not** here; they are in
 | [011](ADR-011-configuration-model.md) | Split env settings from YAML policy | Accepted | [06](../06-policy-engine.md) |
 | [012](ADR-012-persistence-and-retention.md) | Audit persistence and retention | Accepted | [11](../11-data-model.md) |
 | [013](ADR-013-deployment-strategy.md) | Compose first, Kubernetes conditionally | Accepted | [17](../17-deployment-architecture.md) |
+| [014](ADR-014-detector-selection.md) | Layered detector selection; baseline retained as layer 1 | Accepted | [13](../13-evaluation-strategy.md) |
+| [015](ADR-015-fine-tuning-strategy.md) | Fine-tuning strategy, pre-registered | **Executed → PARTIAL** | [13](../13-evaluation-strategy.md) |
+| [016](ADR-016-provenance-aware-detection.md) | Indirect injection needs provenance, not a better classifier | Accepted | [09](../09-threat-model.md) |
+| [017](ADR-017-provenance-aware-detection-context.md) | Provenance-aware `DetectionContext` | Accepted | [05](../05-detector-architecture.md) |
+| [018](ADR-018-provenance-aware-detector-evaluation.md) | Provenance-aware evaluation protocol | **Executed → PARTIAL** | [13](../13-evaluation-strategy.md) |
+| [019](ADR-019-mechanism-coverage-fine-tuning.md) | Mechanism-coverage fine-tuning protocol | **Executed → FAILURE** | [13](../13-evaluation-strategy.md) |
+| [020](ADR-020-retention-preserving-training.md) | Retention-preserving successor training | **Executed → FAILURE** | [13](../13-evaluation-strategy.md) |
+| [021](ADR-021-layer2-transformer-integration.md) | Layer-2 transformer integrated, warn-only, disabled | Accepted | [05](../05-detector-architecture.md) |
+| [022](ADR-022-dashboard-frontend-architecture.md) | A browser console from the gateway, without a framework | Accepted | [23](../23-dashboard-frontend.md) |
+| [023](ADR-023-operator-authentication.md) | Operator identity terminated at the ingress, enforced in-process | Accepted, amended by 024 | [17](../17-deployment-architecture.md) |
+| [024](ADR-024-llm-caller-authentication.md) | Service API key for `/v1`, plus a per-caller ceiling | Accepted | [17](../17-deployment-architecture.md) |
 
 **Numbering note.** ADRs are numbered in the order the decisions were made and are never
 renumbered — cross-references would rot. The brief's suggested ordering (ADR-007
@@ -31,9 +42,10 @@ Observability, ADR-008 Deployment) maps here to ADR-008 and ADR-013 respectively
 covers failure semantics, which turned out to be a larger decision than anticipated and
 earned its own record.
 
-Model selection (injection/jailbreak classifier) will become **ADR-014** when Phase 2 produces
-the measurements to decide it — it is currently OD-1 in
-[21-open-decisions.md](../21-open-decisions.md).
+Model selection became **ADR-014** once Phase 2 produced the measurements, resolving OD-1.
+Several later ADRs are *pre-registered protocols* rather than architecture decisions: their
+status records the outcome of the experiment they registered, and a **FAILURE** there is a
+result the project keeps, not a document to revise.
 
 ## Template
 

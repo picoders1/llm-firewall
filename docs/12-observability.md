@@ -64,6 +64,10 @@ Prometheus text exposition on `GET /metrics`, disableable via `metrics_enabled`.
 | `firewall_upstream_errors_total` | counter | `kind` | |
 | `firewall_audit_write_failures_total` | counter | — | Audit sink health; see [ADR-012](adr/ADR-012-persistence-and-retention.md) |
 | `firewall_request_bytes` | histogram | `route` | Sizing and abuse detection |
+| `firewall_caller_requests_total` | counter | `caller` | Authenticated gateway traffic by calling application ([ADR-024](adr/ADR-024-llm-caller-authentication.md)). `caller` comes from configuration, not the wire, and still passes through `bounded_label` |
+| `firewall_caller_auth_failures_total` | counter | `reason` | **Alert on a sustained rate.** Either a caller's credential is wrong or rotated, or someone is probing for one. `reason` is a closed enum, never a presented credential |
+| `firewall_rate_limited_requests_total` | counter | `caller`, `limit` | Per-caller ceiling hits, `limit` being `rate` or `concurrency`. Counted **per process**: with N replicas the real ceiling is N times the configured one |
+| `firewall_auth_denials_total` | counter | `access_class`, `reason` | Operator-console refusals ([ADR-023](adr/ADR-023-operator-authentication.md)). Both labels are closed enums — `reason` is never derived from a header |
 
 Bucket boundaries are chosen for this domain, not left at library defaults: detector and
 overhead histograms use millisecond-resolution buckets (1, 2, 5, 10, 25, 50, 100, 250, 500,
@@ -137,3 +141,48 @@ check names and pass/fail.
 3. `firewall_gateway_overhead_seconds` p95 — the number the platform team will ask about.
 4. `firewall_audit_write_failures_total` — the audit trail going quiet is itself an event.
 5. `/ready` flapping — usually memory pressure from model loading.
+
+
+---
+
+## Implemented in Phase 5
+
+The catalogue above is no longer a plan. `app/observability/metrics.py` exposes
+every metric in it through `GET /metrics`, and `tests/api/test_metrics_endpoint.py`
+asserts the endpoint against **this document** rather than against the code, so the
+two cannot drift apart silently.
+
+### The cardinality assumption is now enforced, not trusted
+
+This document said "model names and route templates are bounded sets". Route
+templates genuinely are. **Model names are not** — they arrive from the client, and
+a caller sending a unique string per request would turn one label into an unbounded
+memory leak.
+
+`bounded_label` caps each open-ended label at 32 distinct values and collapses the
+rest to `other`. A security test drives 80 distinct model names through the gateway
+and asserts the series count stays bounded. The assumption is now a property of the
+code.
+
+Status labels are HTTP **classes** (`4xx`), never raw codes, for the same reason.
+
+### Where metrics are emitted
+
+From the single point where the audit record is assembled
+(`app/api/v1/chat.py`), not from a second traversal of the request. Metrics and the
+audit table are therefore derived from one object, and a discrepancy between the
+dashboard and the audit trail cannot come from two code paths disagreeing.
+
+### The Security Operations API
+
+`app/api/dashboard/` serves the read-only query layer the dashboard consumes;
+`docs/dashboard-api-contract.md` is the authoritative contract. Aggregation happens
+in PostgreSQL (`percentile_cont`, `date_trunc`), bounded before the query is issued:
+30-day maximum window, 200-row page cap, whitelisted bucket intervals and a
+1500-bucket ceiling.
+
+**No cache, and none is justified yet.** Measured against the live stack, every
+endpoint answers in under 7 ms at p99 on a small dataset — the slowest is
+`/overview` at 4.7 ms p50, which issues six aggregate queries. That is a
+slow-query smoke test on a small table, **not** a production performance claim.
+Revisit materialisation when a real dataset says so (§19 of the Phase 5 brief).

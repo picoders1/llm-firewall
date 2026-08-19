@@ -95,15 +95,17 @@ The OpenAI error envelope, so existing client error handling keeps working:
 |---|---|---|
 | Malformed body / schema violation | 400 | `invalid_request_error` |
 | `stream: true` | 400 | `unsupported_feature` |
+| Missing or unrecognised caller credential | 401 | `invalid_request_error` / code `invalid_api_key` |
+| Per-caller rate or concurrency ceiling | 429 | `rate_limit_exceeded`, with `Retry-After` |
 | Blocked by policy | 403 | `security_block` |
 | Unknown endpoint | 404 | `not_found_error` |
 | Body over `max_request_bytes` | 413 | `request_too_large` |
-| Upstream rate limit | 429 | passthrough with `Retry-After` |
+| Upstream rate limit | 429 | passthrough with `Retry-After` — distinguishable from the gateway's own limit by `type` |
 | Upstream unreachable / 5xx | 502 | `upstream_error` |
 | Detector failure, fail-closed | 503 | `detector_failure` |
 | Upstream read timeout | 504 | `upstream_timeout` |
 
-Three rules govern error bodies:
+Four rules govern error bodies:
 
 1. **Block responses state category and request ID only** — never the score, the matched rule,
    or the offending text. Anything more turns the gateway into a tuning oracle the attacker
@@ -113,6 +115,11 @@ Three rules govern error bodies:
    provider internals.
 3. **Unhandled exceptions return a generic message.** Stack traces are logged server-side
    only.
+4. **A 401 does not say *why*.** "No credential", "wrong credential" and "revoked
+   credential" produce byte-identical bodies apart from the request ID; the distinction goes
+   to `firewall_caller_auth_failures_total{reason}` and the log. Telling them apart on the
+   wire turns the gateway into an oracle for enumerating which keys exist
+   ([ADR-024](adr/ADR-024-llm-caller-authentication.md)).
 
 Note the deliberate distinction between `403` (you are being blocked) and `503` (we cannot
 inspect right now). A client's retry logic should treat these differently, and merging them

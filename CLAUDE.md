@@ -32,9 +32,11 @@ Request path: middleware → `api/v1/chat.py` → `core/normalize.py` → `detec
 (concurrent, each wrapped in `GuardedDetector`) → `policy/engine.py` → `gateway/upstream.py` →
 output inspection → audit.
 
-Four constraints do most of the work. **All four are enforced by tests, not convention** — see
-`tests/unit/test_layer_boundaries.py`, which parses the AST so a violation is caught even if the
-module is never imported.
+Six constraints do most of the work. **All six are enforced by tests, not convention** — the
+first four by `tests/unit/test_layer_boundaries.py`, which parses the AST so a violation is
+caught even if the module is never imported, and the last two by
+`tests/security/test_operator_auth.py` and `tests/security/test_caller_auth.py`, which attack
+the boundaries rather than describing them.
 
 - **Detectors detect; the policy engine decides.** `app/detectors/` cannot import `app/policy`,
   and `Action` is not importable inside detectors. This makes the whole security decision surface
@@ -48,6 +50,32 @@ module is never imported.
 - **Provenance may only tighten.** `core/provenance.py` derives trust from role; a trust claim is
   never read from the wire (`trust_inline_claims=False`). `config/policy.py` rejects any `by_trust`
   overlay that loosens a decision, at load time.
+- **Operator identity is derived, never received.** `app/middleware/auth.py` assigns an access
+  class by path — and unknown paths default to **operator-only**, so a new route is protected
+  before anyone classifies it. No identity header is read until the socket's peer falls inside
+  `FIREWALL_TRUSTED_PROXIES`; `X-Forwarded-For` is never consulted, because it is
+  client-supplied. Production refuses to start with an unauthenticated console, with a
+  `0.0.0.0/0` trusted range, or with no trusted range at all (ADR-023). The console remains
+  read-only: non-`GET` on the operator surface is refused at the boundary, so a mutating
+  endpoint cannot inherit read-only authentication without an edit there.
+  `/v1/**` is outside this boundary and covered by the separate one below.
+
+- **Callers are a second, separate boundary.** `app/middleware/caller_auth.py` guards `/v1/**`
+  with a service API key on `Authorization: Bearer`, compared against SHA-256 digests in
+  `FIREWALL_CALLER_API_KEYS` — **the raw key is never stored on the gateway**, and the
+  comparison loop does not short-circuit on the first match. It runs in middleware so a
+  refusal costs no detector inference (~95 ms) and never reaches the upstream; every negative
+  test asserts `upstream.call_count == 0`, because a 401 alone would not prove it. Operator and
+  caller principals are **different types** so one cannot be substituted for the other. A
+  client header can never become the upstream credential: `HttpUpstreamClient` binds
+  `authorization` at construction and `chat_completions(self, payload)` has nowhere to put a
+  header — a test asserts that signature (ADR-024).
+
+The operator boundary is off outside production (`console_auth_mode` derives to `disabled`),
+so `docker compose up` and the whole test suite behave exactly as before; tests that need it
+use the `enforcing_client` fixture, and `compose.console-auth.yaml` adds an nginx proxy for
+manual work. The caller boundary derives the same way; tests that need it use `caller_client`,
+and `scripts/generate_caller_key.py` mints a credential for manual work.
 
 Configuration is two deliberately separate systems (ADR-011): **settings** from `FIREWALL_*` env
 vars (secrets, `SecretStr`), and **policy** from `config/policies/default.yaml` (thresholds,

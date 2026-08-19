@@ -42,6 +42,9 @@ evidence that resolved it. "We just did it that way" is not a resolution.
 | OD-14 | Custom PII patterns are not validated at startup | Phase 2 | Decide the failure mode |
 | OD-15 | Audit writes are synchronous and on the request path | Phase 4/5 | Measured share of overhead |
 | OD-16 | Oversized requests (413) produce no audit row | Phase 1 | Where the limit should live |
+| OD-35 | Authentication for the Security Operations API **and console** | — | **RESOLVED by [ADR-023](adr/ADR-023-operator-authentication.md)**: identity terminated at a reverse proxy or ingress, enforced in the application, refused-at-startup in production. No user model was invented |
+| OD-36 | Authentication for **application** traffic (`/v1/chat/completions`) | — | **RESOLVED by [ADR-024](adr/ADR-024-llm-caller-authentication.md)**: a service API key on `Authorization: Bearer`, verified against configured digests. No user model, no credential store |
+| OD-37 | Should the gateway enforce a **cost** budget, not just a request rate? | Phase 6+ | A deployment where one caller's prompt sizes actually differ enough to matter. `usage` is already recorded per request, so the data exists; what is missing is a reason to spend the complexity (R-64) |
 
 ---
 
@@ -1071,3 +1074,112 @@ The experiment is defined in ADR-020 §"The layered-detector experiment" and rem
 
 **Blocked on:** a decision to authorise it. No further single-model training is indicated
 by the evidence.
+
+
+---
+
+## OD-35 — Authentication for the Security Operations API — **RESOLVED 2026-08-19**
+
+**Question.** The dashboard endpoints and `/metrics` are unauthenticated. Should
+they be, and if not, which mechanism?
+
+**Why it stayed open, and why that stopped being tenable.** The argument for
+leaving it open was that the console exposes no prompt content, no PII and no
+secrets by construction (R-56) — which is true, and incomplete. It exposes
+thresholds and block rates by category, and those two together describe how to
+tune an evasion against this specific gateway without ever tripping it. That is
+threat T-13 with the guesswork removed. Phase 8 then made the surface
+interactive, which raised the cost of being wrong without changing the analysis.
+
+**What the Phase 9 audit found.** The boundary this project assumed — "internal
+network, or a reverse proxy that terminates authentication" — **did not exist in
+the repository**. `compose.yaml` publishes the gateway directly on port 8000;
+`deploy/` held only Dockerfiles; there was no proxy, no ingress and no
+authentication anywhere in `app/`. The *documented* production topology in
+docs/17 had drawn `ingress (TLS, authn/z, rate limiting)` all along. The intended
+shape was right; nothing enforced it, and nothing could observe that it was
+missing.
+
+**Answer: [ADR-023](adr/ADR-023-operator-authentication.md).** Identity is
+terminated outside the process and arrives as a proxy-injected header; the
+application trusts that header only when the socket's peer falls inside a
+configured trusted range, and never reads `X-Forwarded-For`. Access classes are
+assigned by path and default to operator-only, so a route added later is
+protected until someone deliberately opens it. `console_auth_mode=disabled` is
+refused when the environment is production, and `proxy` mode without a trusted
+range refuses to start.
+
+**What was deliberately not built:** a user model, a credential store, a session
+mechanism, a password-reset path, a login page, or an OAuth client. The
+prediction that inventing those would be a liability held up — the mechanism that
+resolved this decision is a header contract every plausible identity layer
+already speaks.
+
+**What remains open:** application traffic (OD-36), and CSRF for the first
+mutating endpoint, whose acceptance criteria are written down in ADR-023 rather
+than deferred to whoever adds it.
+
+---
+
+## OD-36 — Authentication for application traffic — **RESOLVED 2026-08-19**
+
+**Question.** `/v1/chat/completions` and `/v1/models` are unauthenticated. Should
+the gateway authenticate its own callers?
+
+**Why it looked genuinely open.** A drop-in gateway's callers are applications,
+and the sensible mechanism seemed to depend on a deployment nobody had
+described: a sidecar needs nothing, a shared internal gateway needs per-caller
+keys, an internet-facing one needs those plus rate limiting.
+
+**What settled it.** [ADR-004](adr/ADR-004-openai-compatible-contract.md) already
+fixed the answer and nobody had noticed. The project's entire adoption argument
+is `OpenAI(base_url=..., api_key="...")` — which means **every caller is already
+sending `Authorization: Bearer`**. The mechanism that requires no client change
+is the one the client is already using, and that is true regardless of which
+deployment shape appears. There was no decision waiting on evidence.
+
+**Answer: [ADR-024](adr/ADR-024-llm-caller-authentication.md).** A service API
+key, stored on the gateway as a SHA-256 digest so an environment dump yields
+nothing presentable, compared in constant time without short-circuiting on the
+first match, and enforced in middleware ahead of detector inference — the layer-2
+transformer costs ~95 ms per call, so authenticating in the handler would let an
+anonymous client spend real compute on requests it is about to be refused.
+
+**What was deliberately not built:** a credential table, a management API, a
+rotation workflow, an admin UI, per-caller upstream credentials. The prediction
+in OD-35 held again — reusing what the deployment already speaks beat inventing a
+mechanism.
+
+**What the audit also found, and did not need changing:** upstream credential
+isolation was already structural. `HttpUpstreamClient` binds its `authorization`
+header at construction and takes only a JSON payload per request, so there was
+never a path for a client header to reach the provider. Phase 10 added the tests
+that pin that shape rather than any code to enforce it.
+
+**What remains open:** cost budgets (OD-37), and the per-process nature of the
+rate limit (R-63).
+
+---
+
+## OD-37 — Should the gateway enforce a cost budget, not just a request rate?
+
+**Question.** The Phase 10 ceiling counts requests. A caller sending 100 KB
+prompts outspends one sending 200-byte prompts by orders of magnitude while
+staying inside the same limit. Should the limit be denominated in tokens, or in
+provider cost, instead?
+
+**Why it is open rather than obviously yes.** A token budget needs a price model
+per provider and per model, a tokeniser that agrees with the provider's, and a
+decision about what to do with a request whose cost is only known *after* it
+runs. Getting any of those subtly wrong produces a limit that is confidently
+wrong — worse than one that is honestly coarse.
+
+**What already exists.** `usage` is returned by the upstream and is never
+rewritten, even when content is redacted (ADR-004), so per-request token counts
+are already in the audit trail. The data to size a budget is being collected; the
+mechanism to enforce one is not.
+
+**What would settle it.** A deployment where caller prompt sizes actually differ
+by an order of magnitude, or a provider bill that a request-rate limit failed to
+bound. Until then the honest statement is the one in R-64: this control bounds
+request volume, not cost.

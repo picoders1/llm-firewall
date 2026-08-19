@@ -200,3 +200,36 @@ quietly retain more than intended.
   moves them to a bounded in-process queue with a background writer so database latency
   leaves the request path. The interface does not change, only its implementation — this
   is why the repository boundary exists in Phase 0 despite being trivially thin there.
+
+
+---
+
+## Phase 5 additions
+
+`detector_results` and `security_events` each gained **`provenance`** and
+**`trust`** (migration `3c1d90b4e2a7`). The values already existed at request time —
+`app.core.provenance` derives them from the message role — they were simply never
+persisted, so the question "did this attack arrive inside retrieved content?"
+could not be answered without re-running the request.
+
+**Neither column can hold caller-supplied text.** Provenance is derived from role,
+`trust_inline_provenance_claims` defaults to `false`, and both are closed enums (6
+and 5 values). They are recorded and never consulted by the decision (ADR-017), so
+this is an observability change, not a policy one. Both are listed in
+`tests/security/test_audit_privacy.py`'s explicit account of free-text columns.
+
+Pre-migration rows are backfilled `'unknown'`. That is the honest value: their real
+provenance was never recorded, and inferring one would be fabrication. Live traffic
+therefore shows three populations — backfilled `unknown`, input `user_input`, and
+output-direction `model_output` — which an integration test asserts as a
+consistency property rather than assuming uniformity.
+
+### Indexes added, and one deliberately not added
+
+Added on `security_events`: `(event_type, created_at)` and `(detector, created_at)`
+— the dashboard's two most common filters, neither previously indexed.
+
+**Not added:** any index on `provenance` or `trust`. Live traffic puts nearly every
+row into one of two values, and an index on a two-valued column over a large table
+is not selective enough to earn its write cost. Add it when a deployment's
+distribution justifies it, not speculatively (§18 of the Phase 5 brief).

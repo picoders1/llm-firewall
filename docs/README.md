@@ -10,6 +10,16 @@ Evaluation has been run: ADR-014 through ADR-021 record executed experiments —
 recorded **failures** — each traceable to a committed report. Blocking on ML findings is
 refused on evidence (indirect recall 0.1423, ADR-016).
 
+A read-only Security Operations console ships at `/dashboard`
+([ADR-022](adr/ADR-022-dashboard-frontend-architecture.md)). Since Phase 9 it and its APIs
+require an operator identity terminated at a reverse proxy or ingress
+([ADR-023](adr/ADR-023-operator-authentication.md)); the boundary is off outside production
+and refused-at-startup within it. Since Phase 10 `/v1/**` requires a **caller** credential too
+— a service API key on `Authorization: Bearer`, a separate boundary with its own setting and
+principal type ([ADR-024](adr/ADR-024-llm-caller-authentication.md)). Port 8000 should still
+not be published: caller authentication removes anonymous use, but edge rate limiting (T-18)
+does not exist yet.
+
 `docs/19-implementation-roadmap.md` and the ADRs carry current state; prefer them over any
 summary elsewhere.
 
@@ -80,7 +90,7 @@ summary elsewhere.
 | [22-evidence-and-claims.md](22-evidence-and-claims.md) | Every future claim, its required artefact, and the interview defence map |
 
 ### Decisions
-[adr/](adr/) — ADR-001 … ADR-013, with index, template and numbering note.
+[adr/](adr/) — ADR-001 … ADR-024, with index, template and numbering note.
 
 ## Standing rules
 
