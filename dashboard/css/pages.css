@@ -1,0 +1,67 @@
+/* Page-specific composition. */
+
+/* --- Detectors ---------------------------------------------------------- */
+
+.detector { display: grid; grid-template-columns: 1fr auto; gap: var(--space-4); padding: var(--space-5); border-bottom: 1px solid var(--border-subtle); }
+.detector:last-child { border-bottom: none; }
+.detector__name { font-family: var(--font-mono); font-size: var(--text-base); font-weight: 550; }
+.detector__meta { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.detector__specs { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: var(--space-3); margin-top: var(--space-4); }
+.spec { display: flex; flex-direction: column; gap: 2px; }
+.spec__label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.spec__value { font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
+.detector__mode { display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2); text-align: right; }
+@media (max-width: 640px) {
+  .detector { grid-template-columns: 1fr; }
+  .detector__mode { align-items: flex-start; text-align: left; }
+}
+
+/* --- Latency ------------------------------------------------------------ */
+
+.percentiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); }
+.pct { display: flex; flex-direction: column; gap: var(--space-1); }
+.pct__label { font-size: var(--text-xs); color: var(--text-muted); }
+.pct__value { font-size: var(--text-lg); font-weight: 600; font-variant-numeric: tabular-nums; }
+/* The absence of an observation must not look like a fast one. */
+.pct__value--none { font-size: var(--text-sm); font-weight: 500; color: var(--text-muted); font-style: italic; }
+.sample-note { font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-3); display: flex; align-items: center; gap: var(--space-2); }
+
+/* --- Evaluation --------------------------------------------------------- */
+
+/* Evidence state is the loudest thing on the card, because "complete" and
+ * "successful" are different claims (§19). */
+.eval { border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); background: var(--surface); overflow: hidden; }
+.eval__head { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; }
+.eval__id { font-family: var(--font-mono); font-size: var(--text-sm); font-weight: 550; word-break: break-all; }
+.eval__sub { font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px; }
+.eval__states { margin-left: auto; display: flex; gap: var(--space-2); flex-wrap: wrap; }
+.eval__metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: var(--space-4); padding: var(--space-5); }
+.metric { display: flex; flex-direction: column; gap: 2px; }
+.metric__label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.metric__value { font-size: var(--text-md); font-weight: 600; font-variant-numeric: tabular-nums; }
+.metric__ci { font-size: 10px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+.evidence-key { display: flex; flex-wrap: wrap; gap: var(--space-4); font-size: var(--text-xs); color: var(--text-muted); }
+
+/* --- System health ------------------------------------------------------ */
+
+.dep { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border-subtle); }
+.dep:last-child { border-bottom: none; }
+.dep__icon { width: 32px; height: 32px; border-radius: var(--radius); display: grid; place-items: center; flex-shrink: 0; }
+.dep__name { font-weight: 550; font-size: var(--text-base); }
+.dep__detail { font-size: var(--text-xs); color: var(--text-muted); }
+.dep__status { margin-left: auto; }
+
+/* --- Event detail ------------------------------------------------------- */
+
+.decision-hero { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-5); border-radius: var(--radius-lg); border: 1px solid; }
+.decision-hero__glyph { width: 44px; height: 44px; border-radius: var(--radius); display: grid; place-items: center; flex-shrink: 0; font-size: 20px; }
+.decision-hero__label { font-size: var(--text-lg); font-weight: 600; }
+.decision-hero__sub { font-size: var(--text-sm); color: var(--text-secondary); }
+
+.score-bar { position: relative; height: 26px; background: var(--surface-raised); border-radius: var(--radius); overflow: hidden; }
+.score-bar__fill { position: absolute; inset: 0 auto 0 0; opacity: 0.4; }
+.score-bar__threshold { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--text); }
+.score-bar__labels { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2); }
+
+.not-available { color: var(--text-muted); font-style: italic; font-size: var(--text-sm); }

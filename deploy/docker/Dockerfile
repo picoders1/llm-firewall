@@ -57,6 +57,11 @@ WORKDIR /app
 COPY --from=builder --chown=root:root /app/.venv /app/.venv
 COPY --chown=root:root app ./app
 COPY --chown=root:root config ./config
+# Static security console. No build step: the browser gets exactly these files.
+COPY --chown=root:root dashboard ./dashboard
+# Finalised evaluation reports, read by the Evaluation view. .dockerignore
+# keeps per-sample predictions out.
+COPY --chown=root:root eval/results ./eval/results
 COPY --chown=root:root migrations ./migrations
 COPY --chown=root:root alembic.ini ./
 

@@ -1,0 +1,147 @@
+/* Design tokens.
+ *
+ * Every colour, space, radius and duration in this application resolves to a
+ * token declared here. Components never hard-code a hex value — that is what
+ * keeps six screens looking like one product instead of six.
+ *
+ * Dark-first, because a security console is read for hours in a dim room, but
+ * the light scheme is a real scheme rather than an inversion: contrast ratios
+ * are chosen per-mode against their own backgrounds.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* --- Surfaces. Four depths, no more; a fifth would stop reading as depth. */
+  --bg: #0a0d12;
+  --surface: #10151d;
+  --surface-raised: #161d27;
+  --surface-overlay: #1c2531;
+  --border: #253040;
+  --border-subtle: #1a2231;
+  --border-strong: #33415a;
+
+  /* --- Text. Three weights of emphasis carry the whole hierarchy. */
+  --text: #e8edf5;
+  --text-secondary: #a3b0c2;
+  --text-muted: #6b7a90;
+  --text-inverse: #0a0d12;
+
+  /* --- Security states.
+   * Never the sole carrier of meaning: every state also has a label and a
+   * shape (see .badge). Chosen to stay distinguishable under the common forms
+   * of colour blindness — blue/amber/violet/red rather than green/red alone.
+   */
+  --allow: #3fb98f;
+  --allow-bg: rgba(63, 185, 143, 0.12);
+  --warn: #d9a441;
+  --warn-bg: rgba(217, 164, 65, 0.12);
+  --redact: #7c8cf8;
+  --redact-bg: rgba(124, 140, 248, 0.12);
+  --block: #e0596b;
+  --block-bg: rgba(224, 89, 107, 0.12);
+  --failure: #c2410c;
+  --failure-bg: rgba(194, 65, 12, 0.14);
+  --unknown: #64748b;
+  --unknown-bg: rgba(100, 116, 139, 0.12);
+
+  --accent: #4d8dfa;
+  --accent-bg: rgba(77, 141, 250, 0.12);
+  --accent-strong: #6ba1ff;
+
+  /* --- Spacing: a 4px scale. Anything not on it looks like a mistake. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  --radius-sm: 4px;
+  --radius: 6px;
+  --radius-lg: 10px;
+  --radius-full: 999px;
+
+  /* Restrained elevation. Shadows suggest depth; they do not decorate. */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45);
+
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  /* Tabular figures matter: a column of latencies that jitters as digits change
+   * is unreadable at a glance. */
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas,
+    monospace;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 15px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+
+  --leading-tight: 1.25;
+  --leading: 1.5;
+
+  --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  --z-sticky: 10;
+  --z-drawer: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+
+  --sidebar-width: 236px;
+  --header-height: 56px;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --surface-overlay: #ffffff;
+  --border: #d5dce6;
+  --border-subtle: #e6ebf2;
+  --border-strong: #b6c2d2;
+
+  --text: #10151d;
+  --text-secondary: #445064;
+  --text-muted: #6b7a90;
+  --text-inverse: #ffffff;
+
+  --allow: #0f7a5a;
+  --allow-bg: rgba(15, 122, 90, 0.1);
+  --warn: #a06a05;
+  --warn-bg: rgba(160, 106, 5, 0.1);
+  --redact: #4353c4;
+  --redact-bg: rgba(67, 83, 196, 0.1);
+  --block: #be2f43;
+  --block-bg: rgba(190, 47, 67, 0.1);
+  --failure: #9a3412;
+  --failure-bg: rgba(154, 52, 18, 0.1);
+  --unknown: #55627a;
+  --unknown-bg: rgba(85, 98, 122, 0.1);
+
+  --accent: #1f5fd0;
+  --accent-bg: rgba(31, 95, 208, 0.1);
+  --accent-strong: #17499f;
+
+  --shadow-sm: 0 1px 2px rgba(16, 21, 29, 0.06);
+  --shadow: 0 4px 12px rgba(16, 21, 29, 0.08);
+  --shadow-lg: 0 12px 32px rgba(16, 21, 29, 0.12);
+}
+
+/* Meaning must never depend on motion (§29). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition: 0ms;
+  }
+}

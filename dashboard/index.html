@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="referrer" content="no-referrer" />
+    <title>LLM Firewall — Security Operations</title>
+    <link rel="icon" href="/dashboard/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/dashboard/css/tokens.css" />
+    <link rel="stylesheet" href="/dashboard/css/base.css" />
+    <link rel="stylesheet" href="/dashboard/css/layout.css" />
+    <link rel="stylesheet" href="/dashboard/css/components.css" />
+    <link rel="stylesheet" href="/dashboard/css/pages.css" />
+  </head>
+  <body>
+    <a href="#main" class="sr-only">Skip to main content</a>
+    <div class="app">
+      <aside class="sidebar" id="sidebar" data-open="false" aria-label="Primary"></aside>
+      <div class="main">
+        <header class="header" id="header"></header>
+        <main class="content" id="main" tabindex="-1"></main>
+      </div>
+    </div>
+    <!-- No inline script: the Content Security Policy forbids it, and the app was
+         written to that constraint rather than having it retrofitted. -->
+    <script type="module" src="/dashboard/js/app.js"></script>
+  </body>
+</html>

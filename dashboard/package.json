@@ -1,0 +1,6 @@
+{
+  "name": "llm-firewall-dashboard",
+  "private": true,
+  "type": "module",
+  "description": "Marks dashboard/js as ES modules for Node's test runner. There are no dependencies and no build step - the browser loads these files as written."
+}

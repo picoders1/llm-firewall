@@ -20,12 +20,24 @@ from app.observability.logging import bind_request_id, reset_request_id
 REQUEST_ID_HEADER = "X-Request-ID"
 
 # `no-store` matters here specifically: responses can contain completions, and a
-# caching proxy must not retain them. HSTS and CSP are deliberately absent — this
-# is an API, not a browser origin, and TLS terminates at the ingress.
+# caching proxy must not retain them. CSP is deliberately absent from this set —
+# it is applied per-response by the routes that actually serve HTML
+# (`app/api/dashboard_static.py`), because a policy strict enough for the console
+# is meaningless on a JSON API and would only invite loosening.
 SECURITY_HEADERS: tuple[tuple[bytes, bytes], ...] = (
     (b"x-content-type-options", b"nosniff"),
     (b"cache-control", b"no-store"),
     (b"referrer-policy", b"no-referrer"),
+)
+
+# One year, subdomains included. Opt-in only (`FIREWALL_HTTPS_ENFORCED`): TLS
+# terminates at the ingress, so this process cannot observe whether the browser
+# hop was HTTPS. Sending HSTS from a plain-HTTP development server pins the
+# operator's browser to a scheme localhost does not serve, and the lockout
+# outlives the container (ADR-023).
+HSTS_HEADER: tuple[bytes, bytes] = (
+    b"strict-transport-security",
+    b"max-age=31536000; includeSubDomains",
 )
 
 
@@ -63,8 +75,9 @@ class RequestIdMiddleware:
 class SecurityHeadersMiddleware:
     """Adds the response headers the gateway is responsible for."""
 
-    def __init__(self, app: ASGIApp) -> None:
+    def __init__(self, app: ASGIApp, *, hsts: bool = False) -> None:
         self.app = app
+        self._headers = SECURITY_HEADERS + ((HSTS_HEADER,) if hsts else ())
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -74,7 +87,7 @@ class SecurityHeadersMiddleware:
         async def send_with_headers(message: Message) -> None:
             if message["type"] == "http.response.start":
                 headers = list(message.get("headers", []))
-                headers.extend(SECURITY_HEADERS)
+                headers.extend(self._headers)
                 message["headers"] = headers
             await send(message)
 
@@ -82,6 +95,7 @@ class SecurityHeadersMiddleware:
 
 
 __all__ = [
+    "HSTS_HEADER",
     "REQUEST_ID_HEADER",
     "SECURITY_HEADERS",
     "RequestIdMiddleware",

@@ -9,7 +9,15 @@ venv
 
 tests
 docs
+# Evaluation artefacts: ship the small finalised reports the dashboard reads
+# (~200K of result.json), exclude the ~6.7M of per-sample predictions it never
+# opens. Keeps the image slim and keeps per-sample rows out of a runtime image.
 eval
+!eval/results
+eval/results/**/predictions*
+eval/results/**/*.csv
+eval/results/**/*.svg
+eval/datasets
 scripts
 
 **/__pycache__
