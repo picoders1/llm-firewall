@@ -17,3 +17,11 @@ detector_default_timeout_ms: 50
 
 # Timings exposed so latency assertions can be made without a database.
 expose_timing_headers: true
+
+# Operator boundary (ADR-023): not set, so it derives to `disabled` and every
+# pre-Phase-9 test exercises the same application it always did. Tests that need
+# the boundary construct it explicitly via the `enforcing_client` fixture.
+
+# Caller boundary (ADR-024): not set, so it derives to `disabled` and every
+# pre-Phase-10 gateway test exercises the application it always did. Tests that
+# need the boundary construct it explicitly via the `caller_client` fixture.

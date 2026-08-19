@@ -43,12 +43,23 @@ async def test_chat_completions_is_implemented_and_inspected(client: AsyncClient
     assert response.headers["x-firewall-decision"] == "allow"
 
 
-@pytest.mark.parametrize(("method", "path"), [("get", "/v1/models"), ("get", "/metrics")])
+@pytest.mark.parametrize(("method", "path"), [("get", "/v1/models")])
 async def test_reserved_endpoints_return_501(client: AsyncClient, method: str, path: str):
+    """`/metrics` used to be listed here. Phase 5 implemented it, so it now
+    returns a real Prometheus exposition — the expectation changed because the
+    world changed, not because the assertion was inconvenient. Its behaviour is
+    covered by `test_metrics_endpoint.py`."""
     response = await getattr(client, method)(path)
 
     assert response.status_code == 501
     assert response.json()["error"]["type"] == "not_implemented"
+
+
+async def test_metrics_is_no_longer_reserved(client: AsyncClient):
+    response = await client.get("/metrics")
+
+    assert response.status_code == 200
+    assert "openmetrics" in response.headers["content-type"]
 
 
 # --- Correlation IDs (FR-050, FR-051) --------------------------------------

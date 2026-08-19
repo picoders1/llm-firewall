@@ -56,11 +56,14 @@ from app.gateway.translate import (
     redact_request,
 )
 from app.models.events import DetectorOutcome, RequestTrace, SecurityEvent
+from app.observability.metrics import record_trace
 from app.observability.timing import RequestTimings
 from app.policy import engine
 from app.policy.redaction import apply_redactions, redaction_summary
 
 logger = structlog.get_logger(__name__)
+
+ROUTE_CHAT = "/v1/chat/completions"
 
 router = APIRouter(prefix="/v1", tags=["gateway"])
 
@@ -70,9 +73,13 @@ SEVERITY = {Action.BLOCK: 8, Action.REDACT: 5, Action.WARN: 3, Action.ALLOW: 1}
 class _Accumulator:
     """Collects everything the audit record needs as the request progresses."""
 
-    def __init__(self, request_id: str, policy_version: str) -> None:
+    def __init__(self, request_id: str, policy_version: str, caller_id: str | None) -> None:
         self.request_id = request_id
         self.policy_version = policy_version
+        # WHICH application called, never HOW it proved it. The identity is set
+        # by `CallerAuthMiddleware` from configuration; there is no code path
+        # from the presented credential to here (ADR-024 §20).
+        self.caller_id = caller_id
         self.outcomes: list[DetectorOutcome] = []
         self.events: list[SecurityEvent] = []
         self.upstream_called = False
@@ -94,6 +101,8 @@ class _Accumulator:
                     errored=result.errored,
                     error_kind=result.error_kind,
                     reasons=result.reasons,
+                    provenance=ctx.provenance,
+                    trust=ctx.trust,
                 )
             )
 
@@ -116,6 +125,8 @@ class _Accumulator:
                 # Fingerprint, never content.
                 content_hash=content_hash(ctx.raw_text),
                 content_length=len(ctx.raw_text),
+                provenance=ctx.provenance,
+                trust=ctx.trust,
                 details=details,
             )
         )
@@ -161,7 +172,8 @@ async def chat_completions(request: Request) -> JSONResponse:
     settings = config.settings
     timings = RequestTimings()
     request_id = request.scope.get("state", {}).get("request_id", "unknown")
-    acc = _Accumulator(request_id, config.policy_version)
+    caller = request.scope.get("state", {}).get("caller")
+    acc = _Accumulator(request_id, config.policy_version, getattr(caller, "caller_id", None))
 
     status_code = 200
     decision_for_trace: PolicyDecision | None = None
@@ -353,6 +365,7 @@ async def _persist(
         request_id=acc.request_id,
         model=parsed_model.model if parsed_model else None,
         upstream_host=getattr(state.upstream, "host", None),
+        caller_id=acc.caller_id,
         status_code=status_code,
         decision=decision.action if decision else None,
         block_category=decision.category if decision and decision.blocked else None,
@@ -370,6 +383,13 @@ async def _persist(
         detector_outcomes=tuple(acc.outcomes),
         events=tuple(acc.events),
     )
+
+    # One call site for both sinks: metrics and audit are emitted from the same
+    # assembled trace, so a discrepancy between the dashboard and the audit table
+    # cannot come from two code paths disagreeing.
+    metrics = getattr(state, "metrics", None)
+    if metrics is not None:
+        record_trace(metrics, trace, route=ROUTE_CHAT)
 
     logger.info(
         "request_decided",

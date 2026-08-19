@@ -23,3 +23,15 @@ tracing_enabled: false
 # Per-stage timings as response headers, so tests and benchmark tooling can
 # read them without a database (docs/15-performance-benchmarking.md).
 expose_timing_headers: true
+
+# Operator boundary (ADR-023): deliberately NOT set here. `console_auth_mode`
+# derives to `disabled` outside production, which is what keeps `docker compose up`
+# a single command with no credential (NFR-012). Writing the value down would only
+# create a key that could be copied into the production overlay, where it is
+# refused at startup. To exercise the boundary locally, add
+# compose.console-auth.yaml.
+
+# Caller boundary (ADR-024): not set, so it derives to `disabled` and `/v1` stays
+# open — the quick start remains one command with no credential (NFR-012). To
+# require a key locally, generate one with scripts/generate_caller_key.py and set
+# FIREWALL_CALLER_AUTH_MODE and FIREWALL_CALLER_API_KEYS in .env.

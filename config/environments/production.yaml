@@ -27,3 +27,30 @@ tracing_enabled: false
 # Off: per-stage timings are a timing side channel an attacker could use to
 # infer which detector fired.
 expose_timing_headers: false
+
+# Operator boundary (ADR-023). `console_auth_mode` is deliberately ABSENT rather
+# than set to `proxy`: it already derives to `proxy` in production, so an overlay
+# that someone edits, or forgets to ship, cannot turn the console open.
+#
+# `trusted_proxies` has no safe default and is not written here either — it is
+# deployment-specific and belongs in FIREWALL_TRUSTED_PROXIES. The process refuses
+# to start without it, which is the intended failure: a boundary that cannot name
+# its proxy is not a boundary.
+#
+# HSTS on. A production deployment that is not HTTPS is a bug, not a configuration
+# — but set FIREWALL_HTTPS_ENFORCED=false while fixing one, because HSTS pins the
+# browser and the pin outlives the mistake.
+https_enforced: true
+
+# Caller boundary (ADR-024). `caller_auth_mode` is ABSENT for the same reason as
+# `console_auth_mode`: it derives to `api_key` in production, so an overlay that
+# someone edits cannot turn `/v1` open, and `disabled` here is refused at startup.
+#
+# `caller_api_keys` is deployment-specific and belongs in the secret manager as
+# FIREWALL_CALLER_API_KEYS. The process refuses to start without it — which is the
+# intended failure: api_key mode with no keys would reject every caller while
+# reporting itself protected.
+#
+# The rate limit is NOT set here. A number written into a checked-in overlay is a
+# guess about someone else's traffic; size it from measured load and set it per
+# deployment (R-63 — and note it is enforced per process, not globally).
