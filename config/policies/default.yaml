@@ -61,6 +61,41 @@ input:
     # false-positive cost of escalating on untrusted content has not been
     # measured. Enabling it is a reviewable policy edit, not a default.
 
+  # Layer 2 — the fine-tuned classifier from ADR-014/ADR-015, integrated by
+  # ADR-021. SHIPS DISABLED, and enabling it is a deliberate operator action.
+  #
+  # Why disabled by default:
+  #   * the checkpoint is NOT in this repository and never will be — model
+  #     weights are not committed (docs/14-dataset-strategy.md). `model_path`
+  #     must point outside the application tree;
+  #   * the `ml` extra (transformers, torch) is not in the default install;
+  #   * every published latency figure for this model was measured on CUDA. A
+  #     CPU deployment is materially slower, so timeout_ms below is set for CPU,
+  #     not for the GPU numbers in the reports.
+  #
+  # Enabling it without the weights or the extra is a startup failure, not a
+  # per-request 503: a security control that cannot load should stop a
+  # deployment rather than quietly degrade one.
+  #
+  # action is `warn`, NOT `block`. ADR-015 met four of six blocking criteria and
+  # ADR-016 measured indirect-injection recall at 0.1423; blocking stays refused
+  # until shadow-mode false-positive data exists on real traffic (OD-18). Running
+  # this detector in warn mode is how that data gets collected.
+  prompt_injection_ml:
+    detector: injection.transformer
+    enabled: false
+    threshold: 0.9955               # Strategy A's locked operating point, frozen
+                                    #   in its selection lock BEFORE the hold-out
+                                    #   was scored. Not re-tuned here.
+    action: warn                    # never block — promotion needs its own ADR
+    on_error: fail_open             # layer 1 still inspects every request, so a
+                                    #   layer-2 outage degrades evidence, not
+                                    #   enforcement. Named in the startup warning.
+    timeout_ms: 2000                # CPU inference, not the CUDA figures
+    options:
+      model_path: artifacts/finetune/stratA__lr1e-05__ep2__seed13
+      device: cpu
+
   jailbreak:
     detector: jailbreak.heuristic   # → jailbreak.transformer (Phase 2)
     enabled: true

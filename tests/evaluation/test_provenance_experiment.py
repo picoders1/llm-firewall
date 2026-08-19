@@ -210,13 +210,31 @@ def test_no_untrusted_span_means_zero_for_a_consuming_arm():
 
 
 def test_no_experimental_arm_is_registered_as_a_production_detector():
-    """The experiment must be able to fail without having touched the gateway."""
+    """The experiment must be able to fail without having touched the gateway.
+
+    ADR-021 later added `injection.transformer` to the registry, disabled. That is
+    an authorised integration and not an experimental arm, so the assertion now
+    names what it always meant: no ARM is registered, and nothing beyond the
+    baselines is *active*.
+    """
+    from app.config.loader import load_config
     from app.detectors.registry import registered_names
 
     names = set(registered_names())
     for a in ARMS:
         assert a.name not in names
-    assert names == {"injection.heuristic", "jailbreak.heuristic", "pii.regex", "output.stub"}
+    assert names <= {
+        "injection.heuristic",
+        "jailbreak.heuristic",
+        "pii.regex",
+        "output.stub",
+        "injection.transformer",
+    }
+    policy = load_config().policy
+    active = {d.detector for d in policy.input.values() if d.enabled} | {
+        d.detector for d in policy.output.values() if d.enabled
+    }
+    assert active == {"injection.heuristic", "jailbreak.heuristic", "pii.regex"}
 
 
 def test_the_experiment_module_lives_outside_the_application():

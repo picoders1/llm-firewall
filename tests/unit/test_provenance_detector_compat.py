@@ -75,6 +75,27 @@ def detectors(policy_path):
     return built
 
 
+@pytest.fixture
+def runnable_detectors(policy_path, detectors):
+    """Those that can actually be scored in a unit test.
+
+    ADR-021's `injection.transformer` needs a checkpoint that is deliberately not
+    in this repository, so it cannot be invoked here — and it ships disabled, so
+    it is not part of the shipped decision path either. It is still covered by the
+    capability assertions above, which are what ADR-017 is about; only the
+    scoring comparison has to skip it.
+    """
+    from app.config.loader import load_policy
+
+    policy = load_policy(policy_path)
+    enabled = {d.detector for d in policy.input.values() if d.enabled} | {
+        d.detector for d in policy.output.values() if d.enabled
+    }
+    runnable = [d for d in detectors if d.name in enabled]
+    assert runnable, "no runnable detectors; the fixture is vacuous"
+    return runnable
+
+
 def test_no_shipped_detector_claims_to_consume_provenance(detectors):
     """Phase C ships the capability, not a user of it. A detector that starts
     reading provenance must be a deliberate, separately evaluated change."""
@@ -101,14 +122,14 @@ def test_capabilities_report_the_flag():
     ],
 )
 async def test_legacy_detectors_score_identically_regardless_of_provenance(
-    detectors, provenance: Provenance, trust: TrustLevel
+    runnable_detectors, provenance: Provenance, trust: TrustLevel
 ):
     """The same text through the same detector must produce the same score and
     the same spans whatever the origin says — otherwise a detector is reading
     provenance without declaring it."""
     baseline_ctx = context()
     varied_ctx = context(provenance=provenance, trust=trust)
-    for detector in detectors:
+    for detector in runnable_detectors:
         if Direction.INPUT not in detector.directions:
             continue
         baseline = await detector.detect(baseline_ctx)

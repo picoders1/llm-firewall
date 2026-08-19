@@ -198,14 +198,32 @@ def test_the_v3_regression_baseline_matches_the_published_result():
 
 
 def test_the_experiment_registers_no_detector():
+    """ADR-021 registered `injection.transformer`, so the registry is no longer
+    exactly the four Phase 0 baselines. The invariant this test protects was never
+    the *name count* — it is that no experimental checkpoint became an active part
+    of the security decision. That is now asserted on the effective policy, which
+    is the property that actually matters and is strictly stronger than the old
+    check: the layer-2 detector is present but DISABLED, and enabling it is a
+    reviewable policy edit.
+    """
+    from app.config.loader import load_config
     from app.detectors.registry import registered_names
 
-    assert set(registered_names()) == {
+    assert set(registered_names()) <= {
         "injection.heuristic",
         "jailbreak.heuristic",
         "pii.regex",
         "output.stub",
+        "injection.transformer",
     }
+    policy = load_config().policy
+    active = {d.detector for d in policy.input.values() if d.enabled} | {
+        d.detector for d in policy.output.values() if d.enabled
+    }
+    assert active == {"injection.heuristic", "jailbreak.heuristic", "pii.regex"}
+    # And nothing may block on a model finding.
+    ml = [d for d in policy.input.values() if d.detector == "injection.transformer"]
+    assert all(not d.enabled for d in ml)
 
 
 def test_checkpoints_live_outside_the_application_tree():

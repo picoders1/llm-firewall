@@ -126,6 +126,13 @@ exclude = ["migrations/versions/", "^build/"]
 module = ["tests.*", "eval.*"]
 disallow_untyped_defs = false
 
+# torch and transformers ship no type stubs and are NOT in the default install —
+# they live in the `ml` extra (ADR-021). CI type-checks without them, so the
+# detector's lazy imports would otherwise fail the strict run on import-not-found.
+[[tool.mypy.overrides]]
+module = ["torch.*", "transformers.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
