@@ -480,3 +480,112 @@ but that is **sampling** error on one corpus for one pair of checkpoints. It say
 nothing about **run-to-run** variance across seeds, which is a different question and
 had never been measured here at all. A p-value against sampling noise is not evidence
 that a training condition reproduces.
+
+## A saturated split cannot estimate variance either
+
+ADR-020 Step 1 needed run-to-run variance. All 36 checkpoints had persisted per-sample
+dev scores, so the obvious move was to compute the spread across them. The result:
+
+| dev metric | Strategy A (n=18) | ADR-019 (n=18) |
+|---|---|---|
+| extraction recall | mean 1.0000, **sd 0.0000** | mean 0.9990, sd 0.0041 |
+| benign FPR | mean 0.0000, **sd 0.0000** | mean 0.0000, **sd 0.0000** |
+| quoted_attack FPR | mean 0.0000, **sd 0.0000** | mean 0.0000, **sd 0.0000** |
+
+Read carelessly this says "run-to-run variance is essentially zero", which would be a
+strong and completely unfounded claim. It says nothing of the sort: the split separates
+perfectly, so every checkpoint scores identically **by construction**. The near-zero
+spread measures the saturation, not the models.
+
+**Rule:** a variance estimate is only meaningful on a surface where the metric can
+actually move. Before quoting a spread, check that the metric is not already at its
+ceiling or floor — and if it is, say the variance is *unmeasured*, not *small*.
+
+The corollary bites harder. Per-checkpoint hold-out metrics were recorded for only the
+two selected winners, so hold-out run-to-run variance **cannot** be recovered from the
+artefacts at all, and rescoring is not permitted. The estimate had to come from the
+public proxy at three seeds per family — a surface that is contaminated for absolute
+claims but *not saturated*, which is exactly the property required here.
+
+**Rule:** persist per-checkpoint metrics for every run, not only the winner. The
+marginal cost is a JSON file; the alternative is discovering later that the question you
+need to answer was made unanswerable by an earlier convenience.
+
+## A ranking key with zero variance is not a weak signal
+
+The same measurement retired a selection rule. ADR-020 originally ranked candidates on
+"the validated proxy plus dev" without specifying how the two combined — and dev's
+contribution turned out to be identically zero across all 18 runs of a family.
+
+**Rule:** when a protocol names multiple selection signals, state the combination rule
+and the tie-break explicitly, and verify each signal has non-zero variance on the
+population it will rank. An unspecified combination is not a detail to settle at
+execution time; settling it then is selection pressure applied after seeing results.
+
+## A split can discriminate and still be blind to the thing under test
+
+ADR-020 Step 2 broke the saturation pattern: T2 and T3 separate cleanly on dev F1, dev
+FPR, dev separability and two of three mechanisms. After three experiments in which dev
+could rank nothing, that looks like the problem being solved.
+
+It is not. Dev **extraction recall is 1.0000 for all six runs** — and extraction is the
+capability the whole experiment exists to protect. `quoted_attack` FPR (0.0000) and
+`safety_bypass` recall (1.0000) are equally flat. The split gained discriminating power
+over general quality while staying completely blind on the retention question.
+
+**Rule:** "does the split discriminate?" is the wrong question. Ask "does it discriminate
+*on the metric the decision turns on*?" Report per-metric saturation, not a single
+verdict for the split — a headline F1 that finally moves can disguise a flat line on the
+one measurement that matters.
+
+The corollary is that a discriminating split is not a licence to skip the hold-out. Here
+it would have justified exactly the wrong inference: T3 looks clearly worse on dev, yet
+reduced adaptation is precisely the arm that might *preserve* retention at the cost of
+new-mechanism learning — a trade-off dev cannot see because its extraction recall has no
+room to move.
+
+## When two controlled arms both fail, the failure is the finding
+
+ADR-020 tested the two cheapest explanations for ADR-019's regression as separate arms,
+each varying one factor. Both failed, and the *pattern* of failure carried more
+information than either arm alone.
+
+| arm | varies | recovered of the 0.0912 loss | cost |
+|---|---|---|---|
+| T2 | composition (replay), step budget fixed | 15% | two of three mechanisms collapsed |
+| T3 | adaptation budget, sampler fixed | 41% | collapsed further |
+
+Two independent interventions — one on the data, one on the schedule — moved along the
+same trade-off curve without stepping off it. Neither result would have been decisive on
+its own; together they implicate a cause neither arm manipulated (capacity), and they do
+so *because* both arms were controlled and comparable.
+
+**Rule:** design the arms so that a shared failure is interpretable, not just so that a
+success would be. Two arms that fail differently tell you where the cause is not; two
+arms that fail the same way tell you where it is.
+
+The corollary is that **the leading hypothesis is worth testing precisely because it is
+leading.** Relative dilution was the most-implicated variable in ADR-020's causal table —
+extraction's share of attack mass had fallen 14.72pp while its absolute count never moved
+— and restoring it recovered less than a sixth of the loss. Had it not been tested
+directly, that hypothesis would still be the standing explanation.
+
+## Score the arm you will not deploy
+
+ADR-020's original Step 3 scored one pooled winner. Because one arm dominated on dev, the
+other would never have been measured on the hold-out — and three of six runs would have
+produced no evidence toward the question that funded them. Amendment A-3 changed it to
+score both arms in one pre-registered event.
+
+That decision produced the finding. The contrast arm (T3) recovered **2.7× more** of the
+regression than the deployment candidate, while being simultaneously undeployable. Under
+the original plan the result would have read "replay recovers 15%, cause unknown"; under
+the amendment it reads "composition is the weaker of the two factors, and neither
+suffices".
+
+**Rule:** when arms are registered to isolate different factors, every arm needs a
+measurement on the deciding corpus, or the factors it isolates were never tested. Scoring
+two pre-registered checkpoints simultaneously is one look, not two — the hazard a scoring
+budget guards against is adaptive peeking, and there is none when both targets and all
+criteria are fixed in advance. Keep the roles distinct: one candidate is selectable, the
+other is contrast-only and cannot be promoted by a good result.

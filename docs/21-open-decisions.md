@@ -34,11 +34,11 @@ evidence that resolved it. "We just did it that way" is not a resolution.
 | OD-27 | Does provenance-aware detection actually work? | — | **ANSWERED: yes, partially** — recall 0.1423 → 0.5365, not blocking-ready ([ADR-018](adr/ADR-018-provenance-aware-detector-evaluation.md)) |
 | OD-29 | Three attack mechanisms are undetectable by the current model | — | **ANSWERED: learnable** — 0.0000 → 0.7333/0.7333/0.9667 ([ADR-019](adr/ADR-019-mechanism-coverage-fine-tuning.md)) |
 | OD-31 | Is `safety_bypass` learnable from text at all? | — | **ANSWERED: yes, 0.9667** — the hypothesis that it was unlearnable was wrong |
-| OD-32 | How to add mechanism coverage without catastrophic forgetting | — | **Protocol designed: [ADR-020](adr/ADR-020-retention-preserving-training.md)**, not executed |
+| OD-32 | How to add mechanism coverage without catastrophic forgetting | — | **ANSWERED: not by replay or by fewer epochs.** ADR-020 FAILURE — the two recovered 15% and 41% of the regression while collapsing mechanism coverage |
 | OD-33 | Nothing can rank checkpoints — dev saturates on every category | — | **ANSWERED: the public-corpus proxy reproduces the known effect** (p < 1e-6) and is admitted for ranking only. Threshold underdetermination remains open |
-| OD-34 | One classifier, or a layered detector? | Phase 2 | ADR-020 Steps 2–3; only reached if both cheap explanations fail |
+| OD-34 | One classifier, or a layered detector? | **Phase 2, now primary** | **Both cheap explanations failed** ([ADR-020](adr/ADR-020-retention-preserving-training.md)). Needs its own ADR |
 | OD-30 | Can an integration be relied on to declare the untrusted boundary? | Phase 5+ | Deployment experience; relates to OD-28 |
-| OD-18 | Layer-2 promotion from warn to block | Phase 2 | Shadow-mode FPR on real traffic |
+| OD-18 | Layer-2 promotion from warn to block | Phase 2 | Shadow-mode FPR on real traffic — **now collectable**: [ADR-021](adr/ADR-021-layer2-transformer-integration.md) integrated layer 2 warn-only (ships disabled) |
 | OD-14 | Custom PII patterns are not validated at startup | Phase 2 | Decide the failure mode |
 | OD-15 | Audit writes are synchronous and on the request path | Phase 4/5 | Measured share of overhead |
 | OD-16 | Oversized requests (413) produce no audit row | Phase 1 | Where the limit should live |
@@ -1022,3 +1022,52 @@ latency and VRAM against the §24 budget, and policy aggregation semantics for t
 detectors of the same category — which do not exist today and would need their own ADR.
 
 **Blocked on.** ADR-020 Steps 2–3.
+
+
+---
+
+## OD-32 — **ANSWERED 2026-08-18: neither replay nor reduced adaptation works**
+
+ADR-020 ran the two cheapest explanations as controlled arms and both failed.
+
+| | recovered of ADR-019's 0.0912 extraction loss | cost |
+|---|---|---|
+| T2 — restore extraction's share of attack mass | **15%** (0.7534 → 0.7669) | retrieval_poisoning 0.7333 → 0.3167, tool_use 0.7333 → 0.3500 |
+| T3 — halve the adaptation budget | **41%** (0.7534 → 0.7905) | retrieval_poisoning → 0.1167, tool_use → 0.0500 |
+
+Neither reaches the registered floor of 0.7946, and the paired test shows significant
+degradation against Strategy A for both (p = 0.000034 and 0.000145).
+
+**The leading hypothesis was the weaker factor.** Relative dilution (C2) was the most
+implicated variable in the causal table — extraction's share of attack mass had fallen
+14.72pp while its absolute count never moved — and restoring it bought back less than a
+sixth of the loss. Adaptation budget (C3) matters roughly 2.7× more and still falls short.
+
+**What remains is C1, capacity/interference.** Two independent interventions, one on the
+data and one on the schedule, trade the same two capabilities against each other without
+escaping the trade-off. At fixed model size that is a capacity signature.
+
+**Not answered:** whether a larger base model, or a different architecture, would hold
+both. Nothing here tests that, and it is not proposed — ADR-014 selected this base model
+on measured evidence and changing it reopens that decision.
+
+---
+
+## OD-34 — **now the primary open decision**
+
+ADR-019 proved the three mechanisms are learnable (0.7333 / 0.7333 / 0.9667). ADR-020
+proved they are not learnable **in the same model** as system-prompt extraction: every
+attempt to hold both traded one for the other. Together those results point at a layered
+architecture rather than at more data, a different mixture, or another schedule.
+
+The experiment is defined in ADR-020 §"The layered-detector experiment" and remains
+**unauthorised**. It needs its own ADR covering at minimum:
+
+* policy aggregation for two detectors of the same category, which does not exist today;
+* the second model's latency and VRAM against the §24 budget — measured, not assumed;
+* whether the specialised detector is trained on mechanisms alone or also carries
+  provenance (ADR-018 raised indirect recall 0.1423 → 0.5365 by declaring untrusted
+  spans, and that gain is orthogonal to anything ADR-020 tested).
+
+**Blocked on:** a decision to authorise it. No further single-model training is indicated
+by the evidence.

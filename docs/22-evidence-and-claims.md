@@ -38,6 +38,11 @@ they are the only claims currently permitted.
 | The firewall protects RAG applications | Indirect-injection recall meeting a stated bound | — | **NOT produced — the claim is refused and must not be made.** FNR 0.8577 |
 | **The firewall can carry and act on content provenance** | Provenance model, gateway assignment and monotone policy overlay, with tests | `pytest -m "unit or security"` | **Produced** — [ADR-017](adr/ADR-017-provenance-aware-detection-context.md) Phases A+B+C; 892 tests pass |
 | The firewall uses provenance in production | A calibrated overlay enabled in the shipped policy | — | **NOT produced.** The capability ships **off**; no threshold is calibrated (OD-3) |
+| **A layer-2 classifier is integrated and can be enabled** | A registered detector, warn-only, disabled by default, with the model outside the app tree | `pytest tests/unit/test_transformer_detector.py` | **Produced** — [ADR-021](adr/ADR-021-layer2-transformer-integration.md) |
+| **Layer-2 CPU latency** | Same methodology as prior runs, on the reference machine | ADR-021 | **Produced** — p50 95.38 ms, p99 163.95 ms, 10.4/s single-threaded; ~8x the CUDA figures |
+| The ML detector blocks anything | `action: block` in the shipped policy | — | **NOT produced — refused.** `action: warn`, asserted by test; blocking needs OD-18 |
+| The ML detector runs in production today | An enabled policy block plus weights on disk | — | **NOT produced.** It ships disabled; enabling is a reviewable operator edit |
+| Gateway overhead of layer 2 | End-to-end measurement against the mock upstream | — | **NOT produced.** ADR-021's figures are detector-only on one machine |
 | **Provenance-aware detection improves indirect-injection recall** | Paired same-corpus comparison, text held constant, provenance varied, McNemar test | `python -m scripts.evaluate_provenance` | **Produced** — 0.1423 → 0.5365 (n=520, p ≈ 0); `eval/results/provenance/20260817T141551Z__provenance-secondary/report.md` |
 | **It improves precision at the same time** | Benign-control FPR under both arms | Same run | **Produced** — 0.0167 → 0.0000, precision 1.0000 |
 | **The effect depends on provenance, not on shorter inputs** | Ablations with provenance removed and inverted, same spans | Same run | **Produced** — 0.0000 and 0.0981 against 0.5365 |
@@ -51,7 +56,12 @@ they are the only claims currently permitted.
 | **The ADR-019 regression is not a threshold artefact** | Recall and FPR moved in opposite directions, so the model is dominated at every operating point | Published aggregates in `holdout_metrics.json` | **Produced** — argument is threshold-free; requires no re-scoring |
 | **Extraction's absolute training count never changed** | Per-sub-category counts in both frozen corpora | `eval/results/finetune/ADR-020-protocol/baseline_manifest.json` | **Produced** — 288 samples in v1 and v2; only its share of attack mass moved, 38.92% → 24.20% |
 | The cause of the ADR-019 regression is known | An ablation separating composition, adaptation budget, capacity and seed variance | — | **NOT produced — the claim is refused.** Seven candidate causes; one eliminated, six live ([ADR-020](adr/ADR-020-retention-preserving-training.md)) |
-| A retention-preserving successor works | ADR-020's retention, mechanism, benign and performance criteria met together | — | **NOT produced.** ADR-020 is a protocol; nothing has been trained |
+| A retention-preserving successor works | ADR-020's retention, mechanism, benign and performance criteria met together | — | **NOT produced — the claim is refused.** ADR-020 executed and FAILED: extraction 0.7669 vs a 0.7946 floor |
+| **Replay does not fix the ADR-019 regression** | A controlled arm varying composition alone at fixed step count, scored once on the frozen hold-out | `python -m scripts.evaluate_retention --report` | **Produced** — recovered 15% of the loss while collapsing two of three mechanisms |
+| **Reduced adaptation does not fix it either** | A controlled arm varying epochs alone at an identical sampler | Same event | **Produced** — recovered 41%, collapsed the mechanisms further |
+| **A single classifier cannot hold both capabilities at this model size** | Two independent interventions both trading one capability for the other | Same event | **Produced** — the basis for R-55 and OD-34 |
+| Relative dilution caused the ADR-019 regression | Restoring the diluted proportion recovering the loss | — | **NOT produced — the claim is refused.** It was the leading hypothesis and recovered less than a sixth |
+| A larger base model would hold both capabilities | An experiment varying model size | — | **NOT produced.** Nothing tested it; changing the base reopens ADR-014 |
 | **Seed variance has been measured, once** | Three seeds per family scored on a common disjoint corpus | `python -m scripts.validate_proxy --report` | **Produced** — families fully disjoint; permutation p = 0.0500, the floor at 3v3 |
 | **The ADR-019 regression is not explained by seed noise** | Between-condition gap exceeding within-condition spread across seeds | Same run | **Produced** — gap 0.0594 vs spread 0.0230 |
 | Seed variance is now fully characterised | More than three runs per condition | — | **NOT produced — the claim is refused.** n=3 bounds run-level variance no more tightly than p = 0.0500 |
@@ -149,6 +159,19 @@ that would separate them has not been run; quoting any number from the public pr
 corpora as capability; calling the layered detector a decision when it is an open
 question (OD-34); or implying that ADR-019's regression is known to reproduce across
 seeds, which is exactly what Step 1 exists to find out.
+
+**Permitted for ADR-020 overall:** *"A pre-registered experiment tested whether the
+mechanism coverage added in ADR-019 could be kept without losing system-prompt-extraction
+recall. Two controlled arms — restoring the diluted training proportion, and halving the
+adaptation budget — recovered 15% and 41% of the regression respectively, and both did so
+by losing the mechanism coverage. The successor was not adopted; the original detector
+remains the reference."*
+
+**Never permitted for ADR-020:** calling it a partial success; quoting T3's better
+extraction recall without noting that no T3 checkpoint was deployable and that its
+mechanism recall collapsed to 0.05–0.12; presenting the improved false-positive rates as
+an overall improvement; or claiming capacity is *proven* to be the cause — it is the
+best-supported remaining explanation, not a measured one.
 
 **Never permitted:** describing the firewall as provenance-aware, RAG-aware or
 context-aware **in production** — the capability ships off; quoting 53.7% without both

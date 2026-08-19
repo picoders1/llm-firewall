@@ -13,7 +13,7 @@ run**, not when its tasks are ticked.
 |---|---|---|
 | 0 | Foundation and vertical slice | **Substantially complete** — foundation and vertical slice built and verified; eval harness and metrics outstanding |
 | 1 | OpenAI-compatible gateway | Not started |
-| 2 | Input security (ML detectors) | **ADR-020 Steps 0–1 executed → both passed** (proxy admitted, p < 1e-6; regression is not seed noise). Step 2 justified, unauthorised; **ADR-019 executed → FAILURE** (mechanisms learnable, but −9.1pt extraction regression). **Model selected** ([ADR-014](adr/ADR-014-detector-selection.md)); **Strategy A fine-tuning executed** ([ADR-015](adr/ADR-015-fine-tuning-strategy.md)) — PARTIAL SUCCESS; **validated on hold-out v3** (all four FPR criteria met, both recall criteria fail). **Indirect injection quantified**: recall **0.1423** (n=520), no delivery shape reliably detected — blocking refused on severity grounds ([ADR-016](adr/ADR-016-provenance-aware-detection.md)). Model warn-only, not integrated |
+| 2 | Input security (ML detectors) | **Layer-2 classifier INTEGRATED, warn-only and disabled by default** ([ADR-021](adr/ADR-021-layer2-transformer-integration.md)); **ADR-020 CLOSED → FAILURE**: replay and reduced adaptation recovered 15% / 41% of the regression while collapsing mechanism coverage. Single-model replacement is not viable; layered detector (OD-34) is now primary; **ADR-019 executed → FAILURE** (mechanisms learnable, but −9.1pt extraction regression). **Model selected** ([ADR-014](adr/ADR-014-detector-selection.md)); **Strategy A fine-tuning executed** ([ADR-015](adr/ADR-015-fine-tuning-strategy.md)) — PARTIAL SUCCESS; **validated on hold-out v3** (all four FPR criteria met, both recall criteria fail). **Indirect injection quantified**: recall **0.1423** (n=520), no delivery shape reliably detected — blocking refused on severity grounds ([ADR-016](adr/ADR-016-provenance-aware-detection.md)). Model warn-only, not integrated |
 | 3 | Output security | Not started |
 | 4 | Evaluation and benchmarking | **Framework built and validated**; corpus gaps remain (OD-17) |
 | 5 | Observability and operations | Not started |
@@ -599,38 +599,31 @@ states demonstrated; no framework dependency introduced.
 
 ## Next implementation task
 
-**Decide whether to authorise ADR-020 Step 2 — the six-run controlled experiment.**
+**Collect shadow-mode false-positive data by enabling layer 2 in warn mode on real traffic (OD-18).**
 
-Steps 0 and 1 ran on 2026-08-17 and **both passed**, without training anything and
-without reading a hold-out. They were designed to be able to cancel Step 2; they did
-not.
+[ADR-021](adr/ADR-021-layer2-transformer-integration.md) integrated the fine-tuned classifier
+as layer 2. It is registered, warn-only, and **disabled by default** — a default install is
+byte-identical to before. Enabling it needs the `ml` extra and a checkpoint pointed at by
+`options.model_path`, which is deliberately not committed.
 
-**Step 0 — the proxy is admitted.** It reproduces the known effect it was gated on:
-Strategy A beats ADR-019 on `lakera-gandalf` (999 human-authored extraction attacks)
-**0.9690 → 0.9069** at matched FPR, exact McNemar **p < 1e-6**. Integrity passed with
-0 exact and 0 normalised collisions against every training corpus and every hold-out.
-Checkpoints can now be ranked without spending hold-out budget (OD-33).
+That closes a circular dependency: OD-18 (promoting layer 2 from warn to block) was blocked on
+shadow-mode FPR from real traffic, which could not exist while the detector never ran.
 
-**Step 1 — the regression is not seed noise.** Across three seeds per family the two
-are **fully disjoint**: every Strategy A run beats every ADR-019 run, gap 0.0594
-against a largest within-family spread of 0.0230. The exact permutation test gives
-p = 0.0500, which is the *floor* at three runs per group — the strongest run-level
-evidence this design can produce, and reported as suggestive rather than decisive.
-C7 is reduced, not eliminated.
+**Measured for that decision** — 200 samples, single-sample, warm, on the reference machine:
 
-So the confound list stands at **one eliminated (C6), one reduced (C7), five live**,
-and Step 2's two arms — composition at fixed step count, then adaptation budget at a
-fixed sampler — remain the minimum sufficient test. Six runs, not eighteen; the
-control and the failed condition already exist and are not re-run.
+| | CPU | CUDA (published) |
+|---|---|---|
+| p50 | **95.38 ms** | 11.96 ms |
+| p99 | **163.95 ms** | 14.79 ms |
+| throughput, single-threaded | **10.4/s** | 85.1/s |
 
-**One finding that was not registered in advance** and changes how the historical
-record reads: the dev-selected threshold is not merely underdetermined but arbitrary.
-All six checkpoints separate their dev split perfectly and their chosen thresholds
-span **0.0694 – 0.9955** — one seed picked 0.0694 where its sibling picked 0.9954,
-under identical methodology. Comparing models at dev-selected thresholds *understated*
-the ADR-019 regression threefold. Every threshold in this project's history was
-selected this way (R-53, OD-23).
+CPU is ~8× slower, and 10.4/s is the operationally significant number. An operator turning
+this on should plan capacity around it.
 
-Evidence: [`eval/results/finetune/ADR-020-steps-0-1/report.md`](../eval/results/finetune/ADR-020-steps-0-1/report.md).
-Protocol: [ADR-020](adr/ADR-020-retention-preserving-training.md).
-Scope: [21-open-decisions.md](21-open-decisions.md) (OD-32, OD-33, OD-34).
+**Still refused, on evidence:** blocking on ML findings. Indirect-injection recall is 0.1423
+(ADR-016) and no threshold here is calibrated against production traffic (OD-3). Promotion
+requires its own ADR citing shadow-mode data.
+
+**The other open direction** is OD-34, the layered detector, which ADR-020's failure promoted
+to primary. ADR-021 built the plumbing it needs — a second same-category detector in the
+registry, running through the guarded pipeline — so that experiment is now cheaper to design.

@@ -10,17 +10,27 @@ Adoption is intended to be one line:
 client = OpenAI(base_url="http://localhost:8000/v1", api_key="...")
 ```
 
-> **Status: Phase 0 — vertical security slice working end to end.**
-> A request is normalised, inspected by three baseline detectors, decided by the policy
-> engine, forwarded to an upstream, inspected again on the way back, and audited to
-> PostgreSQL. Blocked requests never reach the model, and that invariant is asserted against
-> a call counter rather than inferred from a status code.
+> **Status: Phase 0 slice complete; Phase 2 detection evaluated and integrated warn-only.**
+> A request is normalised, inspected, decided by the policy engine, forwarded to an upstream,
+> inspected again on the way back, and audited to PostgreSQL. Blocked requests never reach the
+> model, and that invariant is asserted against a call counter rather than inferred from a
+> status code.
 >
-> **The detectors are deliberately simple baseline heuristics.** They recognise published
-> attack phrasings and will miss anything reworded. They exist to prove the architecture and
-> to be the control condition that Phase 2's classifier must beat.
-> **No evaluation has been run. Every detection-quality and latency figure in this repository
-> reads `pending benchmark execution`.**
+> **Enforcement is still entirely heuristic.** The three Phase 0 baseline detectors decide
+> every request; they recognise published attack phrasings and will miss anything reworded.
+>
+> **A fine-tuned classifier exists, is measured, and ships disabled.** ADR-014 through
+> ADR-021 selected, fine-tuned and hold-out-validated a DeBERTa-v3 detector, integrated as
+> layer 2 in **warn mode** — it can never block, and the default policy leaves it off. Turning
+> it on requires the `ml` extra and a checkpoint that is deliberately not committed.
+>
+> **Blocking on ML findings is refused, on evidence.** Indirect-injection recall is
+> **0.1423** (ADR-016) and no threshold here is calibrated against production traffic (OD-3).
+>
+> Evaluation results are real and traceable: every figure cites a committed report with its
+> dataset checksum. See [docs/22-evidence-and-claims.md](docs/22-evidence-and-claims.md) for
+> each claim and the artefact required before it may be made — including the claims this
+> project explicitly **refuses** to make.
 >
 > Full status: [docs/19-implementation-roadmap.md](docs/19-implementation-roadmap.md).
 
@@ -152,10 +162,23 @@ is in [docs/09-threat-model.md](docs/09-threat-model.md).
 ## Evaluation
 
 Detection quality and latency overhead are measured by a first-class harness, not asserted.
-Every future metric must cite a committed report carrying its dataset checksum, git commit and
-machine metadata; until that report exists the number is not published.
+Every metric cites a committed report carrying its dataset checksum, git commit and machine
+metadata; without that report the number is not published.
 
-**Evaluation results: pending benchmark execution.**
+**Selected results** (full provenance in [docs/22-evidence-and-claims.md](docs/22-evidence-and-claims.md)):
+
+| finding | value | source |
+|---|---|---|
+| Fine-tuning cut quoted-attack false positives | 0.875 → **0.0429** | ADR-015, holdout-v3 |
+| Hold-out benign FPR | **0.0092** (n=436) | ADR-015 |
+| Indirect-injection recall — *why blocking is refused* | **0.1423** (n=520) | ADR-016 |
+| Declaring untrusted spans raises it | 0.1423 → **0.5365** | ADR-018 |
+| Three attack mechanisms went from undetectable to learnable | 0.0000 → 0.73 / 0.73 / 0.97 | ADR-019 |
+| …but not without losing extraction recall, and it could not be recovered | ADR-019 **FAILURE**, ADR-020 **FAILURE** | ADR-020 |
+| Layer-2 detector CPU latency | p50 **95.4 ms**, 10.4/s single-threaded | ADR-021 |
+
+Negative results are first-class here: two fine-tuning experiments are recorded as failures
+with their evidence intact, and no model has been promoted on the strength of a partial win.
 
 Methodology: [docs/13-evaluation-strategy.md](docs/13-evaluation-strategy.md).
 Every claim and the artefact required before it may be made:

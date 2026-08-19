@@ -3,8 +3,15 @@
 This directory is the **single source of truth** for what is being built, why, and how it will
 be verified. Code that contradicts these documents is a bug in one of the two.
 
-**Current stage: Phase 0 — Planning / Architecture. Implementation not started.**
-No evaluation has been run; every metric in this repository reads `pending benchmark execution`.
+**Current stage: Phase 0 slice complete; Phase 2 detection evaluated, integrated warn-only.**
+Enforcement is still entirely heuristic. A fine-tuned classifier is measured and integrated as
+layer 2 but **ships disabled and can never block** ([ADR-021](adr/ADR-021-layer2-transformer-integration.md)).
+Evaluation has been run: ADR-014 through ADR-021 record executed experiments — including two
+recorded **failures** — each traceable to a committed report. Blocking on ML findings is
+refused on evidence (indirect recall 0.1423, ADR-016).
+
+`docs/19-implementation-roadmap.md` and the ADRs carry current state; prefer them over any
+summary elsewhere.
 
 ## Reading order
 
@@ -79,7 +86,9 @@ No evaluation has been run; every metric in this repository reads `pending bench
 
 1. **No fabricated numbers.** Any latency, precision, recall or throughput figure must come
    from a committed evaluation report and must cite that report and its machine metadata.
-   Until then the text reads `pending benchmark execution`.
+   Where no such report exists the number is not written at all — see
+   [22](22-evidence-and-claims.md), which lists both the claims that are supported and the
+   ones this project refuses to make.
 2. **No unearned claims.** "Production-ready", "enterprise-grade" and any regulatory
    compliance claim are prohibited. See [22](22-evidence-and-claims.md).
 3. **Detectors do not decide.** Any code path where a detector returns a business action is a
