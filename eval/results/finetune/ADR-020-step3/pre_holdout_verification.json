@@ -1,0 +1,56 @@
+{
+  "verified_at": "2026-08-17T18:52:41.813275+00:00",
+  "git_commit": "ef9736027d359e9a80a50b5ba08769d9f1e92926",
+  "environment": {
+    "python": "3.12.3",
+    "torch": "2.6.0+cu124",
+    "cuda": "12.4",
+    "device_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+    "platform": "Linux-7.0.0-28-generic-x86_64-with-glibc2.39"
+  },
+  "datasets": {
+    "v2_train": {
+      "expected": "be2e08ef361e843620328800bb59384b5be7049294c958cc547de0f5e2930e17",
+      "actual": "be2e08ef361e843620328800bb59384b5be7049294c958cc547de0f5e2930e17",
+      "match": true
+    },
+    "v2_dev": {
+      "expected": "2ae796b7f9fad9cd27217226ebbc2069a6ea031fa190f18d498f6baaf9d01f5c",
+      "actual": "2ae796b7f9fad9cd27217226ebbc2069a6ea031fa190f18d498f6baaf9d01f5c",
+      "match": true
+    },
+    "holdout_v3": {
+      "expected": "0e26dd6b7d0f545c0bd68b64c2a0b4b60397f8ad41436754dc38b679fbbb28bf",
+      "actual": "0e26dd6b7d0f545c0bd68b64c2a0b4b60397f8ad41436754dc38b679fbbb28bf",
+      "match": true
+    },
+    "mechanisms_v1": {
+      "expected": "bb562774663dea7580d7d1a97031b810c7a8aadebde10fcbfd04a116b521e91c",
+      "actual": "bb562774663dea7580d7d1a97031b810c7a8aadebde10fcbfd04a116b521e91c",
+      "match": true
+    }
+  },
+  "candidates": {
+    "T2": {
+      "run_id": "T2__lr1e-05__ep2__seed13",
+      "checkpoint_sha256_locked": "b4ca4ad39b3c72dd0d07c3190e37dd640b497e25f2b16617c02ab6a06e90244b",
+      "checkpoint_sha256_live": "b4ca4ad39b3c72dd0d07c3190e37dd640b497e25f2b16617c02ab6a06e90244b",
+      "immutable": true,
+      "primary_threshold": 0.9987866282473074,
+      "dev_selected_threshold": 0.38,
+      "holdout_used_in_selection": false
+    },
+    "T3": {
+      "run_id": "T3__lr1e-05__ep1__seed13",
+      "checkpoint_sha256_locked": "2d5f01e19460f66707cd8bcf20f0e762f48eacbbae2bea12be892ec1be1c4b58",
+      "checkpoint_sha256_live": "2d5f01e19460f66707cd8bcf20f0e762f48eacbbae2bea12be892ec1be1c4b58",
+      "immutable": true,
+      "primary_threshold": 0.993013322354363,
+      "dev_selected_threshold": 0.1035,
+      "holdout_used_in_selection": false
+    }
+  },
+  "all_datasets_unchanged": true,
+  "all_candidates_immutable": true,
+  "cleared_to_score": true
+}

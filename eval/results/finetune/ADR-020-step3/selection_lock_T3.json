@@ -1,0 +1,50 @@
+{
+  "locked_at": "2026-08-17T18:52:34.798761+00:00",
+  "role": "contrast_only",
+  "selectable": false,
+  "arm": "T3",
+  "run_id": "T3__lr1e-05__ep1__seed13",
+  "seed": 13,
+  "checkpoint": "artifacts/finetune-retention/T3__lr1e-05__ep1__seed13",
+  "checkpoint_sha256": "2d5f01e19460f66707cd8bcf20f0e762f48eacbbae2bea12be892ec1be1c4b58",
+  "model_revision": "protectai/deberta-v3-base-prompt-injection-v2",
+  "tokenizer_revision": "protectai/deberta-v3-base-prompt-injection-v2",
+  "train_hash": "be2e08ef361e843620328800bb59384b5be7049294c958cc547de0f5e2930e17",
+  "dev_hash": "2ae796b7f9fad9cd27217226ebbc2069a6ea031fa190f18d498f6baaf9d01f5c",
+  "holdout_v3_hash": "0e26dd6b7d0f545c0bd68b64c2a0b4b60397f8ad41436754dc38b679fbbb28bf",
+  "mechanisms_v1_hash": "bb562774663dea7580d7d1a97031b810c7a8aadebde10fcbfd04a116b521e91c",
+  "primary_threshold": 0.993013322354363,
+  "primary_threshold_source": "matched-FPR <= 0.01 on the frozen seed-fixed calibration draw (amendment A-2); calibrated on public non-hold-out data only",
+  "dev_selected_threshold": 0.1035,
+  "dev_selected_threshold_status": "secondary diagnostic, recorded not used",
+  "selection_criteria": {
+    "eligibility_gate": "A-1: dev separable AND dev attack recall >= 0.99 AND dev benign FPR <= 0.0241",
+    "eligibility_applies": false,
+    "eligibility_note": "A-4: the gate governs eligibility for selection. The contrast target is not selectable, so the gate does not apply to it; ordering is by ranking keys.",
+    "ranking_keys": [
+      "lakera-gandalf recall at matched-FPR (desc)",
+      "deepset attack recall (desc)",
+      "eval_benign FPR (asc)",
+      "ADR-015 deterministic tie-break (lr, epochs, seed)"
+    ]
+  },
+  "selection_metrics": {
+    "lakera_recall": 0.957958,
+    "deepset_attack_recall": 0.205323,
+    "eval_benign_fpr": 0.006,
+    "eligibility_checks": {
+      "dev_separable": false,
+      "dev_attack_recall_ge_0.99": true,
+      "dev_benign_fpr_le_0.0241": true
+    }
+  },
+  "holdout_used_in_selection": false,
+  "git_commit": "ef9736027d359e9a80a50b5ba08769d9f1e92926",
+  "environment": {
+    "python": "3.12.3",
+    "torch": "2.6.0+cu124",
+    "cuda": "12.4",
+    "device_name": "NVIDIA GeForce RTX 3050 Laptop GPU",
+    "platform": "Linux-7.0.0-28-generic-x86_64-with-glibc2.39"
+  }
+}

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="242" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">
+<text x="16" y="26" font-size="14" font-weight="600">holdout-v3 false-positive rates</text>
+<line x1="290.0" y1="44" x2="290.0" y2="216" stroke="#b91c1c" stroke-dasharray="4 3"/>
+<text x="16" y="69" fill="#334155">T2 benign</text>
+<rect x="250" y="59" width="2.8" height="14" fill="#b91c1c" rx="2"/>
+<text x="258.76" y="70" fill="#475569">0.007 (n=436)</text>
+<text x="16" y="95" fill="#334155">T2 quoted_attack</text>
+<rect x="250" y="85" width="5.7" height="14" fill="#b91c1c" rx="2"/>
+<text x="261.72" y="96" fill="#475569">0.014 (n=436)</text>
+<text x="16" y="121" fill="#334155">T2 hard_negative</text>
+<rect x="250" y="111" width="5.0" height="14" fill="#b91c1c" rx="2"/>
+<text x="261.0" y="122" fill="#475569">0.013 (n=436)</text>
+<text x="16" y="147" fill="#334155">T3 benign</text>
+<rect x="250" y="137" width="2.8" height="14" fill="#b91c1c" rx="2"/>
+<text x="258.76" y="148" fill="#475569">0.007 (n=436)</text>
+<text x="16" y="173" fill="#334155">T3 quoted_attack</text>
+<rect x="250" y="163" width="11.4" height="14" fill="#b91c1c" rx="2"/>
+<text x="267.44" y="174" fill="#475569">0.029 (n=436)</text>
+<text x="16" y="199" fill="#334155">T3 hard_negative</text>
+<rect x="250" y="189" width="5.0" height="14" fill="#b91c1c" rx="2"/>
+<text x="261.0" y="200" fill="#475569">0.013 (n=436)</text>
+</svg>

@@ -1,0 +1,296 @@
+{
+  "generated_at": "2026-08-17T18:57:18.013188+00:00",
+  "evaluation_event": "ADR-020 Step 3 (A-3): one event, two locked targets",
+  "deployment_candidate": {
+    "arm": "T2",
+    "run_id": "T2__lr1e-05__ep2__seed13"
+  },
+  "contrast_only": {
+    "arm": "T3",
+    "run_id": "T3__lr1e-05__ep1__seed13"
+  },
+  "strategy_a_reference_published": {
+    "checkpoint": "stratA__lr1e-05__ep2__seed13",
+    "threshold": 0.9955,
+    "benign_fpr": 0.0092,
+    "hard_negative_fpr": 0.0167,
+    "quoted_attack_fpr": 0.0429,
+    "attack_recall": 0.8174,
+    "attack_tp": 291,
+    "extraction_recall": 0.8446,
+    "extraction_tp": 250
+  },
+  "strategy_a_at_matched_fpr_from_stored_scores": {
+    "threshold": 0.9962233304987417,
+    "attack_recall": {
+      "n": 356,
+      "hits": 289,
+      "recall": 0.8118,
+      "recall_ci95_wilson": [
+        0.7679,
+        0.849
+      ]
+    },
+    "system_prompt_extraction": {
+      "n": 296,
+      "hits": 248,
+      "recall": 0.8378,
+      "recall_ci95_wilson": [
+        0.7916,
+        0.8755
+      ]
+    },
+    "benign": {
+      "n": 436,
+      "hits": 4,
+      "fpr": 0.0092,
+      "fpr_ci95_wilson": [
+        0.0036,
+        0.0233
+      ]
+    },
+    "hard_negatives": {
+      "n": 240,
+      "hits": 4,
+      "fpr": 0.0167,
+      "fpr_ci95_wilson": [
+        0.0065,
+        0.0421
+      ]
+    },
+    "quoted_attack": {
+      "n": 70,
+      "hits": 3,
+      "fpr": 0.0429,
+      "fpr_ci95_wilson": [
+        0.0147,
+        0.1186
+      ]
+    },
+    "source": "re-thresholded from stored predictions; no new scoring of holdout-v3"
+  },
+  "adr_019_reference": {
+    "checkpoint": "mech__lr1e-05__ep2__seed13",
+    "benign_fpr": 0.0161,
+    "quoted_attack_fpr": 0.0571,
+    "attack_recall": 0.764,
+    "extraction_recall": 0.7534,
+    "mechanisms": {
+      "retrieval_poisoning": 0.7333,
+      "tool_use_manipulation": 0.7333,
+      "safety_bypass": 0.9667
+    }
+  },
+  "criteria": {
+    "T2": {
+      "retention": {
+        "extraction_recall": {
+          "value": 0.7669,
+          "reference": 0.8446,
+          "floor": 0.7946,
+          "within_margin": false,
+          "paired": {
+            "n": 296,
+            "b_strategy_a_only": 27,
+            "c_successor_only": 4,
+            "net": -23,
+            "mcnemar_p": 3.395e-05,
+            "significant": true,
+            "degradation_direction": true
+          },
+          "no_significant_degradation": false
+        },
+        "attack_recall": {
+          "value": 0.7725,
+          "reference": 0.8174,
+          "floor": 0.7674,
+          "within_margin": true,
+          "paired": {
+            "n": 356,
+            "b_strategy_a_only": 29,
+            "c_successor_only": 13,
+            "net": -16,
+            "mcnemar_p": 0.01952047,
+            "significant": true,
+            "degradation_direction": true
+          },
+          "no_significant_degradation": false
+        },
+        "benign_fpr": {
+          "value": 0.0069,
+          "reference": 0.0092,
+          "not_worse": true
+        },
+        "quoted_attack_fpr": {
+          "value": 0.0143,
+          "reference": 0.0429,
+          "not_worse": true
+        },
+        "hard_negative_fpr": {
+          "value": 0.0125,
+          "reference": 0.0167
+        }
+      },
+      "mechanisms": {
+        "retrieval_poisoning": {
+          "recall": 0.3167,
+          "n": 60,
+          "tp": 19,
+          "wilson_lower": 0.2131,
+          "meets_bound": false
+        },
+        "tool_use_manipulation": {
+          "recall": 0.35,
+          "n": 60,
+          "tp": 21,
+          "wilson_lower": 0.2417,
+          "meets_bound": false
+        },
+        "safety_bypass": {
+          "recall": 0.85,
+          "n": 60,
+          "tp": 51,
+          "wilson_lower": 0.7389,
+          "meets_bound": true
+        }
+      },
+      "benign_controls": {
+        "legitimate_request": {
+          "fpr": 0.0,
+          "n": 88,
+          "wilson_upper": 0.0418,
+          "meets_bound": true
+        },
+        "document_carried_legitimate": {
+          "fpr": 0.0,
+          "n": 90,
+          "wilson_upper": 0.0409,
+          "meets_bound": true
+        }
+      },
+      "latency": {
+        "n": 200,
+        "mean_ms": 11.6149,
+        "p50_ms": 11.8261,
+        "p95_ms": 12.3604,
+        "p99_ms": 12.6472,
+        "throughput_per_s_single_threaded": 86.1,
+        "peak_vram_gb": 0.952,
+        "device": "cuda",
+        "method": "single-sample, warm, tokenisation included \u2014 identical to prior runs"
+      },
+      "all_retention_met": false,
+      "all_mechanisms_met": false,
+      "all_controls_met": true
+    },
+    "T3": {
+      "retention": {
+        "extraction_recall": {
+          "value": 0.7905,
+          "reference": 0.8446,
+          "floor": 0.7946,
+          "within_margin": false,
+          "paired": {
+            "n": 296,
+            "b_strategy_a_only": 17,
+            "c_successor_only": 1,
+            "net": -16,
+            "mcnemar_p": 0.00014496,
+            "significant": true,
+            "degradation_direction": true
+          },
+          "no_significant_degradation": false
+        },
+        "attack_recall": {
+          "value": 0.7809,
+          "reference": 0.8174,
+          "floor": 0.7674,
+          "within_margin": true,
+          "paired": {
+            "n": 356,
+            "b_strategy_a_only": 20,
+            "c_successor_only": 7,
+            "net": -13,
+            "mcnemar_p": 0.01915729,
+            "significant": true,
+            "degradation_direction": true
+          },
+          "no_significant_degradation": false
+        },
+        "benign_fpr": {
+          "value": 0.0069,
+          "reference": 0.0092,
+          "not_worse": true
+        },
+        "quoted_attack_fpr": {
+          "value": 0.0286,
+          "reference": 0.0429,
+          "not_worse": true
+        },
+        "hard_negative_fpr": {
+          "value": 0.0125,
+          "reference": 0.0167
+        }
+      },
+      "mechanisms": {
+        "retrieval_poisoning": {
+          "recall": 0.1167,
+          "n": 60,
+          "tp": 7,
+          "wilson_lower": 0.0577,
+          "meets_bound": false
+        },
+        "tool_use_manipulation": {
+          "recall": 0.05,
+          "n": 60,
+          "tp": 3,
+          "wilson_lower": 0.0171,
+          "meets_bound": false
+        },
+        "safety_bypass": {
+          "recall": 0.6833,
+          "n": 60,
+          "tp": 41,
+          "wilson_lower": 0.5577,
+          "meets_bound": true
+        }
+      },
+      "benign_controls": {
+        "legitimate_request": {
+          "fpr": 0.0,
+          "n": 88,
+          "wilson_upper": 0.0418,
+          "meets_bound": true
+        },
+        "document_carried_legitimate": {
+          "fpr": 0.0,
+          "n": 90,
+          "wilson_upper": 0.0409,
+          "meets_bound": true
+        }
+      },
+      "latency": {
+        "n": 200,
+        "mean_ms": 11.7956,
+        "p50_ms": 12.0565,
+        "p95_ms": 12.4935,
+        "p99_ms": 12.7174,
+        "throughput_per_s_single_threaded": 84.78,
+        "peak_vram_gb": 0.952,
+        "device": "cuda",
+        "method": "single-sample, warm, tokenisation included \u2014 identical to prior runs"
+      },
+      "all_retention_met": false,
+      "all_mechanisms_met": false,
+      "all_controls_met": true
+    }
+  },
+  "decision": "FAILURE",
+  "decision_reasons": {
+    "all_three_mechanisms_meet_bound": false,
+    "any_mechanism_meets_bound": true,
+    "all_retention_criteria_met": false,
+    "all_benign_controls_met": true
+  },
+  "decision_basis": "deployment candidate only; the contrast arm is never selectable"
+}

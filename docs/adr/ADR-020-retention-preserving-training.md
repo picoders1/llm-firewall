@@ -1,7 +1,8 @@
 # ADR-020: Retention-preserving successor training — pre-registered protocol
 
-**Status:** Accepted (protocol). **Steps 0–1 executed 2026-08-17 → both passed.
-Step 2 justified, still unauthorised.**
+**Status:** **EXECUTED AND CLOSED 2026-08-18 → FAILURE.** Steps 0–1 passed, Step 2
+complete (6/6 runs), Step 3 evaluated both arms once. The successor does not replace
+Strategy A.
 **Date:** 2026-08-17
 **Phase:** 2 continuation
 **Follows** [ADR-015](ADR-015-fine-tuning-strategy.md) (Strategy A),
@@ -296,9 +297,31 @@ rows are drawn*, never the loss: no class weights, no custom objective, no curri
 
 ### Step 3 — Select, then score once
 
-Rank the six checkpoints on the validated proxy plus dev. Score **one** winner on
-holdout-v3 and mechanisms-v1. Both scorings are declared in advance and are the only
-hold-out uses this ADR authorises.
+Rank the six checkpoints on the validated proxy. Score the **best T2 and the best T3**
+on holdout-v3 and mechanisms-v1, in a single evaluation event with both checkpoints
+locked in advance. These are the only hold-out uses this ADR authorises.
+
+**Amended 2026-08-18 (amendment 2, A-3).** This step originally scored one pooled
+winner. Step 2's dev results show T2 dominating T3 on every metric, so the pooled winner
+would be a T2 and **T3 would never be measured on holdout-v3** — making three of
+ADR-020's four registered causal outcomes unreachable and three of its six runs
+evidentially useless. The deployment candidate remains the single pooled proxy-ranked
+winner; the other arm's best checkpoint is scored **for causal evidence only** and is not
+eligible for selection. Choosing between them after seeing hold-out numbers is
+forbidden. Raised before any hold-out was read.
+
+**Amended 2026-08-17 (amendment 1, A-1).** This step originally read "rank on the
+validated proxy *plus dev*", which specified no combination rule and relied on a signal
+Step 1 then measured at **sd 0.0000** for extraction recall, benign FPR and
+quoted_attack FPR across all 18 Strategy A checkpoints. Dev is now an eligibility gate
+only — it rejects a degenerate run and contributes no ranking information. The exact
+ranking keys, in order, all at the matched-FPR threshold: `lakera-gandalf` recall,
+then deepset attack recall, then `eval_benign` FPR, then ADR-015's deterministic
+tie-break. Mechanism recall is deliberately excluded, being measurable only on a
+protected hold-out that is scored after selection.
+See [`amendment.md`](../../eval/results/finetune/ADR-020-steps-0-1/amendment.md).
+
+**Further amended 2026-08-18 (amendment 3, A-4).** The eligibility gate excludes every T3 checkpoint — all three dev splits are non-separable, which for a deliberately under-trained arm is the expected outcome rather than a defect — while A-3 requires a locked best-T3 contrast target. The gate governs eligibility for *selection*; the ranking keys govern *ordering*. The contrast target is chosen by ranking keys alone, the gate applying unchanged to the deployment candidate. **No T3 checkpoint is deployable on the registered criteria, and that stands as a Step-3 finding.**
 
 ## Threshold methodology (§20)
 
@@ -306,12 +329,24 @@ Dev saturation makes a dev-selected threshold underdetermined, which would let t
 models be compared at incompatible operating points — the exact failure §20 forbids.
 The registered rule is therefore **both**:
 
-1. **Primary, unchanged:** every model gets a dev-selected threshold under the
-   identical documented methodology, including the same deterministic tie-break. This
-   keeps the successor comparable with the historical record.
-2. **Secondary, for comparability only:** a matched-FPR analysis. Threshold = the
-   smallest τ giving ≤ 1% FPR on a frozen, seed-fixed 2,000-sample draw from the
-   unused public benign pool, applied identically to every model.
+1. **Primary:** matched-FPR — the smallest τ giving ≤ 1% FPR on a frozen, seed-fixed
+   2,000-sample calibration draw from the unused public benign pool, disjoint from the
+   evaluation draw and applied identically to every model.
+2. **Secondary, recorded for continuity:** every model still gets a dev-selected
+   threshold under the identical documented methodology and the same deterministic
+   tie-break, reported alongside.
+
+**Amended 2026-08-17 (amendment 1, A-2) — this ordering is inverted from the original.**
+The ADR first made the dev-selected threshold primary. Step 1 then measured it across
+all 36 checkpoints: the ADR-019 family has **sd 0.2179, min 0.0694**, with
+`mech__lr1e-05__ep2__seed20260817` selecting 0.0694 where its sibling seed selected
+0.9954 under identical methodology. The quantity is arbitrary, not merely noisy, and
+Step 0 showed the consequence — comparing at dev-selected thresholds put the ADR-019
+gap at 0.0200 against 0.0621 at matched FPR, understating it roughly threefold. Step 3
+spends the single authorised holdout-v3 scoring, which must not happen at an arbitrary
+operating point. The governing brief's §20 is still satisfied: every model gets and
+records a dev-selected threshold, and §20 equally forbids comparing incompatible
+thresholds — which Step 1 proved these to be.
 
 Published historical numbers are **not restated**. Matched-FPR figures are reported
 as a clearly labelled additional analysis beside them.
@@ -429,6 +464,118 @@ and building the Phase 8 dashboard.
 uv run pytest -m evaluation -q
 uv run python -m scripts.datasets.build_mechanism_coverage --check
 ```
+
+## Step 2 result — executed 2026-08-17, 6/6 runs
+
+**COMPLETE.** All six registered runs succeeded, the matrix was not expanded, and no
+protected hold-out was read. Evidence:
+[`eval/results/finetune/ADR-020-step2/`](../../eval/results/finetune/ADR-020-step2/).
+
+The mixture realised as registered, verified sample by sample rather than assumed from
+the configured ratio: v1 0.899949 / extension 0.100051, attack fraction 0.19393,
+extraction **0.38992** of attack mass (at or above the registered 0.389189 floor), the
+three mechanisms exactly balanced at 53 each per epoch.
+
+| arm | steps | dev F1 | dev FPR | dev separable | retrieval_poisoning | tool_use | safety_bypass |
+|---|---|---|---|---|---|---|---|
+| **T2** (2 epochs) | 486 | 0.998 / 1.0000 / 0.998 | 0.0000 ×3 | **True** ×3 | 1.0 ×3 | 1.0, 1.0, 0.9706 | 1.0 ×3 |
+| **T3** (1 epoch) | 243 | 0.9753 / 0.9639 / 0.9732 | 0.0038 / 0.0150 / 0.0038 | **False** ×3 | 0.9286 / 0.9643 / 0.9643 | 0.8235 / 0.8824 / 0.7647 | 1.0 ×3 |
+
+**Dev discriminated for the first time in this project** — T2 and T3 are fully disjoint
+on dev F1, dev FPR, separability, and two of the three mechanisms. The saturation that
+defeated selection in ADR-015, ADR-019 and ADR-020 Steps 0–1 did not recur here, because
+T3's one-epoch budget leaves the model genuinely undertrained: its dev split does not
+separate at all, the first `separable=False` in the project's history.
+
+**But the retention signal stayed saturated.** Dev extraction recall is **1.0000 for all
+six runs**, as is `quoted_attack` FPR (0.0000) and `safety_bypass` recall. So dev
+acquired discriminating power over *general* quality and over the two hardest mechanisms
+while remaining completely blind to the capability the experiment exists to protect.
+
+**No causal claim is made here, and none can be.** ADR-020 §18's questions — does T2 or
+T3 recover retention — are defined on holdout-v3 extraction and attack recall, which
+§15 forbids reading in Step 2 and which Step 3 scores once. What Step 2 establishes is
+that the runs exist, the contrasts are clean by construction, and the arms differ enough
+that Step 3 can distinguish them.
+
+One quantified cost, registered in advance as R-49: each mechanism now receives 53
+samples per epoch against ADR-019's ~150. T3's tool-use recall (0.76–0.88 on dev, where
+T2 reaches 0.97–1.00) is the first visible consequence.
+
+A property of the replay worth stating plainly: strata are drawn **with replacement**
+where a pool is smaller than its quota, so one epoch touches 2,579 of 3,878 training
+rows — **66.5% coverage**, with extraction oversampled 1.28× from a pool of 230. The
+replay arm is a *resampled* corpus, not the whole corpus plus extra extraction.
+
+Wall-clock differed between T2 (≈209 s) and ADR-019 (≈260 s) at an identical 486-step
+budget. **No cause is claimed.** The obvious candidate, sequence length, was checked and
+rejected — the replay epoch's per-micro-batch padded cost is *higher* (140,709 vs
+122,808 characters) while its wall-clock is lower. The two experiments ran at different
+times under different machine load, so no throughput conclusion is drawn.
+
+## Step 3 result — executed 2026-08-18 → **FAILURE**
+
+Deployment candidate `T2__lr1e-05__ep2__seed13`, contrast `T3__lr1e-05__ep1__seed13`,
+both locked with their matched-FPR thresholds before either hold-out was read. One
+evaluation event; holdout-v3 and mechanisms-v1 each consumed one scoring. Evidence:
+[`eval/results/finetune/ADR-020-step3/`](../../eval/results/finetune/ADR-020-step3/).
+
+| holdout-v3 | Strategy A | ADR-019 | T2 | T3 | floor |
+|---|---|---|---|---|---|
+| extraction recall | 0.8446 | 0.7534 | **0.7669** | 0.7905 | 0.7946 |
+| attack recall | 0.8174 | 0.7640 | **0.7725** | 0.7809 | 0.7674 |
+| benign FPR | 0.0092 | 0.0161 | 0.0069 | 0.0069 | — |
+| quoted_attack FPR | 0.0429 | 0.0571 | 0.0143 | 0.0286 | — |
+| hard-negative FPR | 0.0167 | — | 0.0125 | 0.0125 | — |
+
+Extraction recall misses its registered floor, and the paired exact-McNemar test shows
+**significant degradation against Strategy A for both arms** (T2 p = 0.000034, net −23 of
+296; T3 p = 0.000145, net −16). The registered rule — FAILURE if any retention criterion
+fails — applies, exactly as it did to ADR-019.
+
+| mechanisms-v1 | ADR-019 | T2 | T3 |
+|---|---|---|---|
+| retrieval_poisoning | 0.7333 | **0.3167** | 0.1167 |
+| tool_use_manipulation | 0.7333 | **0.3500** | 0.0500 |
+| safety_bypass | 0.9667 | **0.8500** | 0.6833 |
+
+Only `safety_bypass` still clears the unweakened Wilson bound. **R-49 materialised at
+full force**: mechanism exposure fell from ~119 to 53 samples per epoch and recall fell
+with it. Benign controls held perfectly — 0 false positives on all 178, including all 90
+document-carried — so neither model learned "retrieved content is malicious".
+
+### The causal finding
+
+ADR-019 lost 0.0912 of extraction recall. Restoring extraction's share of attack mass
+(T2) recovered **15%** of that; halving the adaptation budget (T3) recovered **41%**.
+Neither closes it, and both pay for it in mechanism coverage.
+
+**The leading hypothesis was the weaker factor.** C2 (relative dilution) is substantially
+weakened: it was the most-implicated variable in the causal table and buying it back
+returned less than a sixth of the loss. C3 (adaptation budget) matters more but also
+falls short.
+
+**C1 — capacity / interference — is now the best-supported explanation.** Two independent
+interventions, one on the data and one on the schedule, both slide along the same
+trade-off curve without stepping off it. That is what a capacity constraint looks like at
+fixed model size, and it is not something more data or another schedule repairs.
+
+Taken with ADR-019 — which proved these mechanisms *are* learnable — the pair of results
+says the mechanisms are learnable, but **not in the same model as extraction**. That
+promotes OD-34, the layered detector.
+
+### Also recorded
+
+No T3 checkpoint was ever deployable: all three failed A-1's eligibility gate before
+scoring, their dev splits being non-separable. That is independent of anything holdout-v3
+showed.
+
+The proxy anticipated the direction. On `lakera-gandalf` at matched FPR the ordering was
+Strategy A 0.9720 > T3 0.9503 > T2 0.9303 > ADR-019 0.9126 — both arms above ADR-019,
+neither reaching Strategy A, and T3 above T2. The hold-out reproduced that ordering
+exactly, which is a point in the proxy's favour for future use.
+
+**No production change. WARN ONLY, unchanged.**
 
 ## Revisit when
 

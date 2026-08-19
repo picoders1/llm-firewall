@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="138" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">
+<text x="16" y="26" font-size="14" font-weight="600">detector latency p95 (ms, GPU, single-sample)</text>
+<line x1="250.0" y1="44" x2="250.0" y2="112" stroke="#b91c1c" stroke-dasharray="4 3"/>
+<text x="16" y="69" fill="#334155">T2</text>
+<rect x="250" y="59" width="4944.2" height="14" fill="#15803d" rx="2"/>
+<text x="5200.16" y="70" fill="#475569">12.360 (n=200)</text>
+<text x="16" y="95" fill="#334155">T3</text>
+<rect x="250" y="85" width="4997.4" height="14" fill="#15803d" rx="2"/>
+<text x="5253.4" y="96" fill="#475569">12.493 (n=200)</text>
+</svg>

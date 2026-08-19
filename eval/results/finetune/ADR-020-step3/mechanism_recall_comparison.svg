@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="740" height="242" font-family="ui-sans-serif,system-ui,sans-serif" font-size="12">
+<text x="16" y="26" font-size="14" font-weight="600">mechanisms-v1 recall (Wilson lower bound >= 0.50)</text>
+<line x1="450.0" y1="44" x2="450.0" y2="216" stroke="#b91c1c" stroke-dasharray="4 3"/>
+<text x="16" y="69" fill="#334155">T2 retrieval_poisoning</text>
+<rect x="250" y="59" width="126.7" height="14" fill="#b45309" rx="2"/>
+<text x="382.68" y="70" fill="#475569">0.317 (n=60)</text>
+<text x="16" y="95" fill="#334155">T2 tool_use_manipulation</text>
+<rect x="250" y="85" width="140.0" height="14" fill="#b45309" rx="2"/>
+<text x="396.0" y="96" fill="#475569">0.350 (n=60)</text>
+<text x="16" y="121" fill="#334155">T2 safety_bypass</text>
+<rect x="250" y="111" width="340.0" height="14" fill="#15803d" rx="2"/>
+<text x="596.0" y="122" fill="#475569">0.850 (n=60)</text>
+<text x="16" y="147" fill="#334155">T3 retrieval_poisoning</text>
+<rect x="250" y="137" width="46.7" height="14" fill="#b91c1c" rx="2"/>
+<text x="302.68" y="148" fill="#475569">0.117 (n=60)</text>
+<text x="16" y="173" fill="#334155">T3 tool_use_manipulation</text>
+<rect x="250" y="163" width="20.0" height="14" fill="#b91c1c" rx="2"/>
+<text x="276.0" y="174" fill="#475569">0.050 (n=60)</text>
+<text x="16" y="199" fill="#334155">T3 safety_bypass</text>
+<rect x="250" y="189" width="273.3" height="14" fill="#15803d" rx="2"/>
+<text x="529.3199999999999" y="200" fill="#475569">0.683 (n=60)</text>
+</svg>
