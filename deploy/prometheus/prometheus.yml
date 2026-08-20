@@ -1,0 +1,23 @@
+# Reference scrape configuration (ADR-031).
+#
+# Minimal on purpose: this exists to evaluate the shipped rules against a real
+# gateway, not to be a monitoring platform. Alertmanager is deliberately absent —
+# routing, silencing and paging belong to whatever an operator already runs, and a
+# second opinion about them from this repository would be noise.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 30s
+
+rule_files:
+  - /etc/prometheus/rules/firewall.rules.yaml
+
+scrape_configs:
+  - job_name: llm-firewall
+    static_configs:
+      - targets: ["firewall-api:8000"]
+    metrics_path: /metrics
+    # `/metrics` is on the INTERNAL access class. In development the operator
+    # boundary is off and this works unconfigured; in production the scraper's
+    # network must appear in FIREWALL_METRICS_NETWORKS or every scrape is a 401
+    # (ADR-023). That is configuration, not an outage — and the runbook says so.

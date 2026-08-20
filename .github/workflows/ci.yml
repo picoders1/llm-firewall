@@ -85,6 +85,28 @@ jobs:
           echo "collected: $count"
           uv run pytest -m security -q
 
+  alerts:
+    name: alert rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No stack and no Python needed: promtool evaluates the shipped rules
+      # against synthetic series. Fast enough to run on every push, and it is the
+      # only thing that can prove an alert stays SILENT when it should — which is
+      # the half of alerting that rots unnoticed (ADR-031).
+      - name: Validate the rule syntax
+        run: |
+          docker run --rm --entrypoint promtool \
+            -v "$PWD/deploy/alerts:/rules:ro" prom/prometheus:v3.5.0 \
+            check rules /rules/firewall.rules.yaml
+
+      - name: Evaluate every alert against its unit tests
+        run: |
+          docker run --rm --entrypoint promtool \
+            -v "$PWD/deploy/alerts:/rules:ro" prom/prometheus:v3.5.0 \
+            test rules /rules/firewall.rules.test.yaml
+
   security:
     name: dependency and secret scanning
     runs-on: ubuntu-latest
@@ -171,6 +193,135 @@ jobs:
           ignore-unfixed: true
           severity: HIGH,CRITICAL
 
+  tls:
+    name: TLS integration
+    runs-on: ubuntu-latest
+    needs: [lint, types, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - run: uv sync --all-groups --frozen
+
+      # Generated per run into a gitignored directory. No certificate or key in
+      # the repository, in an image layer, or in this file (ADR-026 §4).
+      - name: Generate a development certificate
+        run: ./scripts/generate_dev_cert.sh
+
+      - name: Start the stack with TLS at the edge
+        run: |
+          docker compose -f compose.yaml -f compose.edge.yaml -f compose.tls.yaml \
+            up -d --build
+
+      - name: Wait for the TLS listener
+        run: |
+          for i in $(seq 1 45); do
+            if curl -fsS --cacert deploy/certs/fullchain.pem \
+                 https://localhost:8443/health >/dev/null 2>&1; then
+              echo "TLS edge ready after ${i}s"; exit 0
+            fi
+            sleep 2
+          done
+          echo "TLS edge did not become ready"
+          docker compose -f compose.yaml -f compose.edge.yaml -f compose.tls.yaml logs edge
+          exit 1
+
+      # Real handshakes: protocol floor, certificate/hostname match, redirect,
+      # ALPN, and the auth boundaries over HTTPS.
+      - name: Run the TLS suites
+        run: |
+          uv run pytest tests/integration/test_tls_edge.py \
+                        tests/integration/test_tls_failure_modes.py -q
+
+      - name: Prove no key reached the image
+        run: |
+          # A key baked into a layer survives every `docker rmi` of the container
+          # and is readable by anyone who can pull the image.
+          if docker run --rm --entrypoint sh llm-firewall-edge:dev -c \
+               'ls /etc/nginx/tls 2>/dev/null | grep -q . && echo FOUND || true' | grep -q FOUND; then
+            echo "certificate material found inside the image"; exit 1
+          fi
+          echo "no certificate material in the edge image"
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose -f compose.yaml -f compose.edge.yaml -f compose.tls.yaml logs
+
+      - name: Tear down
+        if: always()
+        run: |
+          docker compose -f compose.yaml -f compose.edge.yaml -f compose.tls.yaml down -v
+          rm -rf deploy/certs
+
+  deployment:
+    name: production topology
+    runs-on: ubuntu-latest
+    needs: [lint, types, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+      - run: uv sync --all-groups --frozen
+
+      # Both generated per run into gitignored directories. No certificate, key
+      # or credential is in the repository or in this file (ADR-026, ADR-028).
+      - name: Generate certificate and secrets
+        run: |
+          ./scripts/generate_dev_cert.sh
+          out=$(./scripts/init_prod_secrets.sh)
+          echo "$out" | grep -v '^ *fw-'
+          raw=$(echo "$out" | grep -oE 'fw-[A-Za-z0-9_-]+' | head -1)
+          echo "::add-mask::$raw"
+          echo "PROD_CALLER_KEY=$raw" >> "$GITHUB_ENV"
+
+      - name: Bring up the production topology
+        run: |
+          docker compose -f compose.prod.yaml -f compose.prod-selftest.yaml \
+            --env-file prod.selftest.env up -d --build
+
+      - name: Wait for the edge
+        run: |
+          for i in $(seq 1 45); do
+            if curl -fsS --cacert deploy/certs/fullchain.pem \
+                 https://localhost:8443/health >/dev/null 2>&1; then
+              echo "ready after ${i}s"; exit 0
+            fi
+            sleep 2
+          done
+          echo "production stack did not become ready"
+          docker compose -f compose.prod.yaml -f compose.prod-selftest.yaml \
+            --env-file prod.selftest.env logs
+          exit 1
+
+      - name: Apply migrations as a separate step
+        run: |
+          docker compose -f compose.prod.yaml --env-file prod.selftest.env \
+            --profile migrate run --rm migrate
+
+      # Probes the RUNNING stack: a manifest can be correct while a stale
+      # container still holds a binding.
+      - name: Probe the topology
+        run: uv run pytest tests/integration/test_prod_topology.py -q
+
+      - name: Dump logs on failure
+        if: failure()
+        run: |
+          docker compose -f compose.prod.yaml -f compose.prod-selftest.yaml \
+            --env-file prod.selftest.env logs
+
+      - name: Tear down
+        if: always()
+        run: |
+          docker compose -f compose.prod.yaml -f compose.prod-selftest.yaml \
+            --env-file prod.selftest.env down -v
+          rm -rf deploy/certs deploy/secrets
+
   integration:
     name: integration tests
     runs-on: ubuntu-latest
@@ -184,8 +335,10 @@ jobs:
           cache-dependency-glob: "uv.lock"
       - run: uv sync --all-groups --frozen
 
-      - name: Start the stack
-        run: docker compose up -d --build
+      - name: Start the stack, including the reference edge
+        run: >-
+          docker compose -f compose.yaml -f compose.edge.yaml
+          -f compose.observability.yaml up -d --build
 
       - name: Wait for readiness
         run: |
@@ -197,19 +350,70 @@ jobs:
           done
           echo "stack did not become ready"; docker compose logs; exit 1
 
+      - name: Wait for the edge
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8089/health >/dev/null 2>&1; then
+              echo "edge ready after ${i}s"; exit 0
+            fi
+            sleep 2
+          done
+          echo "edge did not become ready"
+          docker compose -f compose.yaml -f compose.edge.yaml logs edge
+          exit 1
+
+      # R-87: the gateway advertised OpenMetrics and served the text format, so
+      # every scrape failed and no alert could ever have fired. Nothing in the
+      # Python suite noticed, because none of it is a Prometheus. This is the
+      # regression guard, and it belongs in CI for exactly that reason.
+      - name: Wait for Prometheus to scrape the gateway
+        run: |
+          for i in $(seq 1 30); do
+            health=$(curl -fsS 'http://localhost:9091/api/v1/targets' \
+              | python3 -c "import sys,json;t=json.load(sys.stdin)['data']['activeTargets'];print(next((x['health'] for x in t if x['labels']['job']=='llm-firewall'),'absent'))" 2>/dev/null || echo pending)
+            if [ "$health" = "up" ]; then echo "scrape healthy after ${i} tries"; exit 0; fi
+            sleep 2
+          done
+          echo "Prometheus never scraped the gateway successfully"
+          curl -s 'http://localhost:9091/api/v1/targets' || true
+          exit 1
+
       - name: Verify the migration mechanism against a real database
         run: |
           docker compose exec -T \
             -e FIREWALL_DATABASE_URL=postgresql+asyncpg://firewall:firewall@postgres:5432/firewall \
             firewall-api alembic upgrade head
 
-      - name: Run integration suite
+      # Two passes, because the suites want different stacks and running them
+      # together would mean one of them lying. The first exercises the gateway as
+      # every pre-Phase-10 integration test expects it: callers unauthenticated.
+      - name: Run integration suite (edge up, callers unauthenticated)
         run: uv run pytest -m integration -q
+
+      # The second turns caller authentication on and re-runs only the edge
+      # suite, which is the one that cares. Without this the authenticated path
+      # through the proxy would skip, and claiming CI coverage of it would be
+      # false (docs/22-evidence-and-claims.md).
+      - name: Provision a caller credential and re-run the edge suite
+        run: |
+          out=$(uv run python scripts/generate_caller_key.py ci-app)
+          raw=$(echo "$out" | sed -n '4p' | tr -d ' ')
+          digest=$(echo "$out" | sed -n '7p' | tr -d ' ' | sed 's/FIREWALL_CALLER_API_KEYS=//')
+          echo "::add-mask::$raw"
+          # `.env` is already an optional env_file for firewall-api and is
+          # gitignored, so no new mechanism is introduced. The digest goes to the
+          # gateway and the raw key to the test, exactly as a real deployment
+          # splits them (ADR-024) — neither is ever written to the repository.
+          printf 'FIREWALL_CALLER_AUTH_MODE=api_key\nFIREWALL_CALLER_API_KEYS=%s\n' "$digest" > .env
+          docker compose -f compose.yaml -f compose.edge.yaml up -d --no-deps \
+            --force-recreate --wait firewall-api
+          EDGE_TEST_CALLER_KEY="$raw" uv run pytest tests/integration/test_edge_proxy.py -q
+          rm -f .env
 
       - name: Dump logs on failure
         if: failure()
-        run: docker compose logs
+        run: docker compose -f compose.yaml -f compose.edge.yaml logs
 
       - name: Tear down
         if: always()
-        run: docker compose down -v
+        run: docker compose -f compose.yaml -f compose.edge.yaml down -v

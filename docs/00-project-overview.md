@@ -102,17 +102,32 @@ trustworthy. Full analysis in [09-threat-model.md](09-threat-model.md).
   inspected independently.
 * It does not defend against an attacker who knows the detectors and adapts (white-box
   evasion).
-* It does not authenticate callers, terminate TLS, or rate-limit (before Phase 6).
+* It does not terminate TLS. Since Phase 12 it *verifies* the client hop was TLS and
+  refuses the request otherwise, but termination happens at the edge
+  ([ADR-026](adr/ADR-026-secure-transport.md)). Callers *are* authenticated since
+  Phase 10 ([ADR-024](adr/ADR-024-llm-caller-authentication.md)) and volumetric
+  limiting is the edge's job with an in-process safety net behind it
+  ([ADR-025](adr/ADR-025-edge-abuse-protection.md)).
 * It does not stop the application from bypassing it — if the app can reach the model
   directly, this gateway is advisory. Enforcing that is a network task.
 * It makes no regulatory compliance claim of any kind.
 
 ## Current state
 
-**Phase 0 — planning complete, implementation not started.**
+**Release candidate (Phase 18).** The gateway, policy engine, baseline detectors,
+audit persistence and retention, both authentication boundaries, HTTPS enforcement,
+edge and in-process abuse controls, readiness contract, metrics, alert rules,
+runbook, console and production Compose topology are implemented and tested.
 
-No evaluation has been run. Every metric in this repository reads
-`pending benchmark execution`. See [19-implementation-roadmap.md](19-implementation-roadmap.md).
+**Evaluation has been run.** ADR-014 through ADR-021 record executed experiments —
+including two recorded failures — each traceable to a committed report with its
+dataset checksum. Enforcement remains entirely heuristic: the fine-tuned classifier
+is integrated as layer 2 in warn mode and ships disabled, because blocking on it is
+refused on evidence (indirect recall 0.1423, ADR-016).
+
+See [19-implementation-roadmap.md](19-implementation-roadmap.md) for the phase
+record and [release-readiness.md](release-readiness.md) for the capability-by-capability
+audit behind this statement.
 
 ## Reference machine
 

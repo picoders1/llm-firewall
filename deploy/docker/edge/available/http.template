@@ -1,0 +1,25 @@
+# Plain-HTTP listener. DEVELOPMENT AND INTERNAL USE (ADR-026).
+#
+# Selected by EDGE_TLS_MODE=off. Every credential this gateway depends on — the
+# caller's bearer key, the operator's proxy-injected identity — crosses this
+# listener in the clear, so a deployment that reaches it from anywhere untrusted
+# has no transport security at all. Production uses the TLS listener and the
+# application refuses to start with FIREWALL_HTTPS_ENFORCED unset.
+
+server {
+    listen 8080;
+    server_name _;
+
+    client_max_body_size ${EDGE_MAX_BODY};
+
+    # Slowloris: a client that opens a socket and dribbles headers or body holds
+    # a worker indefinitely without these (threat T-17).
+    client_header_timeout 10s;
+    client_body_timeout   15s;
+    send_timeout          15s;
+    keepalive_timeout     30s;
+
+    server_tokens off;
+
+    include /etc/nginx/conf.d/gateway.locations.inc;
+}

@@ -233,3 +233,45 @@ Added on `security_events`: `(event_type, created_at)` and `(detector, created_a
 row into one of two values, and an index on a two-valued column over a large table
 is not selective enough to earn its write cost. Add it when a deployment's
 distribution justifies it, not speculatively (§18 of the Phase 5 brief).
+
+---
+
+## Phase 16 addition — retention is enforced
+
+The Retention section above described a scheduled `DELETE` "in Phase 5". It was
+never built; every row this project had ever written was still present when
+[ADR-030](adr/ADR-030-audit-retention.md) was written — 55 MB in 2.4 days on the
+reference development machine, none of it ever removed by anything.
+
+The job now exists (`app/database/retention.py`), runs off the request path at
+startup and hourly, and is controlled by `FIREWALL_RETENTION_*`. **The periods are
+unchanged.** Three corrections to the table above, none of them a change of
+policy:
+
+* **`policy_decisions` does not exist.** It is listed in the retention table
+  because ADR-012 anticipated it; nothing was ever written to it and it was never
+  created. The tables under retention are the three that exist.
+* **`detector_results` is deleted by cascade, not by age.** It carries no
+  standalone `created_at` index — only `(detector, created_at)` — so an age-based
+  sweep of it would be a sequential scan of the largest table in the schema. The
+  foreign key is `ON DELETE CASCADE`, so deleting a trace removes its detector
+  rows through `ix_detector_results_trace_id` instead. It cannot outlive its
+  parent by construction.
+* **Deletion is batched**, 1,000 rows per transaction. `Database` applies a
+  5-second command timeout, so one unbounded `DELETE` against a backlog would time
+  out, roll back, and delete nothing — permanently, and while appearing to be
+  enabled.
+
+`security_events` is described above as append-only. It still is: retention removes
+rows by age and nothing ever updates one. That the auditor's table is deliberately
+longer-lived than the operational tables is now an enforced invariant —
+`retention_event_days` below `retention_trace_days` is refused at startup, because
+the console's event-detail endpoint LEFT JOINs an event to its trace *on the
+assumption that events survive longer*.
+
+The only predicate the sweep can apply is age. There is no filter by decision,
+category, detector or caller, and adding one would be a change to a single function
+that `tests/security/test_retention_safety.py` asserts against the compiled SQL —
+a purge that can be aimed at particular rows is a mechanism for erasing the
+evidence of a specific block.
+

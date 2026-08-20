@@ -1,0 +1,61 @@
+{
+  "run_id": "20260819T170018Z__edge-vs-direct",
+  "label": "edge-vs-direct",
+  "started_at": "2026-08-19T17:00:18.322641+00:00",
+  "finished_at": "2026-08-19T17:01:46.458610+00:00",
+  "duration_s": 88.1,
+  "protocol": "docs/15-performance-benchmarking.md",
+  "conditions": {
+    "C": "client -> gateway with detectors enabled -> mock: the headline",
+    "E": "client -> HTTPS edge -> gateway -> mock: full deployment path"
+  },
+  "concurrency": [
+    1,
+    4
+  ],
+  "payload_sizes": [
+    "short",
+    "medium"
+  ],
+  "iterations_per_cell": 500,
+  "warmup_per_cell": 100,
+  "warmup_included_in_samples": false,
+  "repeats": 1,
+  "upstream_latency_ms": 0,
+  "clock": "time.perf_counter (monotonic)",
+  "connection_reuse": true,
+  "retries": "none",
+  "endpoints": {
+    "mock": "http://localhost:8081",
+    "passthrough": "http://localhost:8100",
+    "gateway": "http://localhost:8000",
+    "noaudit": "http://localhost:8101",
+    "edge": "https://localhost:8443"
+  },
+  "workloads": {
+    "W1": "small benign request (~50 tokens)",
+    "W2": "medium benign request (~500 tokens)",
+    "W3": "long benign request (~4000 tokens)"
+  },
+  "payload_bytes": {
+    "short": 265,
+    "medium": 2065
+  },
+  "machine": {
+    "os": "Linux-7.0.0-29-generic-x86_64-with-glibc2.39",
+    "cpu": "12th Gen Intel(R) Core(TM) i7-12650H",
+    "logical_cores": 16,
+    "ram_gb": 31.0,
+    "gpu": "NVIDIA GeForce RTX 3050 Laptop GPU, 4096 MiB",
+    "python": "3.12.3",
+    "docker": "Docker version 29.7.2, build a7dcaa6",
+    "docker_compose": "5.5.0",
+    "git_commit": "0364f0eb0db2f37d5ad8fa203da1f2bbb1056121",
+    "git_dirty": true
+  },
+  "gateway": {
+    "ready_status": "ready",
+    "policy_version": "sha256:d9cfbdeaea9164ce907fe96aab9a9a8c",
+    "detectors": "4 enabled detector(s) warmed"
+  }
+}

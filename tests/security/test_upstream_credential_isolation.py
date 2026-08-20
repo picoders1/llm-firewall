@@ -196,3 +196,31 @@ def test_the_upstream_key_is_not_in_the_startup_summary():
     summary = Settings(upstream_api_key=UPSTREAM_KEY).safe_summary()
     assert UPSTREAM_KEY not in str(summary)
     assert summary["upstream_api_key_set"] is True
+
+
+# --- An absent credential must not become a malformed one ---------------------
+
+
+async def test_an_empty_upstream_key_sends_no_authorization_header():
+    """`Bearer ` — with its trailing space — is an illegal header value that h11
+    refuses before the request leaves the process, so every upstream call fails
+    with an opaque 502 that says nothing about the cause.
+
+    Found by running the reference production stack, where the secret file is
+    created empty for an operator to fill in. A self-hosted upstream that needs
+    no credential is also a legitimate configuration.
+    """
+    client = HttpUpstreamClient(Settings(upstream_api_key=""))
+    try:
+        assert "authorization" not in client._client.headers
+    finally:
+        await client.aclose()
+
+
+async def test_a_present_upstream_key_is_still_sent():
+    """The control: the test above must not pass because the header is never set."""
+    client = HttpUpstreamClient(Settings(upstream_api_key=UPSTREAM_KEY))
+    try:
+        assert client._client.headers["authorization"] == f"Bearer {UPSTREAM_KEY}"
+    finally:
+        await client.aclose()

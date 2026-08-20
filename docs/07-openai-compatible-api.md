@@ -97,6 +97,8 @@ The OpenAI error envelope, so existing client error handling keeps working:
 | `stream: true` | 400 | `unsupported_feature` |
 | Missing or unrecognised caller credential | 401 | `invalid_request_error` / code `invalid_api_key` |
 | Per-caller rate or concurrency ceiling | 429 | `rate_limit_exceeded`, with `Retry-After` |
+| Repeated authentication failures from one client | 429 | `rate_limit_exceeded` / code `auth_failures`, with `Retry-After` |
+| Gateway at its in-flight ceiling | 503 | `server_overloaded` / code `at_capacity`, with `Retry-After` |
 | Blocked by policy | 403 | `security_block` |
 | Unknown endpoint | 404 | `not_found_error` |
 | Body over `max_request_bytes` | 413 | `request_too_large` |
@@ -115,7 +117,12 @@ Four rules govern error bodies:
    provider internals.
 3. **Unhandled exceptions return a generic message.** Stack traces are logged server-side
    only.
-4. **A 401 does not say *why*.** "No credential", "wrong credential" and "revoked
+4. **429 is about the client, 503 is about the server.** A 429 means a limit attached to
+   *you* — slow down. A 503 means this instance is saturated — retry, possibly elsewhere.
+   Conflating them makes a client's backoff logic do the wrong thing, which is why the
+   reference edge overrides nginx's default of 503 for `limit_req`
+   ([ADR-025](adr/ADR-025-edge-abuse-protection.md)).
+5. **A 401 does not say *why*.** "No credential", "wrong credential" and "revoked
    credential" produce byte-identical bodies apart from the request ID; the distinction goes
    to `firewall_caller_auth_failures_total{reason}` and the log. Telling them apart on the
    wire turns the gateway into an oracle for enumerating which keys exist

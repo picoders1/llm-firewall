@@ -1,0 +1,113 @@
+# Benchmark stack (docs/15, Phase 15).
+#
+#   MOCK_LATENCY_MS=0 docker compose -f compose.yaml -f compose.bench.yaml up -d --build
+#
+# Adds the two things the registered benchmark design needs and the development
+# stack does not have:
+#
+#   * `firewall-passthrough` on :8100 — condition B. The SAME image and the SAME
+#     settings as the gateway under test, with one difference: a policy in which
+#     every detector is disabled. C minus B is therefore the cost of detection
+#     and nothing else.
+#   * `MOCK_LATENCY_MS` plumbed through, so the upstream can be held at 0 ms
+#     (maximum sensitivity to gateway cost) or at a realistic delay.
+#
+# **The passthrough gateway is a measuring instrument, not a deployment.** It
+# inspects nothing. It is published on a distinct port, runs a policy whose name
+# says what it is, and `tests/security/test_benchmark_isolation.py` asserts that
+# neither the development nor the production stack can end up running it.
+
+name: llm-firewall
+
+services:
+  mock-upstream:
+    environment:
+      # Held at 0 by default: the smaller the upstream cost, the larger the
+      # gateway's share of the total, and the more sensitive the measurement.
+      MOCK_LATENCY_MS: ${MOCK_LATENCY_MS:-0}
+
+  # Condition F — full detection, audit persistence OFF. The only difference from
+  # the gateway under test (condition C) is `FIREWALL_PERSIST_EVENTS`.
+  #
+  # Without it, C minus B would conflate two unrelated costs: detection and a
+  # synchronous database write. F splits them — F minus B is detection, C minus F
+  # is the audit write (§22, §23).
+  firewall-noaudit:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile
+    image: llm-firewall:dev
+    ports:
+      - "8101:8000"
+    environment:
+      FIREWALL_ENVIRONMENT: development
+      FIREWALL_LOG_FORMAT: json
+      FIREWALL_CONTENT_LOGGING: none
+      FIREWALL_POLICY_FILE: config/policies/default.yaml
+      FIREWALL_UPSTREAM_BASE_URL: http://mock-upstream:8081/v1
+      FIREWALL_EXPOSE_TIMING_HEADERS: "true"
+      FIREWALL_PERSIST_EVENTS: "false"
+    depends_on:
+      mock-upstream:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "2.0"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/ready"]
+      interval: 15s
+      timeout: 3s
+      start_period: 20s
+      retries: 3
+
+  firewall-passthrough:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile
+    image: llm-firewall:dev
+    ports:
+      - "8100:8000"
+    environment:
+      FIREWALL_ENVIRONMENT: development
+      FIREWALL_LOG_FORMAT: json
+      FIREWALL_CONTENT_LOGGING: none
+      # The only difference from the gateway under test.
+      FIREWALL_POLICY_FILE: config/policies/benchmark-passthrough.yaml
+      FIREWALL_UPSTREAM_BASE_URL: http://mock-upstream:8081/v1
+      FIREWALL_EXPOSE_TIMING_HEADERS: "true"
+      # Audit off for condition B: it isolates PROXY cost, and a database write
+      # would be counted as proxying. Condition C measures the audit contribution
+      # separately by toggling it on the gateway under test (§23).
+      FIREWALL_PERSIST_EVENTS: "false"
+    depends_on:
+      mock-upstream:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "2.0"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/ready"]
+      interval: 15s
+      timeout: 3s
+      start_period: 20s
+      retries: 3

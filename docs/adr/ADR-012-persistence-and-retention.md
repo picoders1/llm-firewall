@@ -135,3 +135,62 @@ overhead (accelerate the Phase 5 queue).
   content-bearing column beyond the gated `content_preview`.
 * Migration review: every schema change is an Alembic revision; nothing is created by
   `create_all()` outside test fixtures.
+
+
+---
+
+## Amendment — 2026-08-19: the Phase 5 queue is built
+
+This ADR registered a bounded queue with drop-on-full, named the metric
+(`firewall_audit_events_dropped_total`), and set the condition for building it:
+*"Phase 4 measurements show synchronous writes are a material share of gateway
+overhead"*.
+
+Phase 15 measured **10.5 ms p50** for the synchronous write against **1.7 ms** for
+the rest of the gateway span. The trigger fired on this ADR's own terms, and
+[ADR-029](ADR-029-audit-write-architecture.md) builds the design registered here.
+
+**Nothing decided in this document changes.** The queue is bounded and drops;
+dropping is counted; `require_audit=true` still means synchronous writes, and the
+two settings together are now refused at startup rather than silently
+contradicting each other.
+
+One thing this ADR could not have known, added by ADR-029 rather than assumed:
+the queue loses whatever is queued if the process is killed without draining —
+measured at 49/300 records after a `SIGKILL`, against 300/300 for synchronous
+writes. A graceful stop loses nothing. That is why the *code default* remains
+`sync` and the queue is adopted in the reference production deployment
+explicitly, rather than becoming everyone's behaviour on upgrade.
+
+---
+
+## Amendment — 2026-08-19: the retention job is built
+
+This ADR set the periods (30 days of traces, 180 of security events), gave each a
+reason, and said enforcement would be *"a scheduled `DELETE` in Phase 5, not a
+manual process"*. Phase 5 built the schema and the console that reads it. Nothing
+built the deletion, so until now every row ever written was still present — 55 MB
+in 2.4 days on the reference development machine.
+
+[ADR-030](ADR-030-audit-retention.md) builds the job. **The periods are unchanged**
+and nothing decided here is revisited.
+
+Two things this ADR could not have known, added by ADR-030 rather than assumed:
+
+* `detector_results` is deleted by `ON DELETE CASCADE` from its trace rather than
+  by age. It has no standalone `created_at` index, so an age-based sweep of the
+  largest table in the schema would be a sequential scan; the cascade uses the
+  foreign key's index instead.
+* Deletion must be **batched**. `Database` applies a 5-second command timeout, so
+  the single `DELETE` this ADR implies would time out against any real backlog,
+  roll back, and delete nothing — while appearing to be enabled.
+
+One thing decided here does change, and it is a loss. The least-privilege
+paragraph above grants the application role `SELECT/INSERT/UPDATE` and no `DROP`,
+so that an application-level SQL flaw could not destroy the audit trail. An
+in-process retention sweeper needs `DELETE` on the three audit tables, which
+weakens that protection. It is recorded as **R-82** and the alternative that would
+preserve it — an external job holding its own credentials — is **OD-43**. The
+grant split was in any case never implemented in a manifest: the application
+connects as the table owner today.
+

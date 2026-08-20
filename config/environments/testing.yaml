@@ -25,3 +25,11 @@ expose_timing_headers: true
 # Caller boundary (ADR-024): not set, so it derives to `disabled` and every
 # pre-Phase-10 gateway test exercises the application it always did. Tests that
 # need the boundary construct it explicitly via the `caller_client` fixture.
+
+# Admission control (ADR-025): not set, so every pre-Phase-11 test exercises the
+# application it always did. Tests that need a ceiling pass it explicitly to the
+# `caller_client` fixture.
+
+# Secure transport (ADR-026): not set, so every pre-Phase-12 test exercises the
+# application it always did. Tests that need enforcement pass `https_enforced`
+# and `trusted_proxies` explicitly to the `caller_client` fixture.

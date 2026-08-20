@@ -1,0 +1,3 @@
+condition,payload,concurrency,n,n_ok,client_p50_ms,client_p95_ms,client_p99_ms,client_mean_ms,client_stdev_ms,throughput_per_s,percentiles_reliable,server_overhead_p50_ms,server_overhead_p95_ms,server_overhead_p99_ms,paired_overhead_p50_ms,paired_overhead_p95_ms,paired_overhead_p99_ms
+A,medium,1,300,300,206.209,207.893,208.581,206.273,0.91,4.8,True,,,,,,
+C,medium,1,300,300,243.81,250.463,253.482,243.875,4.892,4.1,True,6.777,9.0,9.695,37.13,42.547,44.38

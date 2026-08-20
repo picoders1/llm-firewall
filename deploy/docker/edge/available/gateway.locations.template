@@ -1,0 +1,66 @@
+# The gateway's routing and limits — ONE copy, included by whichever listener is
+# active (ADR-026). Duplicating these between the HTTP and TLS server blocks is
+# how the two drift until a control exists on one listener and not the other.
+
+# Probes: no rate limit, deliberately. An orchestrator that cannot reach /ready
+# during a burst restarts or de-pools the instance, turning a load spike into an
+# outage. Constant-time, and they expose no configuration.
+location = /health { proxy_pass http://firewall-api:8000; access_log off; }
+location = /ready  { proxy_pass http://firewall-api:8000; }
+
+# Operator surfaces are not served on the gateway edge. The console belongs
+# behind the operator boundary, which is a different proxy with a different
+# credential (ADR-023). 404 rather than a proxy_pass stops a deployment
+# publishing the security console on the gateway's public address.
+location /dashboard { return 404; }
+location /api/      { return 404; }
+location = /metrics { return 404; }
+
+location /v1/ {
+    limit_conn conn_per_ip ${EDGE_CONN_PER_IP};
+    # `burst` absorbs a legitimate client's natural bunching; `nodelay` serves it
+    # immediately rather than queueing, because queueing inside the proxy
+    # reintroduces the resource the limit was protecting.
+    limit_req  zone=gateway_per_ip burst=${EDGE_BURST} nodelay;
+
+    # This proxy asserts no identity — caller credentials are verified in the
+    # application (ADR-024). It must still not RELAY a client's claim, so every
+    # header the application would treat as authoritative is cleared here.
+    # Defence in depth: the application already refuses them from an untrusted
+    # peer, and either control alone is sufficient.
+    proxy_set_header X-Auth-Request-User     "";
+    proxy_set_header X-Auth-Request-Groups   "";
+    proxy_set_header X-Firewall-Proxy-Secret "";
+    proxy_set_header X-Firewall-Caller       "";
+
+    # Authoritative, and the only values the application will read from us —
+    # and only because our address is in FIREWALL_TRUSTED_PROXIES.
+    #
+    # $scheme is what this listener actually served, so it says `https` on the
+    # TLS listener and `http` on the plain one. It is set by nginx from the
+    # connection, never copied from the request, which is what makes it safe for
+    # the application to enforce HTTPS on (ADR-026 §10).
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host  $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header Host              $host;
+
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade    $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+
+    # Longer than the application's own upstream read timeout (60s default), so a
+    # slow model produces the application's 504 with its error envelope rather
+    # than the proxy's bare HTML.
+    proxy_connect_timeout 5s;
+    proxy_send_timeout    75s;
+    proxy_read_timeout    75s;
+
+    # Never retry. A retry on a POST to a model is a second billed inference, and
+    # during an upstream outage it doubles the load that caused it.
+    proxy_next_upstream off;
+
+    proxy_pass http://firewall-api:8000;
+}
+
+location / { return 404; }

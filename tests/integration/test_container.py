@@ -116,6 +116,22 @@ def test_image_contains_no_secrets_tests_or_build_tools():
     assert "/usr/local/bin/uv" not in output
 
 
+def test_image_ships_only_the_evaluation_files_the_dashboard_opens():
+    """No per-sample research data in a runtime image.
+
+    Added in Phase 18. The `.dockerignore` excluded `predictions*`, `*.csv` and
+    `*.svg` and claimed to keep the image at "~200K of result.json" — then Phase
+    15's benchmark harness began writing `raw_results.jsonl`, which none of those
+    patterns match, and 17 MB of per-request rows shipped in the production image
+    for four phases. An exclude-list fails open on every artefact type invented
+    after it was written; the allow-list that replaced it fails closed, and this
+    asserts the outcome rather than the pattern (ADR-032).
+    """
+    result = compose_exec("sh", "-c", "find /app/eval -type f ! -name result.json | head -20; true")
+    stray = [line for line in result.stdout.splitlines() if line.strip()]
+    assert not stray, f"non-summary evaluation artefacts in the image: {stray}"
+
+
 def test_alembic_is_available_for_migrations():
     """The migration mechanism must exist in the runtime image, not just in dev."""
     result = compose_exec("alembic", "--help")

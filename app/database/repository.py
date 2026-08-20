@@ -14,6 +14,8 @@ a guaranteed audit trail.
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 from typing import Protocol
 
 import structlog
@@ -128,3 +130,113 @@ class PostgresAuditRepository:
                 )
 
             await session.commit()
+
+
+class QueuedAuditRepository:
+    """A bounded queue and a background writer, in front of a real repository.
+
+    ADR-012 registered this design in Phase 0 and named the evidence that would
+    justify building it: "Phase 4 measurements show synchronous writes are a
+    material share of gateway overhead". Phase 15 supplied that evidence — the
+    synchronous write costs 10.5 ms p50 against 1.7 ms for the rest of the
+    gateway span. This is that writer.
+
+    ## Bounded, always
+
+    An unbounded queue in front of a failing database converts a database outage
+    into an out-of-memory kill. Dropping is visible in a metric; an OOM is
+    visible as an outage.
+
+    ## Drop, because blocking was measured and was worse
+
+    When the queue is full the record is discarded and counted. The request path
+    never waits, so a database that cannot keep up costs audit records rather
+    than availability.
+
+    The alternative — wait for space, so saturation degrades to synchronous
+    behaviour — was implemented and benchmarked against a stalled database. It
+    did not degrade to synchronous behaviour. Synchronous writes fail, get
+    logged, and the request proceeds; a blocking queue has nothing to time out
+    against and hung the request path until the client gave up. 120 requests
+    became 120 read timeouts. Dropping, in the same scenario, served all 120 and
+    counted 109 lost records (ADR-029).
+
+    ## What it cannot do
+
+    It cannot honour `require_audit=true`. That setting promises a served request
+    has a record, and a queue is precisely the removal of that promise; the
+    application refuses to start with both configured.
+    """
+
+    __slots__ = ("_dropped", "_inner", "_metrics", "_queue", "_task")
+
+    def __init__(
+        self,
+        inner: AuditRepository,
+        *,
+        max_size: int,
+        metrics: object | None = None,
+    ) -> None:
+        self._inner = inner
+        self._queue: asyncio.Queue[RequestTrace] = asyncio.Queue(maxsize=max_size)
+        self._metrics = metrics
+        self._task: asyncio.Task[None] | None = None
+        self._dropped = 0
+
+    @property
+    def dropped(self) -> int:
+        return self._dropped
+
+    def qsize(self) -> int:
+        return self._queue.qsize()
+
+    async def start(self) -> None:
+        if self._task is None:
+            self._task = asyncio.create_task(self._drain_forever())
+
+    async def record(self, trace: RequestTrace) -> None:
+        try:
+            self._queue.put_nowait(trace)
+        except asyncio.QueueFull:
+            # Counted, never silent. An audit trail that thins out under load
+            # without saying so is worse than one that is honestly absent.
+            self._dropped += 1
+            logger.warning("audit_event_dropped", request_id=trace.request_id)
+            if self._metrics is not None:
+                self._metrics.record_audit_dropped()  # type: ignore[attr-defined]
+
+    async def _drain_forever(self) -> None:
+        while True:
+            trace = await self._queue.get()
+            try:
+                await self._inner.record(trace)
+            except Exception as exc:
+                # `record` already logs and already honours require_audit. Anything
+                # reaching here would otherwise kill the writer task and turn a
+                # transient database error into permanent silence.
+                logger.error("audit_writer_error", error_kind=type(exc).__name__)
+            finally:
+                self._queue.task_done()
+            if self._metrics is not None:
+                self._metrics.set_audit_queue_depth(self._queue.qsize())  # type: ignore[attr-defined]
+
+    async def aclose(self, *, drain_timeout_s: float) -> int:
+        """Drain what is queued, bounded, and report what was abandoned.
+
+        Bounded because a stuck database must not hold a rolling deploy open. The
+        return value is the number of records that never reached PostgreSQL,
+        which is the honest measure of what an orderly shutdown costs.
+        """
+        if self._task is None:
+            return self._queue.qsize()
+        try:
+            async with asyncio.timeout(drain_timeout_s):
+                await self._queue.join()
+        except TimeoutError:
+            logger.warning("audit_drain_timed_out", remaining=self._queue.qsize())
+        abandoned = self._queue.qsize()
+        self._task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await self._task
+        self._task = None
+        return abandoned

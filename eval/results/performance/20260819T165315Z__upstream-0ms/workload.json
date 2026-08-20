@@ -1,0 +1,88 @@
+{
+  "generator": "eval/runners/workloads.py",
+  "deterministic": true,
+  "note": "Pure functions of the workload name. No randomness, no timestamps, no sampling, so two runs on two machines send byte-identical bodies.",
+  "size_classes": {
+    "short": {
+      "approx_tokens": 50
+    },
+    "medium": {
+      "approx_tokens": 500
+    },
+    "long": {
+      "approx_tokens": 4000
+    }
+  },
+  "workloads": {
+    "W1": {
+      "description": "small benign request (~50 tokens)",
+      "size": "short",
+      "request_bytes": 265,
+      "message_count": 1,
+      "text_chars": 200,
+      "expected_status": [
+        200
+      ]
+    },
+    "W2": {
+      "description": "medium benign request (~500 tokens)",
+      "size": "medium",
+      "request_bytes": 2065,
+      "message_count": 1,
+      "text_chars": 2000,
+      "expected_status": [
+        200
+      ]
+    },
+    "W3": {
+      "description": "long benign request (~4000 tokens)",
+      "size": "long",
+      "request_bytes": 16065,
+      "message_count": 1,
+      "text_chars": 16000,
+      "expected_status": [
+        200
+      ]
+    },
+    "W4": {
+      "description": "injection; blocked by policy, upstream never called",
+      "size": "short",
+      "request_bytes": 203,
+      "message_count": 1,
+      "text_chars": 138,
+      "expected_status": [
+        403
+      ]
+    },
+    "W5": {
+      "description": "PII on the input path; redacted then forwarded",
+      "size": "short",
+      "request_bytes": 235,
+      "message_count": 1,
+      "text_chars": 170,
+      "expected_status": [
+        200
+      ]
+    },
+    "W6": {
+      "description": "upstream returns PII; exercises output inspection",
+      "size": "short",
+      "request_bytes": 280,
+      "message_count": 1,
+      "text_chars": 215,
+      "expected_status": [
+        200
+      ]
+    },
+    "W7": {
+      "description": "controlled upstream 500; exercises the error path",
+      "size": "short",
+      "request_bytes": 116,
+      "message_count": 1,
+      "text_chars": 51,
+      "expected_status": [
+        502
+      ]
+    }
+  }
+}

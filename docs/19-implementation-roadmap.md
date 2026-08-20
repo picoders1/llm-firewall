@@ -15,13 +15,19 @@ run**, not when its tasks are ticked.
 | 1 | OpenAI-compatible gateway | Not started |
 | 2 | Input security (ML detectors) | **Layer-2 classifier INTEGRATED, warn-only and disabled by default** ([ADR-021](adr/ADR-021-layer2-transformer-integration.md)); **ADR-020 CLOSED → FAILURE**: replay and reduced adaptation recovered 15% / 41% of the regression while collapsing mechanism coverage. Single-model replacement is not viable; layered detector (OD-34) is now primary; **ADR-019 executed → FAILURE** (mechanisms learnable, but −9.1pt extraction regression). **Model selected** ([ADR-014](adr/ADR-014-detector-selection.md)); **Strategy A fine-tuning executed** ([ADR-015](adr/ADR-015-fine-tuning-strategy.md)) — PARTIAL SUCCESS; **validated on hold-out v3** (all four FPR criteria met, both recall criteria fail). **Indirect injection quantified**: recall **0.1423** (n=520), no delivery shape reliably detected — blocking refused on severity grounds ([ADR-016](adr/ADR-016-provenance-aware-detection.md)). Model warn-only, not integrated |
 | 3 | Output security | Not started |
-| 4 | Evaluation and benchmarking | **Framework built and validated**; corpus gaps remain (OD-17) |
-| 5 | Observability and operations | **Backend COMPLETE**: `/metrics` implemented against the documented catalogue, read-only Security Operations API in `app/api/dashboard/`, contract in [dashboard-api-contract.md](dashboard-api-contract.md). Async audit writer and retention automation still outstanding |
+| 4 | Evaluation and benchmarking | **Framework built and validated**; corpus gaps remain (OD-17). **Latency/throughput benchmarking delivered as Phase 15** — the oldest open item in the repository |
+| 5 | Observability and operations | **Async audit writer DELIVERED via OD-42** ([ADR-029](adr/ADR-029-audit-write-architecture.md)); **retention job DELIVERED in Phase 16** ([ADR-030](adr/ADR-030-audit-retention.md)); **alert rules and runbook DELIVERED in Phase 17** ([ADR-031](adr/ADR-031-alerting-and-incident-response.md)). **Backend COMPLETE**: `/metrics` implemented against the documented catalogue — and, since Phase 17, actually scrapeable (R-87) — read-only Security Operations API in `app/api/dashboard/`, contract in [dashboard-api-contract.md](dashboard-api-contract.md). OTLP exporter and Grafana dashboards remain outstanding |
 | 8 | Security Operations Dashboard | **COMPLETE** — Vanilla HTML/CSS/JS console at `/dashboard`, no framework and no build step ([ADR-022](adr/ADR-022-dashboard-frontend-architecture.md), [23-dashboard-frontend.md](23-dashboard-frontend.md)) |
-| 6 | Hardening | Not started. **Operator authentication delivered early as Phase 9** ([ADR-023](adr/ADR-023-operator-authentication.md)) because Phase 8 made the console interactive; rate limiting (T-18) remains |
+| 6 | Hardening | **Largely delivered early**: operator authentication as Phase 9, caller authentication as Phase 10, rate limiting and admission control as Phase 11. Streaming inspection and the red-team loop remain |
+| OD-42 | Audit write architecture | **RESOLVED** — bounded drop-on-full queue, the design ADR-012 registered in Phase 0 ([ADR-029](adr/ADR-029-audit-write-architecture.md)). Removes ~9 ms p50. Blocking-on-full was implemented, measured against a stalled database and **removed**: it turned a degraded dependency into a total outage. Adopted in `compose.prod.yaml`; code default stays `sync` |
+| 15 | Controlled performance benchmark | **COMPLETE** — first measured characterisation of gateway cost (`eval/results/performance/`). Span p50 2.27 ms at 265 B / 32.0 ms at 16 KB; **the synchronous audit write dominates at 10.5 ms p50** and had been reported as 0.000 (R-77, R-78, OD-42). Limits remain development defaults — cost was measured, capacity was not |
+| 14 | Production deployment manifests | **COMPLETE** — `compose.prod.yaml` enforces the documented topology: only the edge publishes, the audit store is on an `internal` network, credentials are mounted files, `/ready` is the health gate. Asserted by 43 static and 12 runtime tests ([ADR-028](adr/ADR-028-production-deployment-manifests.md)). Kubernetes deferred with a recorded trigger (OD-41) |
+| 13 | Security-aware readiness | **COMPLETE** — `/ready` asserts the security boundary and the audit schema, with every check classified `required` or `advisory` so a degraded dependency no longer empties the fleet ([ADR-027](adr/ADR-027-readiness-contract.md)). Corrects the audit-availability classification that contradicted ADR-012. Opens OD-40 |
+| 12 | Secure transport (TLS/HTTPS) | **COMPLETE** — TLS 1.2/1.3 at the reference edge with HSTS, h2 and a 308 redirect; certificates are runtime mounts validated at start-up (fail closed); the application refuses operator and gateway requests unless a trusted proxy asserts HTTPS, and production refuses to start plaintext ([ADR-026](adr/ADR-026-secure-transport.md)). Real handshakes in a dedicated CI job. Opens OD-39 |
+| 11 | Edge abuse protection and admission control | **COMPLETE** — reference nginx edge with `limit_req`/`limit_conn`/body/timeouts, exercised against real nginx **in CI**; in-process in-flight ceiling and authentication-failure throttle, both off by default ([ADR-025](adr/ADR-025-edge-abuse-protection.md)). Closes T-18 and T-17; opens OD-38 |
 | 10 | Caller authentication and abuse protection | **COMPLETE** — service API key on `Authorization: Bearer` verified against configured digests ahead of detector inference; per-caller rate and concurrency ceilings; upstream credential isolation pinned by test ([ADR-024](adr/ADR-024-llm-caller-authentication.md)). Resolves OD-36 and R-60; opens OD-37 |
 | 9 | Operator authentication and console access control | **COMPLETE** — identity terminated at a reverse proxy or ingress, enforced in-process; access classes default to operator-only; production refuses an unauthenticated console ([ADR-023](adr/ADR-023-operator-authentication.md)). Resolves OD-35; opens OD-36 (caller authentication for `/v1/**`) |
-| 7 | Deployment | Not started |
+| 7 | Deployment | **Delivered as Phase 14** — reference production Compose topology, enforced by test ([ADR-028](adr/ADR-028-production-deployment-manifests.md)). Kubernetes deferred (OD-41) |
 | 2P | **Provenance-aware detection** | **A+B+C implemented, D evaluated — PROVENANCE BENEFICIAL**; E not started — [ADR-017](adr/ADR-017-provenance-aware-detection-context.md); migration phases A–E below |
 | 8 | **Security Operations Dashboard** (productization) | Not started — **recorded, deliberately not implemented** |
 
@@ -364,15 +370,17 @@ Async audit writer, retention job, OTLP exporter, dashboards, alerts, runbook.
 | # | Task | Notes |
 |---|---|---|
 | 5.1 | Bounded-queue audit writer + background task | Drops counted; **never unbounded** ([ADR-012](adr/ADR-012-persistence-and-retention.md)) |
-| 5.2 | Retention deletion job | Enforces the documented policy |
+| 5.2 | Retention deletion job | **DONE (Phase 16)** — `app/database/retention.py`, batched, age-only, off by default and enabled in `compose.prod.yaml` ([ADR-030](adr/ADR-030-audit-retention.md)). ADR-012's periods unchanged |
 | 5.3 | OTLP exporter wiring | Langfuse on host **3001** (3000 occupied); content-free spans |
 | 5.4 | Grafana dashboards as code | |
 | 5.5 | Read-only observability APIs the dashboard will consume | The dashboard itself is **Phase 8**; Phase 5 ships the endpoints it reads |
-| 5.6 | Alert rules | Detector errors, audit failures, block-rate step change |
-| 5.7 | Runbook | One entry per alert |
+| 5.6 | Alert rules | **DONE (Phase 17)** — 16 rules in `deploy/alerts/`, promtool-tested, two severities ([ADR-031](adr/ADR-031-alerting-and-incident-response.md)) |
+| 5.7 | Runbook | **DONE (Phase 17)** — `docs/runbook.md`, one entry per alert **enforced by test in both directions**, plus the conditions deliberately not alerted |
 
 ### Tests
-`test_writer_backpressure.py` (queue full → drop + metric, no OOM), `test_retention.py`,
+`test_writer_backpressure.py` (queue full → drop + metric, no OOM), `test_retention.py`
+(delivered as `tests/integration/test_retention.py`, `tests/unit/test_retention_policy.py`
+and `tests/security/test_retention_safety.py`),
 `test_span_attributes.py` (no content keys), `test_dashboard_queries.py`.
 
 ### Acceptance criteria
@@ -600,35 +608,45 @@ states demonstrated; no framework dependency introduced.
 
 ---
 
-## Next implementation task
+## Release state
 
-**Rate-limit the boundary itself — unauthenticated request floods are still free
-(T-18).**
+**Release candidate, Phase 18.** [release-readiness.md](release-readiness.md) grades
+46 capabilities against implementation, tests, live evidence and documentation:
+**26 PASS, 13 PARTIAL, 6 DEFERRED, 1 SUPERSEDED, 0 BLOCKED**
+([ADR-032](adr/ADR-032-release-candidate-readiness.md)).
 
-Phase 10 is complete. `/v1/**` requires a service API key, verified in
-middleware against configured SHA-256 digests before normalisation, before
-detector inference and before the upstream — every negative test asserts
-`upstream.call_count == 0`, because a `401` alone would not prove the model was
-never reached. Authenticated callers carry an identity into the audit trail and
-the metrics, and a per-caller sliding-window rate limit plus concurrency ceiling
-bound what a compromised or looping caller can spend.
+Nothing is blocked. What remains is not engineering completeness:
 
-The audit also found one thing already correct and left it alone: upstream
-credential isolation is structural, not filtered. `HttpUpstreamClient` binds its
-`authorization` header at construction and accepts only a JSON payload per
-request, so no inbound header has a path to the provider. Phase 10 added tests
-that pin the method signature rather than any code to enforce it.
+1. **Enforcement is heuristic.** The detectors deciding every request recognise
+   published phrasings and miss rewordings. The measured classifier that would do
+   better ships disabled, because ADR-016 says blocking on it is not justified.
+   Changing that needs a better detector, not more integration work — and OD-34
+   (layered detector) is the open question, with R-55 recording why a single
+   classifier at this model size cannot hold both capabilities.
+2. **Almost every operational number is a development default** — rate limits,
+   admission ceilings, alert thresholds (R-67, R-88). They are labelled everywhere
+   they appear and can only be fixed by traffic.
+3. **Two CI scanners have never been observed to run** (R-93). Trivy and gitleaks
+   are defined and CI has not executed on a remote.
 
-What is still free is *arriving*. Both boundaries now refuse an unauthenticated
-request cheaply, but they refuse it every time, at whatever rate it is offered:
-the per-caller limiter only engages **after** a caller is identified, so it does
-nothing about a flood of anonymous requests or credential guesses. That is
-threat T-18, it was Phase 6's job before either auth phase existed, and it is now
-the largest remaining gap — the one control that bounds cost for traffic that
-never authenticates at all.
+## What would actually make this better, in order
 
-The likely shape is an ingress rate limit keyed by source address, because the
-edge is the only place that sees a request before this process spends anything on
-it — the same principle that put both identity boundaries outside the
-application. A per-source limiter inside the gateway would be a second-best
-version of it, and would itself be per process (R-63).
+**1. Run CI on a remote.** The cheapest item on this list and the only one that
+closes a stated gap outright: it produces the first Trivy and gitleaks results this
+project has ever had, and turns "CI enforces lint, types, tests and security
+scanning" from Pending into Produced in the evidence ledger.
+
+**2. Put it in front of real traffic, even shadow traffic.** Every remaining
+weakness above dissolves into measurement the moment there is traffic to measure:
+thresholds get calibrated, the runbook gets exercised, the block rate gets a
+baseline, and the capacity figures stop being laptop numbers. Nothing else on this
+list is worth doing first.
+
+**3. Then, and only with that data, OD-34.** A layered detector is the architectural
+answer to R-55, and designing it against measured false-positive costs is a
+different exercise from designing it against a hold-out.
+
+Deliberately not next: Grafana (SUPERSEDED), OTLP (DEFERRED), Presidio (DEFERRED),
+Kubernetes (OD-41), streaming, and a write-ahead log for the audit hard-kill window
+(ADR-029 alternative E). Each is recorded with the evidence that deferred it in
+[release-readiness.md](release-readiness.md); none has a deployment asking for it.

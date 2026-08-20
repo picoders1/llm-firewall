@@ -1,0 +1,546 @@
+# Unit tests for the alerting rules (ADR-031).
+#
+# An alert rule that has never been evaluated is a guess. These drive synthetic
+# series through the real rule file with `promtool test rules` and assert what
+# fires and — more importantly — what does not.
+#
+# The near-miss cases are the point. Every one of them corresponds to a way an
+# alert file quietly becomes useless: firing forever on a metric that is legitimately
+# zero, paging on a single transient error, or hardcoding a threshold the
+# application actually owns.
+
+rule_files:
+  - firewall.rules.yaml
+
+evaluation_interval: 1m
+
+tests:
+  # -- Audit drops -----------------------------------------------------------
+  - interval: 1m
+    name: a single dropped audit record fires immediately
+    input_series:
+      - series: firewall_audit_events_dropped_total
+        values: "0 0 1 1 1 1 1 1"
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: FirewallAuditEventsDropped
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: FirewallAuditEventsDropped
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              component: audit
+            exp_annotations:
+              summary: Audit records are being discarded
+              description: >-
+                1 audit record(s) were dropped in the last 5 minutes because the
+                write queue was full. Served requests now have no audit row and
+                nothing else records which ones.
+              runbook: docs/runbook.md#firewallauditeventsdropped
+
+  # -- Audit write failures --------------------------------------------------
+  - interval: 1m
+    name: one transient audit write failure does not page
+    input_series:
+      # A single failure, then a healthy database for the rest of the window.
+      - series: firewall_audit_write_failures_total
+        values: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: FirewallAuditWriteFailing
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: FirewallAuditWriteFailing
+        exp_alerts: []
+
+  - interval: 1m
+    name: a database that stays down does page
+    input_series:
+      - series: firewall_audit_write_failures_total
+        values: "0+5x30"
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: FirewallAuditWriteFailing
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: FirewallAuditWriteFailing
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              component: audit
+            exp_annotations:
+              summary: The audit sink has been failing for 10 minutes
+              description: >-
+                Audit writes have failed continuously for 10 minutes. Requests are
+                still being served and decided correctly (ADR-012) — only the record
+                is lost, and it is being lost for every request.
+              runbook: docs/runbook.md#firewallauditwritefailing
+
+  # -- Transport -------------------------------------------------------------
+  - interval: 1m
+    name: one non-enforcing replica among several is enough
+    input_series:
+      - series: firewall_https_enforced{instance="a"}
+        values: "1x20"
+      - series: firewall_https_enforced{instance="b"}
+        values: "1x20"
+      - series: firewall_https_enforced{instance="c"}
+        values: "0x20"
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: FirewallHTTPSEnforcementDisabled
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              component: transport
+            exp_annotations:
+              summary: An instance is not enforcing HTTPS
+              description: >-
+                At least one process reports firewall_https_enforced=0. Production
+                refuses to start in this state (ADR-026), so this means either a
+                non-production instance is in the production scrape pool or a startup
+                check has been relaxed.
+              runbook: docs/runbook.md#firewallhttpsenforcementdisabled
+
+  - interval: 1m
+    name: a fleet that all enforces HTTPS is silent
+    input_series:
+      - series: firewall_https_enforced{instance="a"}
+        values: "1x20"
+      - series: firewall_https_enforced{instance="b"}
+        values: "1x20"
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: FirewallHTTPSEnforcementDisabled
+        exp_alerts: []
+
+  # -- Retention staleness: the zero-value trap ------------------------------
+  - interval: 1m
+    name: retention that has never succeeded does not report a 56-year staleness
+    input_series:
+      # The gauge is 0 on any process where retention is off or has not yet
+      # completed its first sweep. Without the `> 0` filter in the rule,
+      # `time() - 0` is the entire Unix epoch and this alert fires instantly,
+      # permanently, on every such instance -- and would be switched off by the
+      # first operator who saw it.
+      - series: firewall_retention_last_success_timestamp_seconds
+        values: "0x300"
+    alert_rule_test:
+      - eval_time: 240m
+        alertname: FirewallRetentionStalled
+        exp_alerts: []
+
+  - interval: 1m
+    name: a real timestamp that goes stale does alert
+    input_series:
+      # Swept once at t=60s and never again.
+      - series: firewall_retention_last_success_timestamp_seconds
+        values: "60x300"
+    alert_rule_test:
+      - eval_time: 120m
+        alertname: FirewallRetentionStalled
+        exp_alerts: []
+      - eval_time: 240m
+        alertname: FirewallRetentionStalled
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: audit
+            exp_annotations:
+              summary: No successful retention sweep for three hours
+              description: >-
+                The last successful sweep on the most stalled instance was 3h 59m 0s
+                ago, against an hourly interval. Deletion has stopped; the store is
+                growing again.
+              runbook: docs/runbook.md#firewallretentionstalled
+
+  # -- Backlog, against the configured period --------------------------------
+  - interval: 1m
+    name: the backlog alert uses the configured period, not a hardcoded 30 days
+    input_series:
+      # A deployment that configured SEVEN days, not the default thirty. A rule
+      # with 30 days written into it would stay silent here for three weeks.
+      - series: firewall_audit_retention_period_seconds{table="request_traces"}
+        values: "604800x60"
+      - series: firewall_audit_oldest_row_age_seconds{table="request_traces"}
+        values: "1000000x60"
+    alert_rule_test:
+      - eval_time: 45m
+        alertname: FirewallAuditBacklogExceedsRetention
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: audit
+              calibration: unvalidated
+              table: request_traces
+            exp_annotations:
+              summary: request_traces holds rows well past its retention period
+              description: >-
+                The oldest row in request_traces is 11d 13h 46m 40s old, more than
+                1.5x the configured period. Sweeps may be reporting success while
+                deleting less than arrives — which the delete counter cannot tell you
+                and this can (ADR-030).
+              runbook: docs/runbook.md#firewallauditbacklogexceedsretention
+
+  - interval: 1m
+    name: a backlog inside the headroom is silent
+    input_series:
+      - series: firewall_audit_retention_period_seconds{table="request_traces"}
+        values: "604800x60"
+      - series: firewall_audit_oldest_row_age_seconds{table="request_traces"}
+        values: "800000x60"
+    alert_rule_test:
+      - eval_time: 45m
+        alertname: FirewallAuditBacklogExceedsRetention
+        exp_alerts: []
+
+  # -- Queue saturation in sync mode -----------------------------------------
+  - interval: 1m
+    name: sync mode has no queue and therefore no saturation alert
+    input_series:
+      # `firewall_audit_queue_capacity` is deliberately absent: in `sync` mode
+      # there is no queue. The expression must produce nothing rather than divide
+      # by a fabricated denominator.
+      - series: firewall_audit_queue_depth
+        values: "0x30"
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: FirewallAuditQueueSaturating
+        exp_alerts: []
+
+  - interval: 1m
+    name: a queue above half full alerts before it starts dropping
+    input_series:
+      - series: firewall_audit_queue_capacity
+        values: "1000x30"
+      - series: firewall_audit_queue_depth
+        values: "800x30"
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: FirewallAuditQueueSaturating
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: FirewallAuditQueueSaturating
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: audit
+              calibration: unvalidated
+            exp_annotations:
+              summary: The audit write queue is more than half full
+              description: >-
+                Queue occupancy has been above 50% for 10 minutes. The writer is not
+                keeping up with arrivals; records will start being dropped when it
+                fills.
+              runbook: docs/runbook.md#firewallauditqueuesaturating
+
+  # -- Detector error ratio --------------------------------------------------
+  - interval: 1m
+    name: a detector erroring on 10% of runs pages, one erroring on 0.1% does not
+    input_series:
+      # 100 runs/minute, 10 errors/minute -> 10%.
+      - series: firewall_detector_latency_seconds_count{detector="injection.heuristic",direction="input"}
+        values: "0+100x40"
+      - series: firewall_detector_errors_total{detector="injection.heuristic",error_kind="TimeoutError"}
+        values: "0+10x40"
+      # 1000 runs/minute, 1 error/minute -> 0.1%.
+      - series: firewall_detector_latency_seconds_count{detector="pii.regex",direction="input"}
+        values: "0+1000x40"
+      - series: firewall_detector_errors_total{detector="pii.regex",error_kind="TimeoutError"}
+        values: "0+1x40"
+    promql_expr_test:
+      - expr: >-
+          sum by (detector) (rate(firewall_detector_errors_total[5m]))
+          /
+          sum by (detector) (rate(firewall_detector_latency_seconds_count[5m]))
+          > 0.01
+        eval_time: 30m
+        exp_samples:
+          # Not 0.1. `rate()` divides floats and 10/100 does not land on an exact
+          # binary fraction; promtool compares exactly. Asserting the value the
+          # engine actually produces is the honest form -- rounding it here would
+          # be asserting arithmetic that does not happen.
+          - labels: '{detector="injection.heuristic"}'
+            value: 0.09999999999999999
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: FirewallDetectorErrorRateHigh
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              component: detection
+              calibration: unvalidated
+              detector: injection.heuristic
+            exp_annotations:
+              summary: Detector injection.heuristic is failing on more than 1% of runs
+              description: >-
+                injection.heuristic has errored on 10% of runs for 10 minutes.
+                Fail-closed detectors turn this into 503s for callers; a fail-open
+                one is silently not inspecting.
+              runbook: docs/runbook.md#firewalldetectorerrorratehigh
+
+  # -- Block-rate step change ------------------------------------------------
+  - interval: 1m
+    name: an idle instance does not alert on a block-rate step change
+    input_series:
+      # Two requests a day is not a signal. Without the traffic floor the ratio
+      # arithmetic is dominated by single events.
+      - series: firewall_requests_total{decision="allow"}
+        values: "0+0x1600"
+      - series: firewall_requests_total{decision="block"}
+        values: "0+0x1600"
+    alert_rule_test:
+      - eval_time: 1500m
+        alertname: FirewallBlockRateStepChange
+        exp_alerts: []
+
+  # -- Retention disabled ----------------------------------------------------
+  - interval: 1m
+    name: retention off on one replica alerts, and a rolling restart does not
+    input_series:
+      - series: firewall_retention_enabled{instance="a"}
+        values: "1x60"
+      - series: firewall_retention_enabled{instance="b"}
+        values: "0x60"
+    alert_rule_test:
+      # The 30m hold exists so that instances appearing and disappearing during a
+      # rolling restart cannot produce a ticket.
+      - eval_time: 20m
+        alertname: FirewallRetentionDisabled
+        exp_alerts: []
+      - eval_time: 45m
+        alertname: FirewallRetentionDisabled
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: audit
+            exp_annotations:
+              summary: Nothing is deleting audit rows past their retention period
+              description: >-
+                At least one process has retention off. The audit store grows without
+                bound and every row carries a caller identity — a privacy liability as
+                much as a disk one (ADR-030, R-84).
+              runbook: docs/runbook.md#firewallretentiondisabled
+
+  # -- A trickle of detector errors ------------------------------------------
+  - interval: 1m
+    name: a detector erroring far below 1% still raises a ticket
+    input_series:
+      # 0.1% of runs: invisible to the ratio alert, and still a broken detector.
+      - series: firewall_detector_latency_seconds_count{detector="pii.regex",direction="input"}
+        values: "0+1000x60"
+      - series: firewall_detector_errors_total{detector="pii.regex",error_kind="TimeoutError"}
+        values: "0+1x60"
+    alert_rule_test:
+      - eval_time: 40m
+        alertname: FirewallDetectorErrorRateHigh
+        exp_alerts: []
+      - eval_time: 40m
+        alertname: FirewallDetectorErrorsPresent
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: detection
+              detector: pii.regex
+              error_kind: TimeoutError
+            exp_annotations:
+              summary: Detector pii.regex errored (TimeoutError)
+              description: >-
+                30 error(s) of kind TimeoutError from pii.regex in 30 minutes. A
+                detector erroring is a security failure even when it fails closed.
+              runbook: docs/runbook.md#firewalldetectorerrorspresent
+
+  # -- Upstream ---------------------------------------------------------------
+  - interval: 1m
+    name: upstream failing a fifth of requests pages, a percent does not
+    input_series:
+      - series: firewall_requests_total{decision="allow"}
+        values: "0+100x40"
+      - series: firewall_upstream_errors_total{kind="5xx"}
+        values: "0+20x40"
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: FirewallUpstreamErrorsHigh
+        exp_alerts: []
+      - eval_time: 30m
+        alertname: FirewallUpstreamErrorsHigh
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              component: upstream
+              calibration: unvalidated
+            exp_annotations:
+              summary: More than 10% of requests are failing upstream
+              description: >-
+                20% of requests are ending in an upstream error. The firewall is
+                working; the model endpoint behind it is not, and the protected
+                application is failing for its users.
+              runbook: docs/runbook.md#firewallupstreamerrorshigh
+
+  - interval: 1m
+    name: an upstream error rate inside tolerance is silent
+    input_series:
+      - series: firewall_requests_total{decision="allow"}
+        values: "0+100x40"
+      - series: firewall_upstream_errors_total{kind="5xx"}
+        values: "0+1x40"
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: FirewallUpstreamErrorsHigh
+        exp_alerts: []
+
+  # -- Sweep failures --------------------------------------------------------
+  - interval: 1m
+    name: a sweep that fails is a ticket even while the process stays healthy
+    input_series:
+      - series: firewall_retention_sweeps_total{outcome="failed"}
+        values: "0 0 1 1 1 1 1 1 1 1"
+      - series: firewall_retention_sweeps_total{outcome="success"}
+        values: "0+1x9"
+    alert_rule_test:
+      - eval_time: 8m
+        alertname: FirewallRetentionSweepsFailing
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: audit
+            exp_annotations:
+              summary: Retention sweeps are failing
+              description: >-
+                1 sweep(s) failed in the last hour. The failure is contained by design
+                and the process stays healthy, which is exactly why nothing else will
+                mention it.
+              runbook: docs/runbook.md#firewallretentionsweepsfailing
+
+  # -- Admission -------------------------------------------------------------
+  - interval: 1m
+    name: sustained admission rejections raise a ticket
+    input_series:
+      - series: firewall_concurrency_rejections_total{scope="gateway"}
+        values: "0+3x30"
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: FirewallConcurrencyRejections
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: FirewallConcurrencyRejections
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: capacity
+            exp_annotations:
+              summary: Requests are being refused at the in-flight ceiling
+              description: >-
+                15 request(s) refused with 503 in 5 minutes because the process was
+                already at its concurrency ceiling. Either the ceiling is too low or
+                something upstream of it is retrying.
+              runbook: docs/runbook.md#firewallconcurrencyrejections
+
+  # -- Authentication --------------------------------------------------------
+  - interval: 1m
+    name: a rotated caller key produces a sustained unknown_credential rate
+    input_series:
+      # 30/min = 0.5/s, above the 0.2/s threshold.
+      - series: firewall_caller_auth_failures_total{reason="unknown_credential"}
+        values: "0+30x40"
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: FirewallCallerAuthFailureSpike
+        exp_alerts: []
+      - eval_time: 30m
+        alertname: FirewallCallerAuthFailureSpike
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: authentication
+              calibration: unvalidated
+              reason: unknown_credential
+            exp_annotations:
+              summary: Sustained /v1 authentication failures (unknown_credential)
+              description: >-
+                0.50 failures/second for 10 minutes with reason unknown_credential.
+                `unknown_credential` at a steady rate is usually a rotated key; a
+                rising rate from many sources is credential guessing.
+              runbook: docs/runbook.md#firewallcallerauthfailurespike
+
+  - interval: 1m
+    name: an occasional bad credential is not a spike
+    input_series:
+      # One failure a minute is well under the threshold and must stay quiet.
+      - series: firewall_caller_auth_failures_total{reason="missing_credential"}
+        values: "0+1x40"
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: FirewallCallerAuthFailureSpike
+        exp_alerts: []
+
+  - interval: 1m
+    name: a proxy that stopped setting the identity header denies every operator
+    input_series:
+      - series: firewall_auth_denials_total{access_class="operator",reason="untrusted_peer"}
+        values: "0+12x40"
+    alert_rule_test:
+      - eval_time: 30m
+        alertname: FirewallOperatorAuthDenialSpike
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: authentication
+              calibration: unvalidated
+              access_class: operator
+              reason: untrusted_peer
+            exp_annotations:
+              summary: Sustained operator-console denials (untrusted_peer)
+              description: >-
+                0.20 denials/second on the operator surface for 10 minutes. The common
+                cause is a misconfigured proxy that has stopped setting the identity
+                header (R-61), not an attacker.
+              runbook: docs/runbook.md#firewalloperatorauthdenialspike
+
+  # -- Latency ---------------------------------------------------------------
+  - interval: 1m
+    name: p95 overhead above 100ms raises a ticket
+    input_series:
+      # Every observation lands between the 100ms and 250ms buckets, so the
+      # interpolated p95 sits above the threshold.
+      - series: firewall_gateway_overhead_seconds_bucket{le="0.05",route="/v1/chat/completions"}
+        values: "0+0x60"
+      - series: firewall_gateway_overhead_seconds_bucket{le="0.1",route="/v1/chat/completions"}
+        values: "0+0x60"
+      - series: firewall_gateway_overhead_seconds_bucket{le="0.25",route="/v1/chat/completions"}
+        values: "0+100x60"
+      - series: firewall_gateway_overhead_seconds_bucket{le="+Inf",route="/v1/chat/completions"}
+        values: "0+100x60"
+    alert_rule_test:
+      - eval_time: 40m
+        alertname: FirewallGatewayOverheadHigh
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: performance
+              calibration: unvalidated
+              route: /v1/chat/completions
+            exp_annotations:
+              summary: p95 gateway overhead above 100 ms on /v1/chat/completions
+              description: >-
+                p95 overhead is 242.5ms. Note this metric EXCLUDES the audit write
+                (R-77), so what a caller actually waits for is higher than this number
+                by roughly the audit latency.
+              runbook: docs/runbook.md#firewallgatewayoverheadhigh
+
+  - interval: 1m
+    name: a fast gateway is silent
+    input_series:
+      - series: firewall_gateway_overhead_seconds_bucket{le="0.05",route="/v1/chat/completions"}
+        values: "0+100x60"
+      - series: firewall_gateway_overhead_seconds_bucket{le="0.1",route="/v1/chat/completions"}
+        values: "0+100x60"
+      - series: firewall_gateway_overhead_seconds_bucket{le="0.25",route="/v1/chat/completions"}
+        values: "0+100x60"
+      - series: firewall_gateway_overhead_seconds_bucket{le="+Inf",route="/v1/chat/completions"}
+        values: "0+100x60"
+    alert_rule_test:
+      - eval_time: 40m
+        alertname: FirewallGatewayOverheadHigh
+        exp_alerts: []

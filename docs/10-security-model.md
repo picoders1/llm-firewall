@@ -112,18 +112,32 @@ untrusted input and is validated as such.
 | Store | Default | Rationale |
 |---|---|---|
 | stdout logs | Platform-defined | Out of our control; document what the platform does |
-| `request_traces`, `detector_results`, `policy_decisions` | 30 days | Tuning window |
+| `request_traces` (and `detector_results`, by cascade) | 30 days | Tuning window |
 | `security_events` | 180 days | Investigations start late |
 | `content_preview` column | Never populated in production | |
 | Evaluation data | Indefinite | Public benchmark data, no user content |
 
 Retention values are printed at startup so a deployment cannot silently retain more than
-intended. Enforcement is a scheduled deletion job (Phase 5), not a runbook step.
+intended — including when retention is **off**, which is the code default and which
+startup reports as a warning naming the consequence.
+
+Enforcement is a scheduled deletion job, not a runbook step, and since
+[ADR-030](adr/ADR-030-audit-retention.md) that job exists rather than being planned:
+an in-process sweeper, off the request path, deleting in bounded batches by age and
+by nothing else. `uv run python scripts/purge_audit.py` reports what it would delete
+without deleting it; `--execute` is required to actually delete, and there is no flag
+that lets a purge be aimed at particular rows.
+
+`policy_decisions` appears in earlier versions of this table because ADR-012
+anticipated it. It was never created and nothing writes it.
 
 ### Deployment obligations (the gateway cannot enforce these)
 
 1. **TLS terminates at or before the gateway.** Plaintext prompts on the wire defeat
-   everything here.
+   everything here — and so do plaintext credentials. Since P12 the application verifies
+   this rather than trusting it: `FIREWALL_HTTPS_ENFORCED` plus a trusted proxy asserting
+   `X-Forwarded-Proto`, refused at startup in production if absent
+   ([ADR-026](adr/ADR-026-secure-transport.md)).
 2. **The log pipeline inherits the sensitivity of what it carries.** Even at `none`, block
    events reveal who is being blocked and for what; treat the log store as security data.
 3. **The database holds the audit trail.** Restrict access, encrypt at rest, and back up —
@@ -246,10 +260,13 @@ loosening; both HTML policies carry no `'unsafe-inline'` and no `'unsafe-eval'`,
 possible only because the frontend was written to that constraint rather than retrofitted
 ([ADR-022](adr/ADR-022-dashboard-frontend-architecture.md), [ADR-023](adr/ADR-023-operator-authentication.md)).
 
-**HSTS** is opt-in via `FIREWALL_HTTPS_ENFORCED`, never inferred. TLS terminates at the
-ingress, so the process cannot observe whether the browser hop was HTTPS — and sending HSTS
-from a plain-HTTP development server pins the operator's browser to a scheme localhost does
-not serve, a lockout that outlives the container.
+**HSTS** follows the *request*, not the setting: sent when `FIREWALL_HTTPS_ENFORCED` is on
+**and** a trusted proxy stated that this particular request's client hop was TLS. The probe
+paths stay reachable over plaintext under enforcement so a misconfigured deployment is
+diagnosable, and a response that travelled in the clear must not pin the operator's browser
+to a scheme that hop does not serve — the pin outlives the mistake, which is what makes an
+over-eager HSTS worse than a missing one. The reference edge sets its own and hides the
+application's, so exactly one arrives ([ADR-026](adr/ADR-026-secure-transport.md)).
 
 ### Error responses
 
@@ -262,10 +279,10 @@ the attacker, and the detail is available to the operator by request ID in the a
 
 | Concern | Owner | Why not here |
 |---|---|---|
-| TLS termination | Ingress / service mesh | The gateway should not manage certificates |
+| TLS termination | **Edge — with a reference config since P12** | The gateway still should not manage certificates, and does not: it terminates no TLS and holds no key. What changed is that a reference TLS listener now ships, and the application *verifies* that a trusted proxy terminated TLS rather than assuming it ([ADR-026](adr/ADR-026-secure-transport.md)) |
 | **Operator** authentication (T-24) | Reverse proxy / identity-aware ingress — **enforced in-process since P9** | Identity is an existing organisational concern; duplicating it adds a second thing to get wrong. What changed in [ADR-023](adr/ADR-023-operator-authentication.md) is that the application now *verifies* the boundary is there instead of assuming it: identity headers are read only from a trusted peer, and production refuses to start without one |
 | **Caller** authentication for `/v1/**` (T-26) | **The gateway itself, since P10** | No longer delegated. A service API key is verified in-process against configured digests, ahead of detector inference ([ADR-024](adr/ADR-024-llm-caller-authentication.md)). An ingress may terminate it instead (`caller_auth_mode=proxy`), but the gateway still decides whether the asserted caller is allowed |
-| Rate limiting (T-18) | Ingress today; gateway in Phase 6 | Designed, not built. **README states: deploy behind a rate-limiting ingress** |
+| Volumetric rate limiting (T-18) | **Edge — with a reference config since P11** | Still the edge's job, and deliberately: it can refuse a connection for the price of a `RST`, before the application allocates anything. What changed is that a reference nginx configuration now ships and is exercised in CI, and the application keeps a small in-process safety net for when the edge is missing ([ADR-025](adr/ADR-025-edge-abuse-protection.md)) |
 | Network egress control (T-14) | Network policy | The gateway cannot prevent the app from calling the model directly; if that path is open, the firewall is advisory |
 | Secret storage | Platform (Vault, cloud secret manager) | The gateway consumes env vars; how they get there is the platform's job |
 | WAF / DDoS | Edge | |
@@ -277,8 +294,13 @@ the deployment checklist.
 ### Deployment checklist
 
 1. Upstream reachable **only** from the gateway's network identity (T-14).
-2. TLS terminated at or before the gateway.
-3. Rate limiting at the ingress until Phase 6 lands (T-18).
+2. **TLS terminated at the edge, and the application told so.** `FIREWALL_HTTPS_ENFORCED=true`
+   with `FIREWALL_TRUSTED_PROXIES` naming the ingress, and the ingress setting
+   `X-Forwarded-Proto`. An absent assertion is refused, not assumed secure.
+3. **Rate limiting, connection limits and read timeouts at the ingress** (T-18, T-17).
+   `deploy/docker/edge/` is a reference configuration; any ingress providing the same
+   controls is acceptable. The values shipped there are development defaults, not
+   measured ones — size them from your own traffic ([ADR-025](adr/ADR-025-edge-abuse-protection.md)).
 4. `FIREWALL_ENVIRONMENT=production` set — this is what refuses `full` content logging.
 5. Database role has no `DROP`; migrations run under a separate role.
 6. Alerts configured on `firewall_detector_errors_total` and
@@ -300,6 +322,23 @@ the deployment checklist.
 13. **A per-caller rate limit set from measured traffic** — `FIREWALL_CALLER_RATE_LIMIT_PER_MINUTE`
    and `FIREWALL_CALLER_MAX_CONCURRENT_REQUESTS`. Both default to off, because a limit chosen
    without knowing the traffic is a guess that will page someone.
+14. **A global in-flight ceiling** — `FIREWALL_MAX_CONCURRENT_REQUESTS`, sized from the
+   instance's CPU budget. It rejects rather than queues, so a burst becomes a 503 instead of
+   a memory problem.
+15. **Certificate material mounted at run time**, never committed and never baked into an
+   image. `deploy/certs/` is gitignored as a directory and excluded from every build context;
+   the edge exits rather than starting if the pair is missing, unreadable, mismatched or
+   expired.
+16. **`/ready` wired to the load balancer, and its advisory findings alerted on.** It now
+   asserts the security boundary and the audit schema, and reports degradations that do not
+   stop serving — a `/8` trusted range, a stale schema — which nothing else surfaces
+   ([ADR-027](adr/ADR-027-readiness-contract.md)).
+17. **Certificate expiry monitored outside the gateway.** nginx holds a certificate until
+   reload, so one that expires while running is not caught by the start-up check.
+18. **Decide on `FIREWALL_AUTH_FAILURES_PER_MINUTE`.** Off by default because it throttles by
+   *address*, so a legitimate caller sharing an egress gateway with an attacker is refused for
+   the window (R-65). Enable it where callers have distinct addresses; leave it off and rely
+   on the edge where they do not.
 
 ---
 

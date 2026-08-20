@@ -22,7 +22,7 @@ Unresolved questions are **not** here; they are in
 | [009](ADR-009-mock-upstream.md) | Ship a mock upstream service | Accepted | [15](../15-performance-benchmarking.md) |
 | [010](ADR-010-normalization-strategy.md) | Index-preserving normalisation | Accepted | [05](../05-detector-architecture.md) |
 | [011](ADR-011-configuration-model.md) | Split env settings from YAML policy | Accepted | [06](../06-policy-engine.md) |
-| [012](ADR-012-persistence-and-retention.md) | Audit persistence and retention | Accepted | [11](../11-data-model.md) |
+| [012](ADR-012-persistence-and-retention.md) | Audit persistence and retention | Accepted, amended by 029 | [11](../11-data-model.md) |
 | [013](ADR-013-deployment-strategy.md) | Compose first, Kubernetes conditionally | Accepted | [17](../17-deployment-architecture.md) |
 | [014](ADR-014-detector-selection.md) | Layered detector selection; baseline retained as layer 1 | Accepted | [13](../13-evaluation-strategy.md) |
 | [015](ADR-015-fine-tuning-strategy.md) | Fine-tuning strategy, pre-registered | **Executed → PARTIAL** | [13](../13-evaluation-strategy.md) |
@@ -35,6 +35,14 @@ Unresolved questions are **not** here; they are in
 | [022](ADR-022-dashboard-frontend-architecture.md) | A browser console from the gateway, without a framework | Accepted | [23](../23-dashboard-frontend.md) |
 | [023](ADR-023-operator-authentication.md) | Operator identity terminated at the ingress, enforced in-process | Accepted, amended by 024 | [17](../17-deployment-architecture.md) |
 | [024](ADR-024-llm-caller-authentication.md) | Service API key for `/v1`, plus a per-caller ceiling | Accepted | [17](../17-deployment-architecture.md) |
+| [025](ADR-025-edge-abuse-protection.md) | Volumetric limits at the edge, admission control in-process | Accepted | [17](../17-deployment-architecture.md) |
+| [026](ADR-026-secure-transport.md) | TLS at the edge; the application verifies rather than assumes | Accepted | [17](../17-deployment-architecture.md) |
+| [027](ADR-027-readiness-contract.md) | `/ready` as a security contract, with required vs advisory checks | Accepted | [17](../17-deployment-architecture.md) |
+| [028](ADR-028-production-deployment-manifests.md) | Compose as the reference production target; topology asserted by test | Accepted | [17](../17-deployment-architecture.md) |
+| [029](ADR-029-audit-write-architecture.md) | Audit writes move to a bounded drop-on-full queue | Accepted | [11](../11-data-model.md) |
+| [030](ADR-030-audit-retention.md) | Audit retention: a batched, age-only deletion job with no aimable predicate | Accepted | [11](../11-data-model.md), [12](../12-observability.md) |
+| [031](ADR-031-alerting-and-incident-response.md) | Alerting policy, incident runbook, and the conditions deliberately not alerted | Accepted | [12](../12-observability.md), [runbook](../runbook.md) |
+| [032](ADR-032-release-candidate-readiness.md) | Release-candidate readiness audit: 46 capabilities graded against evidence | Accepted | [release-readiness](../release-readiness.md) |
 
 **Numbering note.** ADRs are numbered in the order the decisions were made and are never
 renumbered — cross-references would rot. The brief's suggested ordering (ADR-007

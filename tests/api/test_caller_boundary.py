@@ -187,9 +187,16 @@ async def test_the_default_stack_is_unchanged(client: AsyncClient):
     assert (await client.post(CHAT, json=CHAT_BODY)).status_code == 200
 
 
-async def test_both_boundaries_can_be_enforced_at_once():
+async def test_both_boundaries_can_be_enforced_at_once(upstream):
     """They are independent, and a deployment turns on both. This is the
-    configuration production actually runs, so it is worth one test of its own."""
+    configuration production actually runs, so it is worth one test of its own.
+
+    The counting upstream is injected rather than left to the real client. It
+    was not, originally, and the test passed only because the development stack
+    happened to publish the mock on :8081 — so an `api`-marked test silently
+    depended on a running container. Phase 14's production topology stops
+    publishing that port, which is what surfaced it.
+    """
     from httpx import ASGITransport
 
     settings = Settings(
@@ -199,9 +206,11 @@ async def test_both_boundaries_can_be_enforced_at_once():
         trusted_proxies="127.0.0.1/32",
     )
     app = create_app(settings)
+    app.state.upstream = upstream
     transport = ASGITransport(app=app, client=("127.0.0.1", 4444))
     async with AsyncClient(transport=transport, base_url="http://firewall") as client:
         async with app.router.lifespan_context(app):
+            app.state.upstream = upstream
             assert (await client.get("/health")).status_code == 200
             assert (await client.get("/api/v1/detectors")).status_code == 401
             assert (

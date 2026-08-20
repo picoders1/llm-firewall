@@ -30,11 +30,16 @@ SECURITY_HEADERS: tuple[tuple[bytes, bytes], ...] = (
     (b"referrer-policy", b"no-referrer"),
 )
 
-# One year, subdomains included. Opt-in only (`FIREWALL_HTTPS_ENFORCED`): TLS
-# terminates at the ingress, so this process cannot observe whether the browser
-# hop was HTTPS. Sending HSTS from a plain-HTTP development server pins the
-# operator's browser to a scheme localhost does not serve, and the lockout
-# outlives the container (ADR-023).
+# One year, subdomains included. Sent only when BOTH are true: the deployment
+# declares HTTPS (`FIREWALL_HTTPS_ENFORCED`), and a trusted proxy stated that
+# this particular request's client hop was TLS (ADR-026).
+#
+# The second condition is not belt-and-braces. Under enforcement the probe paths
+# stay reachable over plaintext so a misconfigured deployment is diagnosable —
+# and a `/health` response that travelled in the clear must not carry a header
+# that pins the operator's browser to a scheme that hop did not serve. The pin
+# outlives the mistake, which is what makes an over-eager HSTS worse than a
+# missing one.
 HSTS_HEADER: tuple[bytes, bytes] = (
     b"strict-transport-security",
     b"max-age=31536000; includeSubDomains",
@@ -77,7 +82,7 @@ class SecurityHeadersMiddleware:
 
     def __init__(self, app: ASGIApp, *, hsts: bool = False) -> None:
         self.app = app
-        self._headers = SECURITY_HEADERS + ((HSTS_HEADER,) if hsts else ())
+        self._hsts = hsts
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -87,7 +92,11 @@ class SecurityHeadersMiddleware:
         async def send_with_headers(message: Message) -> None:
             if message["type"] == "http.response.start":
                 headers = list(message.get("headers", []))
-                headers.extend(self._headers)
+                headers.extend(SECURITY_HEADERS)
+                # Read on the way OUT, so the inner transport middleware has
+                # already recorded what it determined.
+                if self._hsts and scope.get("state", {}).get("transport") == "secure":
+                    headers.append(HSTS_HEADER)
                 message["headers"] = headers
             await send(message)
 

@@ -3,7 +3,9 @@
 This directory is the **single source of truth** for what is being built, why, and how it will
 be verified. Code that contradicts these documents is a bug in one of the two.
 
-**Current stage: Phase 0 slice complete; Phase 2 detection evaluated, integrated warn-only.**
+**Current stage: release candidate — Phase 18 readiness audit complete
+([ADR-032](adr/ADR-032-release-candidate-readiness.md), [release-readiness.md](release-readiness.md):
+26 PASS, 13 PARTIAL, 6 DEFERRED, 1 SUPERSEDED, 0 BLOCKED).**
 Enforcement is still entirely heuristic. A fine-tuned classifier is measured and integrated as
 layer 2 but **ships disabled and can never block** ([ADR-021](adr/ADR-021-layer2-transformer-integration.md)).
 Evaluation has been run: ADR-014 through ADR-021 record executed experiments — including two
@@ -17,8 +19,16 @@ require an operator identity terminated at a reverse proxy or ingress
 and refused-at-startup within it. Since Phase 10 `/v1/**` requires a **caller** credential too
 — a service API key on `Authorization: Bearer`, a separate boundary with its own setting and
 principal type ([ADR-024](adr/ADR-024-llm-caller-authentication.md)). Port 8000 should still
-not be published: caller authentication removes anonymous use, but edge rate limiting (T-18)
-does not exist yet.
+not be published. Phase 11 added the layer that bounds anonymous *arrival*: a reference nginx
+edge doing connection, rate and body limits ([ADR-025](adr/ADR-025-edge-abuse-protection.md)),
+exercised against real nginx in CI, with a small in-process safety net behind it. Phase 12
+added TLS to that edge ([ADR-026](adr/ADR-026-secure-transport.md)): certificates are runtime
+mounts, the edge refuses to start on unusable material, and the application refuses operator
+and gateway requests unless a trusted proxy asserts the client hop was HTTPS. Production
+refuses to start plaintext. Phase 13 made `/ready` a contract over those boundaries rather
+than over the process alone ([ADR-027](adr/ADR-027-readiness-contract.md)), and Phase 14 turned
+the documented topology into `compose.prod.yaml` — enforced by test rather than by prose
+([ADR-028](adr/ADR-028-production-deployment-manifests.md)).
 
 `docs/19-implementation-roadmap.md` and the ADRs carry current state; prefer them over any
 summary elsewhere.
@@ -66,6 +76,8 @@ summary elsewhere.
 |---|---|
 | [11-data-model.md](11-data-model.md) | Six tables, indexes, retention, why no prompt column exists |
 | [12-observability.md](12-observability.md) | Logs, metric catalogue, span structure, health vs readiness |
+| [runbook.md](runbook.md) | Incident runbook: one entry per alert — meaning, evidence, mitigation, escalation, resolution — and the conditions deliberately not alerted |
+| [release-readiness.md](release-readiness.md) | Phase 18 audit: every capability graded PASS/PARTIAL/DEFERRED/SUPERSEDED against implementation, tests, live evidence and docs |
 
 ### Evaluation
 | Doc | Contents |
@@ -90,7 +102,7 @@ summary elsewhere.
 | [22-evidence-and-claims.md](22-evidence-and-claims.md) | Every future claim, its required artefact, and the interview defence map |
 
 ### Decisions
-[adr/](adr/) — ADR-001 … ADR-024, with index, template and numbering note.
+[adr/](adr/) — ADR-001 … ADR-028, with index, template and numbering note.
 
 ## Standing rules
 

@@ -56,10 +56,16 @@ async def test_reserved_endpoints_return_501(client: AsyncClient, method: str, p
 
 
 async def test_metrics_is_no_longer_reserved(client: AsyncClient):
+    """The content-type expectation changed in Phase 17 because the endpoint was
+    wrong: it declared OpenMetrics while serving the Prometheus text format, so no
+    Prometheus could scrape it (R-87). The pairing of declared type to generated
+    body is asserted in `test_metrics_endpoint.py`; here it only has to be a
+    recognised exposition type, since this test is about the route existing."""
     response = await client.get("/metrics")
 
     assert response.status_code == 200
-    assert "openmetrics" in response.headers["content-type"]
+    content_type = response.headers["content-type"]
+    assert content_type.startswith(("text/plain", "application/openmetrics-text"))
 
 
 # --- Correlation IDs (FR-050, FR-051) --------------------------------------

@@ -52,8 +52,20 @@ class HttpUpstreamClient:
         self._base_url = settings.upstream_base_url
         self._host = urlsplit(self._base_url).hostname or "unknown"
         headers = {"content-type": "application/json"}
-        if settings.upstream_api_key is not None:
-            headers["authorization"] = f"Bearer {settings.upstream_api_key.get_secret_value()}"
+        # An EMPTY key is treated as no key, not as an empty credential. Without
+        # this, `Bearer ` — with its trailing space — is an illegal header value
+        # that h11 refuses locally, so every upstream call fails with a
+        # `LocalProtocolError` surfaced as an opaque 502 that says nothing about
+        # the cause. An operator who creates the secret file and has not filled
+        # it in yet is exactly who hits that, and a self-hosted upstream that
+        # needs no credential is a legitimate configuration (ADR-028).
+        api_key = (
+            settings.upstream_api_key.get_secret_value()
+            if settings.upstream_api_key is not None
+            else ""
+        )
+        if api_key:
+            headers["authorization"] = f"Bearer {api_key}"
         self._client = client or httpx.AsyncClient(
             timeout=httpx.Timeout(
                 connect=settings.upstream_connect_timeout_s,
@@ -61,7 +73,13 @@ class HttpUpstreamClient:
                 write=settings.upstream_connect_timeout_s,
                 pool=settings.upstream_connect_timeout_s,
             ),
-            limits=httpx.Limits(max_connections=settings.upstream_max_connections),
+            limits=httpx.Limits(
+                max_connections=settings.upstream_max_connections,
+                # Bounded separately: an unbounded keepalive pool holds file
+                # descriptors open against the provider long after the burst
+                # that created them has passed (ADR-025).
+                max_keepalive_connections=settings.upstream_max_keepalive_connections,
+            ),
             headers=headers,
         )
 

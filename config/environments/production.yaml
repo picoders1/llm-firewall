@@ -37,9 +37,14 @@ expose_timing_headers: false
 # to start without it, which is the intended failure: a boundary that cannot name
 # its proxy is not a boundary.
 #
-# HSTS on. A production deployment that is not HTTPS is a bug, not a configuration
-# — but set FIREWALL_HTTPS_ENFORCED=false while fixing one, because HSTS pins the
-# browser and the pin outlives the mistake.
+# HTTPS required (ADR-026). Since Phase 12 this does more than emit HSTS: operator
+# and gateway requests are refused with 426 unless a trusted proxy asserts the
+# client's hop was TLS, and the process REFUSES TO START in production without it.
+#
+# It is set here rather than left derived because a production deployment that is
+# not HTTPS is a bug, and the startup failure should name the setting an operator
+# has to change. It also requires FIREWALL_TRUSTED_PROXIES, which is
+# deployment-specific and belongs in the environment.
 https_enforced: true
 
 # Caller boundary (ADR-024). `caller_auth_mode` is ABSENT for the same reason as
@@ -54,3 +59,11 @@ https_enforced: true
 # The rate limit is NOT set here. A number written into a checked-in overlay is a
 # guess about someone else's traffic; size it from measured load and set it per
 # deployment (R-63 — and note it is enforced per process, not globally).
+
+# Admission control (ADR-025). Deliberately NOT set here.
+#
+# `max_concurrent_requests` depends on the instance's CPU budget and
+# `auth_failures_per_minute` on whether callers have distinct addresses (R-65).
+# A number written into a checked-in overlay is a guess about someone else's
+# deployment; both belong in FIREWALL_* alongside the edge configuration that
+# does the volumetric work.

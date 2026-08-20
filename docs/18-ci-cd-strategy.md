@@ -3,6 +3,29 @@
 `.github/workflows/ci.yml`. Every job is blocking — a pipeline with advisory jobs trains
 people to ignore it.
 
+
+## TLS coverage, precisely
+
+A **dedicated `tls` job** — not the whole pipeline — exercises HTTPS
+([ADR-026](adr/ADR-026-secure-transport.md)). Saying "CI covers TLS" without
+that qualifier would overstate it, so here is exactly what runs:
+
+| Step | What it proves |
+|---|---|
+| `scripts/generate_dev_cert.sh` | the certificate is generated per run; none is committed |
+| stack up with `compose.tls.yaml` | the edge starts with mounted material and validates it |
+| `test_tls_edge.py` | real handshakes: TLS 1.0/1.1 refused and 1.2/1.3 accepted, hostname and key match, 308 redirect, ALPN `h2` and `http/1.1`, HSTS present over HTTPS and absent over HTTP, auth boundaries unchanged |
+| `test_tls_failure_modes.py` | real containers with broken material exit rather than serving plaintext |
+| *Prove no key reached the image* | no certificate material in any layer of the edge image |
+
+What the TLS job does **not** cover: a real certificate authority, a browser, a
+renewal cycle, or the internal edge→firewall hop. Those are stated as unproduced
+in [22-evidence-and-claims.md](22-evidence-and-claims.md) rather than implied by
+a green tick.
+
+The `integration` job runs the plain-HTTP stack and is unchanged, so both
+transports are exercised and neither is assumed from the other.
+
 ## Jobs
 
 | Job | Runs | Fails on |

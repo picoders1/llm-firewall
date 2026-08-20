@@ -1,0 +1,4 @@
+condition,payload,concurrency,n,n_ok,client_p50_ms,client_p95_ms,client_p99_ms,client_mean_ms,client_stdev_ms,throughput_per_s,percentiles_reliable,server_overhead_p50_ms,server_overhead_p95_ms,server_overhead_p99_ms,paired_overhead_p50_ms,paired_overhead_p95_ms,paired_overhead_p99_ms
+C,long,1,500,500,49.34,70.256,74.362,47.263,12.634,21.2,True,31.402,44.135,46.682,45.002,63.875,67.341
+C,medium,1,500,500,25.999,35.539,38.354,24.061,8.174,41.6,True,5.718,8.407,9.713,21.007,28.794,30.825
+C,short,1,500,500,21.81,29.094,31.005,20.71,5.928,48.3,True,1.986,2.897,3.289,16.828,22.546,24.148

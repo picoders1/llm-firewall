@@ -1,0 +1,337 @@
+# LLM Firewall — Prometheus alerting rules (ADR-031).
+#
+# ONE RULE PER CONDITION AN OPERATOR CAN ACT ON. Every alert here has a matching
+# section in docs/runbook.md, and `tests/unit/test_alert_rules.py` fails if either
+# side gains an entry the other lacks — a rule with no runbook entry is a page
+# with no instructions, and a runbook entry with no rule is a procedure nobody
+# will ever be told to run.
+#
+# `severity` has exactly two values and they are defined by response, not by feeling:
+#   critical — a human is woken now. Security evidence is being lost, the
+#              protection is degraded, or the protected application is failing.
+#   warning  — a ticket for the next working day. Something is wrong or drifting
+#              and nothing is on fire.
+#
+# THRESHOLDS MARKED `calibration: unvalidated` ARE DEVELOPMENT DEFAULTS, not
+# measured values. This project has no production traffic, and publishing a
+# tuned-looking number without traffic to tune against would be exactly the
+# unbacked claim docs/22-evidence-and-claims.md refuses (R-67). They are shipped
+# because a starting point an operator can adjust beats an empty file, and they
+# are labelled so nobody mistakes one for evidence.
+#
+# Assumes a 15s scrape interval. Every expression aggregates across replicas
+# explicitly: this application counts per process, so an unaggregated threshold
+# is wrong by a factor of N (docs/12-observability.md).
+
+groups:
+  # ---------------------------------------------------------------------------
+  # Security evidence. These fire when the system is losing its own audit trail
+  # or running with a boundary it is supposed to refuse to start without.
+  # ---------------------------------------------------------------------------
+  - name: firewall-security-integrity
+    interval: 30s
+    rules:
+      - alert: FirewallAuditEventsDropped
+        # No `for`. A single drop is the event: from that moment the audit trail
+        # has a hole, and ADR-012 named this metric in Phase 0 precisely so the
+        # hole would be visible. Waiting for a second one buys nothing.
+        expr: sum(increase(firewall_audit_events_dropped_total[5m])) > 0
+        labels:
+          severity: critical
+          component: audit
+        annotations:
+          summary: Audit records are being discarded
+          description: >-
+            {{ $value | printf "%.0f" }} audit record(s) were dropped in the last
+            5 minutes because the write queue was full. Served requests now have
+            no audit row and nothing else records which ones.
+          runbook: docs/runbook.md#firewallauditeventsdropped
+
+      - alert: FirewallAuditWriteFailing
+        # `rate > 0 for 10m` rather than `increase > 0`: one transient failure
+        # decays out of the 5m window and never satisfies the 10m hold, so this
+        # fires on a database that is actually down, not on a blip.
+        expr: sum(rate(firewall_audit_write_failures_total[5m])) > 0
+        for: 10m
+        labels:
+          severity: critical
+          component: audit
+        annotations:
+          summary: The audit sink has been failing for 10 minutes
+          description: >-
+            Audit writes have failed continuously for 10 minutes. Requests are
+            still being served and decided correctly (ADR-012) — only the record
+            is lost, and it is being lost for every request.
+          runbook: docs/runbook.md#firewallauditwritefailing
+
+      - alert: FirewallHTTPSEnforcementDisabled
+        # `min` across replicas: one instance accepting plaintext is enough.
+        expr: min(firewall_https_enforced) == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: transport
+        annotations:
+          summary: An instance is not enforcing HTTPS
+          description: >-
+            At least one process reports firewall_https_enforced=0. Production
+            refuses to start in this state (ADR-026), so this means either a
+            non-production instance is in the production scrape pool or a startup
+            check has been relaxed.
+          runbook: docs/runbook.md#firewallhttpsenforcementdisabled
+
+      - alert: FirewallRetentionDisabled
+        # 30m so that a rolling restart, during which instances appear and
+        # disappear, cannot produce a page.
+        expr: min(firewall_retention_enabled) == 0
+        for: 30m
+        labels:
+          severity: warning
+          component: audit
+        annotations:
+          summary: Nothing is deleting audit rows past their retention period
+          description: >-
+            At least one process has retention off. The audit store grows without
+            bound and every row carries a caller identity — a privacy liability as
+            much as a disk one (ADR-030, R-84).
+          runbook: docs/runbook.md#firewallretentiondisabled
+
+  # ---------------------------------------------------------------------------
+  # Protection. The product's reason to exist is degraded or behaving unusually.
+  # ---------------------------------------------------------------------------
+  - name: firewall-protection
+    interval: 30s
+    rules:
+      - alert: FirewallDetectorErrorRateHigh
+        # The denominator is the latency histogram's count, which is observed for
+        # every run INCLUDING errored ones, so this ratio is well-formed and
+        # cannot exceed 1.
+        expr: >-
+          sum by (detector) (rate(firewall_detector_errors_total[5m]))
+          /
+          sum by (detector) (rate(firewall_detector_latency_seconds_count[5m]))
+          > 0.01
+        for: 10m
+        labels:
+          severity: critical
+          component: detection
+          calibration: unvalidated
+        annotations:
+          summary: "Detector {{ $labels.detector }} is failing on more than 1% of runs"
+          description: >-
+            {{ $labels.detector }} has errored on {{ $value | humanizePercentage }}
+            of runs for 10 minutes. Fail-closed detectors turn this into 503s for
+            callers; a fail-open one is silently not inspecting.
+          runbook: docs/runbook.md#firewalldetectorerrorratehigh
+
+      - alert: FirewallDetectorErrorsPresent
+        # Deliberately separate from the ratio alert above. A trickle of errors on
+        # a low-traffic instance never reaches 1% and is still a detector that is
+        # not working.
+        expr: sum by (detector, error_kind) (increase(firewall_detector_errors_total[30m])) > 0
+        labels:
+          severity: warning
+          component: detection
+        annotations:
+          summary: "Detector {{ $labels.detector }} errored ({{ $labels.error_kind }})"
+          description: >-
+            {{ $value | printf "%.0f" }} error(s) of kind {{ $labels.error_kind }}
+            from {{ $labels.detector }} in 30 minutes. A detector erroring is a
+            security failure even when it fails closed.
+          runbook: docs/runbook.md#firewalldetectorerrorspresent
+
+      - alert: FirewallBlockRateStepChange
+        # Compared against the same window yesterday, not against a fixed number:
+        # the right block rate is a property of a deployment's traffic and nobody
+        # here knows what it is. The traffic floor stops an idle instance from
+        # alerting on the difference between 1 request and 2.
+        expr: >-
+          abs(
+            sum(rate(firewall_requests_total{decision="block"}[30m]))
+            / sum(rate(firewall_requests_total[30m]))
+            -
+            sum(rate(firewall_requests_total{decision="block"}[30m] offset 1d))
+            / sum(rate(firewall_requests_total[30m] offset 1d))
+          ) > 0.10
+          and sum(rate(firewall_requests_total[30m])) > 0.1
+        for: 30m
+        labels:
+          severity: warning
+          component: detection
+          calibration: unvalidated
+        annotations:
+          summary: The block rate moved more than 10 points against yesterday
+          description: >-
+            The block rate differs from the same window yesterday by
+            {{ $value | humanizePercentage }}. In this product a step change is
+            almost always a policy or threshold change, not a coordinated attack
+            (docs/12-observability.md).
+          runbook: docs/runbook.md#firewallblockratestepchange
+
+      - alert: FirewallUpstreamErrorsHigh
+        expr: >-
+          sum(rate(firewall_upstream_errors_total[5m]))
+          / sum(rate(firewall_requests_total[5m]))
+          > 0.10
+        for: 10m
+        labels:
+          severity: critical
+          component: upstream
+          calibration: unvalidated
+        annotations:
+          summary: More than 10% of requests are failing upstream
+          description: >-
+            {{ $value | humanizePercentage }} of requests are ending in an upstream
+            error. The firewall is working; the model endpoint behind it is not,
+            and the protected application is failing for its users.
+          runbook: docs/runbook.md#firewallupstreamerrorshigh
+
+  # ---------------------------------------------------------------------------
+  # Audit lifecycle. Phase 16 built deletion; these are the conditions that mean
+  # it is not keeping up, or not running.
+  # ---------------------------------------------------------------------------
+  - name: firewall-audit-lifecycle
+    interval: 30s
+    rules:
+      - alert: FirewallRetentionStalled
+        # `> 0` inside the aggregation is load-bearing. The gauge is 0 on a process
+        # that has never completed a sweep — retention off, or only just started —
+        # and without the filter `time() - 0` is 56 years and this alert fires
+        # instantly and permanently on every such instance.
+        expr: time() - min(firewall_retention_last_success_timestamp_seconds > 0) > 10800
+        for: 15m
+        labels:
+          severity: warning
+          component: audit
+        annotations:
+          summary: No successful retention sweep for three hours
+          description: >-
+            The last successful sweep on the most stalled instance was
+            {{ $value | humanizeDuration }} ago, against an hourly interval.
+            Deletion has stopped; the store is growing again.
+          runbook: docs/runbook.md#firewallretentionstalled
+
+      - alert: FirewallRetentionSweepsFailing
+        # Covers the gap the alert above cannot: a process whose every sweep has
+        # failed since startup never sets the success timestamp, so its gauge stays
+        # at 0 and is filtered out there.
+        expr: sum(increase(firewall_retention_sweeps_total{outcome="failed"}[1h])) > 0
+        labels:
+          severity: warning
+          component: audit
+        annotations:
+          summary: Retention sweeps are failing
+          description: >-
+            {{ $value | printf "%.0f" }} sweep(s) failed in the last hour. The
+            failure is contained by design and the process stays healthy, which is
+            exactly why nothing else will mention it.
+          runbook: docs/runbook.md#firewallretentionsweepsfailing
+
+      - alert: FirewallAuditBacklogExceedsRetention
+        # Compared against the period the application actually has configured, not
+        # against a number copied into this file. 1.5x because sweeps are hourly
+        # and batched, so the oldest row is legitimately a little older than the
+        # period between sweeps.
+        expr: >-
+          firewall_audit_oldest_row_age_seconds
+          > 1.5 * firewall_audit_retention_period_seconds
+        for: 30m
+        labels:
+          severity: warning
+          component: audit
+          calibration: unvalidated
+        annotations:
+          summary: "{{ $labels.table }} holds rows well past its retention period"
+          description: >-
+            The oldest row in {{ $labels.table }} is {{ $value | humanizeDuration }}
+            old, more than 1.5x the configured period. Sweeps may be reporting
+            success while deleting less than arrives — which the delete counter
+            cannot tell you and this can (ADR-030).
+          runbook: docs/runbook.md#firewallauditbacklogexceedsretention
+
+      - alert: FirewallAuditQueueSaturating
+        # The leading indicator for FirewallAuditEventsDropped. No series exists in
+        # `sync` mode, so this cannot fire there.
+        expr: firewall_audit_queue_depth / firewall_audit_queue_capacity > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: audit
+          calibration: unvalidated
+        annotations:
+          summary: The audit write queue is more than half full
+          description: >-
+            Queue occupancy has been above 50% for 10 minutes. The writer is not
+            keeping up with arrivals; records will start being dropped when it
+            fills.
+          runbook: docs/runbook.md#firewallauditqueuesaturating
+
+  # ---------------------------------------------------------------------------
+  # Capacity and access. Refusals the system is issuing on purpose, which still
+  # need someone to decide whether the limit or the traffic is wrong.
+  # ---------------------------------------------------------------------------
+  - name: firewall-capacity-and-access
+    interval: 30s
+    rules:
+      - alert: FirewallConcurrencyRejections
+        expr: sum(increase(firewall_concurrency_rejections_total[5m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: capacity
+        annotations:
+          summary: Requests are being refused at the in-flight ceiling
+          description: >-
+            {{ $value | printf "%.0f" }} request(s) refused with 503 in 5 minutes
+            because the process was already at its concurrency ceiling. Either the
+            ceiling is too low or something upstream of it is retrying.
+          runbook: docs/runbook.md#firewallconcurrencyrejections
+
+      - alert: FirewallCallerAuthFailureSpike
+        expr: sum by (reason) (rate(firewall_caller_auth_failures_total[5m])) > 0.2
+        for: 10m
+        labels:
+          severity: warning
+          component: authentication
+          calibration: unvalidated
+        annotations:
+          summary: "Sustained /v1 authentication failures ({{ $labels.reason }})"
+          description: >-
+            {{ $value | printf "%.2f" }} failures/second for 10 minutes with reason
+            {{ $labels.reason }}. `unknown_credential` at a steady rate is usually a
+            rotated key; a rising rate from many sources is credential guessing.
+          runbook: docs/runbook.md#firewallcallerauthfailurespike
+
+      - alert: FirewallOperatorAuthDenialSpike
+        expr: sum by (access_class, reason) (rate(firewall_auth_denials_total[5m])) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          component: authentication
+          calibration: unvalidated
+        annotations:
+          summary: "Sustained operator-console denials ({{ $labels.reason }})"
+          description: >-
+            {{ $value | printf "%.2f" }} denials/second on the {{ $labels.access_class }}
+            surface for 10 minutes. The common cause is a misconfigured proxy that
+            has stopped setting the identity header (R-61), not an attacker.
+          runbook: docs/runbook.md#firewalloperatorauthdenialspike
+
+      - alert: FirewallGatewayOverheadHigh
+        expr: >-
+          histogram_quantile(
+            0.95,
+            sum by (le, route) (rate(firewall_gateway_overhead_seconds_bucket[10m]))
+          ) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          component: performance
+          calibration: unvalidated
+        annotations:
+          summary: "p95 gateway overhead above 100 ms on {{ $labels.route }}"
+          description: >-
+            p95 overhead is {{ $value | humanizeDuration }}. Note this metric
+            EXCLUDES the audit write (R-77), so what a caller actually waits for is
+            higher than this number by roughly the audit latency.
+          runbook: docs/runbook.md#firewallgatewayoverheadhigh

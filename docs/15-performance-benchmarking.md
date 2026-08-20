@@ -8,8 +8,17 @@ That sentence is worthless unless three things are pinned down: what "adds" mean
 was measured against, and on what machine. Most published guardrail latency numbers fail all
 three. This document defines the measurement so that ours can be checked.
 
-**Current status: no benchmark has been run. Every latency and throughput figure in this
-repository reads `pending benchmark execution`.**
+**Current status: measured 2026-08-19 (Phase 15).** Runs are in
+[`eval/results/performance/`](../eval/results/performance/), each with its machine metadata,
+git commit and raw per-request timings. Figures in `compose.prod.yaml` and `compose.edge.yaml`
+remain **development defaults** — this benchmark characterised cost, it did not size limits
+(R-67).
+
+**Headline, and its conditions.** On a 12th-gen i7 laptop, mock upstream at 0 ms,
+concurrency 1, 265-byte request: gateway span p50 **2.27 ms**, of which detection 0.99 ms,
+normalisation 0.29 ms, policy 0.09 ms. The synchronous audit write adds a further
+**10.5 ms p50** that the span excludes by construction. A 16 KB request costs
+**32.0 ms p50** in-span, because normalisation and detection scale with length.
 
 ## Definition of overhead
 
@@ -45,6 +54,8 @@ sequentially so that thermal drift and background load affect all conditions equ
 | **B** | Client → gateway (all detectors disabled) → mock upstream | Proxy cost alone: parsing, validation, connection reuse |
 | **C** | Client → gateway (detectors enabled) → mock upstream | **The headline: C − A is total overhead; C − B is detection cost** |
 | **D** | Detector called directly, no HTTP | Pure detector cost, for per-detector budgeting |
+| **F** | Client → gateway (detectors enabled, **audit disabled**) → mock | Added in Phase 15. Without it, C − B conflates detection with a synchronous database write. F − B is detection; C − F is persistence |
+| **E** | Client → HTTPS edge → gateway → mock | Added in Phase 15. The deployment path of ADR-026/ADR-028, which did not exist when this document was written |
 
 The **mock upstream is what makes this valid** ([ADR-009](adr/ADR-009-mock-upstream.md)).
 A real model's latency variance (seconds, load-dependent, token-dependent) is one to three
@@ -127,14 +138,45 @@ not backed by a committed report.
 ## Reproducing
 
 ```bash
-docker compose up -d
-uv run python -m eval.runners.benchmark \
-    --conditions A,B,C,D \
+MOCK_LATENCY_MS=0 docker compose -f compose.yaml -f compose.bench.yaml up -d --build
+
+uv run python -m eval.runners.benchmark --label main-matrix \
+    --conditions A,B,F,C \
     --concurrency 1,4,16,64 \
     --payload short,medium,long \
-    --iterations 1000 --warmup 100 --repeats 3 \
-    --report eval/reports/
+    --iterations 1000 --warmup 100 --repeats 1
+
+uv run python -m eval.runners.report eval/results/performance/<run-id>
 ```
 
-Output: `eval/reports/bench-<run_id>.{json,md}`, including the machine metadata block and
-the raw per-request timings needed to recompute every statistic independently.
+Output: `eval/results/performance/<run-id>/` — `manifest.json`, `workload.json`,
+`raw_results.jsonl`, `summary.json` and the derived CSVs, including the machine metadata and
+the raw per-request timings needed to recompute every statistic independently. The harness
+**refuses to write into an existing directory**: a benchmark whose history can be edited
+proves whatever was run last.
+
+`compose.bench.yaml` adds the two containers conditions B and F need — a gateway running
+`config/policies/benchmark-passthrough.yaml` (every detector disabled) and one with audit
+persistence off. Both are measuring instruments; `tests/security/test_benchmark_isolation.py`
+asserts neither can become the production configuration.
+
+### Two overhead definitions, and why the report carries both
+
+This document defines `gateway_overhead = total_client_latency − upstream_latency`. The
+gateway separately reports its own in-handler span as `x-firewall-gateway-ms`. **They are not
+the same number**, and Phase 15 measured the difference: the span starts after ASGI and
+middleware and stops before the response is serialised — and, critically, before the audit
+write. On this machine the gap is ~5 ms for a bare proxy and ~15 ms with audit persistence on.
+
+Both are computed **per request** from paired samples, never by subtracting two percentiles
+from different distributions.
+
+### Measurement limits observed
+
+* **Concurrency 16 and 64 are floor-limited by the harness.** Condition A — no gateway at all
+  — degrades from 4 ms p50 at concurrency 1 to 206 ms at 64 on this laptop. Client-observed
+  figures above concurrency 4 measure the mock and the loopback; the server-measured span
+  stays valid because it is measured inside the gateway.
+* **Run-to-run spread**, two identical back-to-back runs: p50 within ±4 % at concurrency 1,
+  up to 11 % at concurrency 4. Reported rather than thresholded — no stability bound has been
+  established.

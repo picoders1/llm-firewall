@@ -1,0 +1,410 @@
+{
+  "C|W1|short|c1|r1": {
+    "n": 500,
+    "n_ok": 500,
+    "error_rate": 0.0,
+    "statuses": {
+      "200": 500
+    },
+    "client_latency_ms": {
+      "n": 500,
+      "mean_ms": 23.2434,
+      "median_ms": 22.8205,
+      "p50_ms": 22.8205,
+      "p90_ms": 29.3402,
+      "p95_ms": 30.4643,
+      "p99_ms": 32.4032,
+      "min_ms": 10.5177,
+      "max_ms": 33.9354,
+      "stdev_ms": 4.9377,
+      "throughput_per_s_single_threaded": 43.02,
+      "percentiles_reliable": true
+    },
+    "gateway_overhead_ms": {
+      "n": 500,
+      "mean_ms": 2.1991,
+      "median_ms": 2.124,
+      "p50_ms": 2.124,
+      "p90_ms": 2.8282,
+      "p95_ms": 3.0833,
+      "p99_ms": 3.4747,
+      "min_ms": 1.016,
+      "max_ms": 4.144,
+      "stdev_ms": 0.5339,
+      "throughput_per_s_single_threaded": 454.72,
+      "percentiles_reliable": true
+    },
+    "upstream_ms": {
+      "n": 500,
+      "mean_ms": 5.2948,
+      "median_ms": 5.158,
+      "p50_ms": 5.158,
+      "p90_ms": 6.783,
+      "p95_ms": 7.1898,
+      "p99_ms": 8.0422,
+      "min_ms": 2.409,
+      "max_ms": 8.714,
+      "stdev_ms": 1.2057,
+      "throughput_per_s_single_threaded": 188.86,
+      "percentiles_reliable": true
+    },
+    "response_bytes_median": 482
+  },
+  "E|W1|short|c1|r1": {
+    "n": 500,
+    "n_ok": 500,
+    "error_rate": 0.0,
+    "statuses": {
+      "200": 500
+    },
+    "client_latency_ms": {
+      "n": 500,
+      "mean_ms": 25.1469,
+      "median_ms": 24.0177,
+      "p50_ms": 24.0177,
+      "p90_ms": 31.2583,
+      "p95_ms": 32.6779,
+      "p99_ms": 35.1195,
+      "min_ms": 12.2659,
+      "max_ms": 38.6656,
+      "stdev_ms": 4.1085,
+      "throughput_per_s_single_threaded": 39.77,
+      "percentiles_reliable": true
+    },
+    "gateway_overhead_ms": {
+      "n": 500,
+      "mean_ms": 2.2964,
+      "median_ms": 2.187,
+      "p50_ms": 2.187,
+      "p90_ms": 2.925,
+      "p95_ms": 3.1188,
+      "p99_ms": 3.6838,
+      "min_ms": 1.085,
+      "max_ms": 4.76,
+      "stdev_ms": 0.4692,
+      "throughput_per_s_single_threaded": 435.46,
+      "percentiles_reliable": true
+    },
+    "upstream_ms": {
+      "n": 500,
+      "mean_ms": 5.4976,
+      "median_ms": 5.243,
+      "p50_ms": 5.243,
+      "p90_ms": 6.8542,
+      "p95_ms": 7.5638,
+      "p99_ms": 8.5326,
+      "min_ms": 2.568,
+      "max_ms": 9.498,
+      "stdev_ms": 1.0384,
+      "throughput_per_s_single_threaded": 181.9,
+      "percentiles_reliable": true
+    },
+    "response_bytes_median": 482
+  },
+  "C|W1|short|c4|r1": {
+    "n": 500,
+    "n_ok": 500,
+    "error_rate": 0.0,
+    "statuses": {
+      "200": 500
+    },
+    "client_latency_ms": {
+      "n": 500,
+      "mean_ms": 40.1889,
+      "median_ms": 34.0522,
+      "p50_ms": 34.0522,
+      "p90_ms": 60.1499,
+      "p95_ms": 67.1455,
+      "p99_ms": 78.1513,
+      "min_ms": 18.8161,
+      "max_ms": 82.5904,
+      "stdev_ms": 14.2486,
+      "throughput_per_s_single_threaded": 24.88,
+      "percentiles_reliable": true
+    },
+    "gateway_overhead_ms": {
+      "n": 500,
+      "mean_ms": 6.6517,
+      "median_ms": 5.8065,
+      "p50_ms": 5.8065,
+      "p90_ms": 10.7005,
+      "p95_ms": 12.5263,
+      "p99_ms": 16.4543,
+      "min_ms": 2.078,
+      "max_ms": 49.885,
+      "stdev_ms": 3.5729,
+      "throughput_per_s_single_threaded": 150.34,
+      "percentiles_reliable": true
+    },
+    "upstream_ms": {
+      "n": 500,
+      "mean_ms": 9.5148,
+      "median_ms": 7.631,
+      "p50_ms": 7.631,
+      "p90_ms": 16.6281,
+      "p95_ms": 20.3533,
+      "p99_ms": 29.8649,
+      "min_ms": 2.586,
+      "max_ms": 55.874,
+      "stdev_ms": 5.9594,
+      "throughput_per_s_single_threaded": 105.1,
+      "percentiles_reliable": true
+    },
+    "response_bytes_median": 482
+  },
+  "E|W1|short|c4|r1": {
+    "n": 500,
+    "n_ok": 500,
+    "error_rate": 0.0,
+    "statuses": {
+      "200": 500
+    },
+    "client_latency_ms": {
+      "n": 500,
+      "mean_ms": 33.5359,
+      "median_ms": 30.6677,
+      "p50_ms": 30.6677,
+      "p90_ms": 47.0259,
+      "p95_ms": 54.75,
+      "p99_ms": 75.4548,
+      "min_ms": 17.2288,
+      "max_ms": 84.1467,
+      "stdev_ms": 10.4025,
+      "throughput_per_s_single_threaded": 29.82,
+      "percentiles_reliable": true
+    },
+    "gateway_overhead_ms": {
+      "n": 500,
+      "mean_ms": 4.7676,
+      "median_ms": 4.2795,
+      "p50_ms": 4.2795,
+      "p90_ms": 6.8685,
+      "p95_ms": 8.4224,
+      "p99_ms": 11.6283,
+      "min_ms": 1.277,
+      "max_ms": 54.924,
+      "stdev_ms": 2.9886,
+      "throughput_per_s_single_threaded": 209.75,
+      "percentiles_reliable": true
+    },
+    "upstream_ms": {
+      "n": 500,
+      "mean_ms": 7.3374,
+      "median_ms": 6.529,
+      "p50_ms": 6.529,
+      "p90_ms": 11.0894,
+      "p95_ms": 13.1945,
+      "p99_ms": 19.6576,
+      "min_ms": 2.51,
+      "max_ms": 58.706,
+      "stdev_ms": 3.9785,
+      "throughput_per_s_single_threaded": 136.29,
+      "percentiles_reliable": true
+    },
+    "response_bytes_median": 482
+  },
+  "C|W2|medium|c1|r1": {
+    "n": 500,
+    "n_ok": 500,
+    "error_rate": 0.0,
+    "statuses": {
+      "200": 500
+    },
+    "client_latency_ms": {
+      "n": 500,
+      "mean_ms": 26.9537,
+      "median_ms": 26.6552,
+      "p50_ms": 26.6552,
+      "p90_ms": 34.6579,
+      "p95_ms": 35.9251,
+      "p99_ms": 37.9786,
+      "min_ms": 13.1863,
+      "max_ms": 39.7812,
+      "stdev_ms": 5.9696,
+      "throughput_per_s_single_threaded": 37.1,
+      "percentiles_reliable": true
+    },
+    "gateway_overhead_ms": {
+      "n": 500,
+      "mean_ms": 6.1402,
+      "median_ms": 5.96,
+      "p50_ms": 5.96,
+      "p90_ms": 7.8684,
+      "p95_ms": 8.3409,
+      "p99_ms": 9.8573,
+      "min_ms": 2.972,
+      "max_ms": 10.428,
+      "stdev_ms": 1.5175,
+      "throughput_per_s_single_threaded": 162.86,
+      "percentiles_reliable": true
+    },
+    "upstream_ms": {
+      "n": 500,
+      "mean_ms": 5.2565,
+      "median_ms": 5.121,
+      "p50_ms": 5.121,
+      "p90_ms": 6.7601,
+      "p95_ms": 7.1601,
+      "p99_ms": 7.7538,
+      "min_ms": 2.529,
+      "max_ms": 8.702,
+      "stdev_ms": 1.2045,
+      "throughput_per_s_single_threaded": 190.24,
+      "percentiles_reliable": true
+    },
+    "response_bytes_median": 483
+  },
+  "E|W2|medium|c1|r1": {
+    "n": 500,
+    "n_ok": 500,
+    "error_rate": 0.0,
+    "statuses": {
+      "200": 500
+    },
+    "client_latency_ms": {
+      "n": 500,
+      "mean_ms": 28.4675,
+      "median_ms": 28.0123,
+      "p50_ms": 28.0123,
+      "p90_ms": 35.6623,
+      "p95_ms": 36.7888,
+      "p99_ms": 39.1642,
+      "min_ms": 13.2658,
+      "max_ms": 41.2737,
+      "stdev_ms": 5.7825,
+      "throughput_per_s_single_threaded": 35.13,
+      "percentiles_reliable": true
+    },
+    "gateway_overhead_ms": {
+      "n": 500,
+      "mean_ms": 6.2764,
+      "median_ms": 6.061,
+      "p50_ms": 6.061,
+      "p90_ms": 7.9132,
+      "p95_ms": 8.5471,
+      "p99_ms": 9.6963,
+      "min_ms": 2.961,
+      "max_ms": 10.474,
+      "stdev_ms": 1.4409,
+      "throughput_per_s_single_threaded": 159.33,
+      "percentiles_reliable": true
+    },
+    "upstream_ms": {
+      "n": 500,
+      "mean_ms": 5.2977,
+      "median_ms": 5.2225,
+      "p50_ms": 5.2225,
+      "p90_ms": 6.5997,
+      "p95_ms": 6.9928,
+      "p99_ms": 7.8615,
+      "min_ms": 2.549,
+      "max_ms": 8.311,
+      "stdev_ms": 1.1331,
+      "throughput_per_s_single_threaded": 188.76,
+      "percentiles_reliable": true
+    },
+    "response_bytes_median": 483
+  },
+  "C|W2|medium|c4|r1": {
+    "n": 500,
+    "n_ok": 500,
+    "error_rate": 0.0,
+    "statuses": {
+      "200": 500
+    },
+    "client_latency_ms": {
+      "n": 500,
+      "mean_ms": 44.9973,
+      "median_ms": 40.4625,
+      "p50_ms": 40.4625,
+      "p90_ms": 63.2647,
+      "p95_ms": 68.1996,
+      "p99_ms": 85.1295,
+      "min_ms": 28.8439,
+      "max_ms": 92.5356,
+      "stdev_ms": 11.277,
+      "throughput_per_s_single_threaded": 22.22,
+      "percentiles_reliable": true
+    },
+    "gateway_overhead_ms": {
+      "n": 500,
+      "mean_ms": 11.2495,
+      "median_ms": 10.7875,
+      "p50_ms": 10.7875,
+      "p90_ms": 15.9942,
+      "p95_ms": 18.2957,
+      "p99_ms": 22.5243,
+      "min_ms": 4.323,
+      "max_ms": 25.641,
+      "stdev_ms": 3.4051,
+      "throughput_per_s_single_threaded": 88.89,
+      "percentiles_reliable": true
+    },
+    "upstream_ms": {
+      "n": 500,
+      "mean_ms": 10.2923,
+      "median_ms": 9.584,
+      "p50_ms": 9.584,
+      "p90_ms": 16.9471,
+      "p95_ms": 19.6146,
+      "p99_ms": 25.3637,
+      "min_ms": 4.029,
+      "max_ms": 61.028,
+      "stdev_ms": 5.1784,
+      "throughput_per_s_single_threaded": 97.16,
+      "percentiles_reliable": true
+    },
+    "response_bytes_median": 483
+  },
+  "E|W2|medium|c4|r1": {
+    "n": 500,
+    "n_ok": 500,
+    "error_rate": 0.0,
+    "statuses": {
+      "200": 500
+    },
+    "client_latency_ms": {
+      "n": 500,
+      "mean_ms": 48.8181,
+      "median_ms": 41.2986,
+      "p50_ms": 41.2986,
+      "p90_ms": 71.8378,
+      "p95_ms": 78.4978,
+      "p99_ms": 87.889,
+      "min_ms": 25.1547,
+      "max_ms": 91.9814,
+      "stdev_ms": 14.3537,
+      "throughput_per_s_single_threaded": 20.48,
+      "percentiles_reliable": true
+    },
+    "gateway_overhead_ms": {
+      "n": 500,
+      "mean_ms": 9.7179,
+      "median_ms": 8.3765,
+      "p50_ms": 8.3765,
+      "p90_ms": 15.6046,
+      "p95_ms": 18.8123,
+      "p99_ms": 23.9248,
+      "min_ms": 3.725,
+      "max_ms": 27.268,
+      "stdev_ms": 4.2044,
+      "throughput_per_s_single_threaded": 102.9,
+      "percentiles_reliable": true
+    },
+    "upstream_ms": {
+      "n": 500,
+      "mean_ms": 12.0906,
+      "median_ms": 11.7775,
+      "p50_ms": 11.7775,
+      "p90_ms": 20.5054,
+      "p95_ms": 24.4983,
+      "p99_ms": 30.1866,
+      "min_ms": 3.025,
+      "max_ms": 32.74,
+      "stdev_ms": 5.6737,
+      "throughput_per_s_single_threaded": 82.71,
+      "percentiles_reliable": true
+    },
+    "response_bytes_median": 483
+  }
+}

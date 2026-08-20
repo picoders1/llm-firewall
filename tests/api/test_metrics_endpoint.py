@@ -25,9 +25,36 @@ DOCUMENTED_METRICS = (
 
 
 async def test_metrics_is_served(client: AsyncClient):
+    """**This expectation changed in Phase 17 because the endpoint was wrong.**
+
+    It previously asserted `"openmetrics" in content-type`, which passed while the
+    endpoint was unscrapeable: the content type came from
+    `prometheus_client.openmetrics` and the body from `generate_latest`, which emits
+    the Prometheus **text** format. Prometheus trusts the declared type, parsed the
+    body as OpenMetrics, and rejected every scrape for lacking the mandatory `# EOF`
+    terminator (R-87).
+
+    The assertion is now the property rather than a string: whatever content type is
+    declared, the body must parse with the parser that type implies. Hardcoding
+    "text/plain" would repeat the original mistake in the other direction — it would
+    still pass if the two halves were changed independently.
+    """
     response = await client.get("/metrics")
     assert response.status_code == 200
-    assert "openmetrics" in response.headers["content-type"]
+
+    content_type = response.headers["content-type"]
+    body = response.text
+    if "openmetrics" in content_type:
+        # OpenMetrics is a strict format and terminates with an explicit marker.
+        assert body.rstrip().endswith("# EOF"), "declared OpenMetrics, served text format"
+    else:
+        assert content_type.startswith("text/plain")
+        assert not body.rstrip().endswith("# EOF"), "declared text format, served OpenMetrics"
+        # And it must actually parse as the format it claims to be.
+        from prometheus_client.parser import text_string_to_metric_families
+
+        families = list(text_string_to_metric_families(body))
+        assert families, "the exposition parsed to nothing"
 
 
 @pytest.mark.parametrize("metric", DOCUMENTED_METRICS)

@@ -67,6 +67,16 @@ Prometheus text exposition on `GET /metrics`, disableable via `metrics_enabled`.
 | `firewall_caller_requests_total` | counter | `caller` | Authenticated gateway traffic by calling application ([ADR-024](adr/ADR-024-llm-caller-authentication.md)). `caller` comes from configuration, not the wire, and still passes through `bounded_label` |
 | `firewall_caller_auth_failures_total` | counter | `reason` | **Alert on a sustained rate.** Either a caller's credential is wrong or rotated, or someone is probing for one. `reason` is a closed enum, never a presented credential |
 | `firewall_rate_limited_requests_total` | counter | `caller`, `limit` | Per-caller ceiling hits, `limit` being `rate` or `concurrency`. Counted **per process**: with N replicas the real ceiling is N times the configured one |
+| `firewall_audit_events_dropped_total` | counter | — | Audit records discarded because the write queue was full ([ADR-029](adr/ADR-029-audit-write-architecture.md)). **Alert on any nonzero value** — the audit trail is incomplete from that moment, and nothing else says so |
+| `firewall_audit_queue_depth` | gauge | — | Records waiting to be written. Sustained depth is the leading indicator: it precedes either dropping or the request path starting to wait |
+| `firewall_audit_rows_deleted_total` | counter | `table` | Rows removed by the retention sweep ([ADR-030](adr/ADR-030-audit-retention.md)). Includes the rows the foreign key cascaded, not only the parents — `detector_results` is four times the volume of `request_traces`, and a counter that reported only parents would understate the work by that factor |
+| `firewall_retention_sweeps_total` | counter | `outcome` | `success` or `failed`. A sustained `failed` rate means the audit store is growing without bound and nothing else is saying so |
+| `firewall_retention_last_success_timestamp_seconds` | gauge | — | **Alert on its age, not its value.** Retention failing quietly is the failure mode that matters; the process stays healthy either way |
+| `firewall_audit_oldest_row_age_seconds` | gauge | `table` | **The metric that says retention is working**, which the delete counter does not: a counter can tick steadily while the backlog grows. Compare against the configured period. Reported for the two age-swept tables only — `min(created_at)` on `detector_results` would be a sequential scan of the largest table in the schema |
+| `firewall_retention_enabled` | gauge | — | 1 when this process deletes rows past their period ([ADR-030](adr/ADR-030-audit-retention.md)). A configuration fact reported whether it is on or off, so "nothing is enforcing retention" is a value an alert can match rather than an absent series nobody notices (R-84) |
+| `firewall_audit_retention_period_seconds` | gauge | `table` | The configured maximum age, exported so an alert compares the backlog against the period **actually in force** instead of a number copied into a rule file. Change `FIREWALL_RETENTION_TRACE_DAYS` and the alert follows ([ADR-031](adr/ADR-031-alerting-and-incident-response.md)) |
+| `firewall_audit_queue_capacity` | gauge | — | Bound on the write queue. **Absent in `sync` mode**, which is the honest representation: there is no queue to saturate, so the saturation alert has no data rather than a fabricated denominator |
+| `firewall_https_enforced` | gauge | — | 1 when this process refuses requests whose client hop was not TLS ([ADR-026](adr/ADR-026-secure-transport.md)). **Alert on a production instance reporting 0.** No label: there is nothing to break it down by that would not be constant or unbounded. Certificate *expiry* is deliberately absent — this process holds no certificate, and monitoring one belongs to whatever issues it (R-69) |
 | `firewall_auth_denials_total` | counter | `access_class`, `reason` | Operator-console refusals ([ADR-023](adr/ADR-023-operator-authentication.md)). Both labels are closed enums — `reason` is never derived from a header |
 
 Bucket boundaries are chosen for this domain, not left at library defaults: detector and
@@ -133,6 +143,33 @@ either wave through or reject.
 Neither endpoint requires authentication, and neither reveals configuration values — only
 check names and pass/fail.
 
+## Alerting
+
+The catalogue above says "alert on this" in several places. Since Phase 17 those are
+evaluated rules rather than instructions in a table:
+
+* **[`deploy/alerts/firewall.rules.yaml`](../deploy/alerts/firewall.rules.yaml)** —
+  16 rules, two severities (`critical` = wake someone, `warning` = a ticket).
+* **[`docs/runbook.md`](runbook.md)** — one entry per alert: what it means, what to
+  inspect, what to do now, when to escalate, when it is over. Plus the conditions
+  that are deliberately **not** alerts, each with the circumstance that would change
+  the decision.
+* **[`deploy/alerts/firewall.rules.test.yaml`](../deploy/alerts/firewall.rules.test.yaml)**
+  — `promtool test rules` cases, run in CI. Every alert is exercised, and the
+  near-misses are asserted as carefully as the firing cases.
+
+Rules, runbook and this catalogue are bound by `tests/unit/test_alert_rules.py`: an
+alert with no runbook entry, a runbook entry with no alert, or a rule naming a metric
+this application does not export all fail the suite.
+
+**Thresholds marked `calibration: unvalidated` are development defaults**, not
+measured values, for the same reason the rate limits are (R-67). They are labelled
+in both the rule file and the runbook so nobody mistakes one for evidence.
+
+`compose.observability.yaml` runs Prometheus over the development stack to evaluate
+them against a real gateway. Alertmanager is deliberately not shipped: routing and
+escalation belong to whatever an operator already runs ([ADR-031](adr/ADR-031-alerting-and-incident-response.md)).
+
 ## What an operator actually watches
 
 1. `firewall_detector_errors_total` — nonzero means protection is degraded *now*.
@@ -140,6 +177,9 @@ check names and pass/fail.
    always a policy or model change, not a coordinated attack.
 3. `firewall_gateway_overhead_seconds` p95 — the number the platform team will ask about.
 4. `firewall_audit_write_failures_total` — the audit trail going quiet is itself an event.
+5. **`/ready` advisory findings** — logged as `ready_with_advisories`. They never change the
+   status code, so nothing else will page anyone about a stale audit schema or a trusted
+   range that spans a whole network ([ADR-027](adr/ADR-027-readiness-contract.md)).
 5. `/ready` flapping — usually memory pressure from model loading.
 
 

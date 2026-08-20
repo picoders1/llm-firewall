@@ -35,3 +35,11 @@ expose_timing_headers: true
 # open — the quick start remains one command with no credential (NFR-012). To
 # require a key locally, generate one with scripts/generate_caller_key.py and set
 # FIREWALL_CALLER_AUTH_MODE and FIREWALL_CALLER_API_KEYS in .env.
+
+# Admission control (ADR-025): not set, so both ceilings are off and the quick
+# start stays one command. `compose.edge.yaml` turns on the in-flight ceiling and
+# adds the reference nginx edge in front.
+
+# Secure transport (ADR-026): not set, so HTTPS is not enforced and the quick start
+# stays one command over plain HTTP. `compose.tls.yaml` turns it on and puts a TLS
+# listener in front; `./scripts/generate_dev_cert.sh` makes the certificate.

@@ -2,6 +2,17 @@
 .env
 .env.*
 !.env.example
+# TLS material never enters a build context, so it can never be baked into an
+# image layer — where it would survive every `docker rmi` of the running
+# container and be readable by anyone who can pull the image (ADR-026 §4).
+deploy/certs
+deploy/secrets
+prod.env
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
 .git
 .github
 .venv
@@ -9,15 +20,18 @@ venv
 
 tests
 docs
-# Evaluation artefacts: ship the small finalised reports the dashboard reads
-# (~200K of result.json), exclude the ~6.7M of per-sample predictions it never
-# opens. Keeps the image slim and keeps per-sample rows out of a runtime image.
+# Evaluation artefacts: ship EXACTLY the files the dashboard opens and nothing
+# else. `app/api/dashboard/evaluations.py` reads one filename — `result.json`,
+# one level under eval/results — so that is the whole allow-list.
+#
+# It was previously an exclude-list naming `predictions*`, `*.csv` and `*.svg`.
+# That drifted the moment Phase 15's benchmark harness started writing
+# `raw_results.jsonl`, a name none of those patterns match: 17 MB of per-request
+# benchmark rows shipped in the production image while this comment claimed
+# ~200K. An allow-list cannot drift that way — a new artefact type is excluded by
+# default instead of included by omission (ADR-032).
 eval
-!eval/results
-eval/results/**/predictions*
-eval/results/**/*.csv
-eval/results/**/*.svg
-eval/datasets
+!eval/results/*/result.json
 scripts
 
 **/__pycache__

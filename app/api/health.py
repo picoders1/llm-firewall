@@ -25,6 +25,9 @@ import structlog
 from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel
 
+from app.api import readiness
+from app.database.migrations import expected_schema_revision
+
 logger = structlog.get_logger(__name__)
 
 router = APIRouter(tags=["operations"])
@@ -37,9 +40,24 @@ class HealthResponse(BaseModel):
 
 
 class CheckResult(BaseModel):
+    """One readiness check.
+
+    `category` and `requirement` were added in Phase 13 and the existing fields
+    were deliberately left alone: the operator console renders this list, and a
+    reshaped payload would have broken it for no benefit. Additive is a stable
+    contract; the brief's illustrative object-keyed shape is not worth an
+    incompatibility (ADR-027).
+    """
+
     name: str
     passed: bool
     detail: str | None = None
+    category: Literal["configuration", "security_boundary", "detectors", "database"] = (
+        "configuration"
+    )
+    # `advisory` failures are reported and do NOT take the instance out of
+    # rotation. Which checks are which is the substance of ADR-027.
+    requirement: Literal["required", "advisory"] = "required"
 
 
 class ReadyResponse(BaseModel):
@@ -55,52 +73,63 @@ async def health(request: Request) -> HealthResponse:
 
 @router.get("/ready", response_model=ReadyResponse, summary="Readiness probe")
 async def ready(request: Request, response: Response) -> ReadyResponse:
-    """Dependency-checked readiness."""
+    """Can this instance safely serve traffic through its configured boundary?
+
+    Narrower than "is everything healthy" and wider than "did the process
+    start". Only `required` checks decide the status code; `advisory` ones are
+    reported so an operator can see a degradation without a dependency blip
+    emptying the fleet (ADR-027).
+    """
     state = request.app.state
-    checks: list[CheckResult] = []
-
-    policy_loaded = getattr(state, "config", None) is not None
-    checks.append(
-        CheckResult(
-            name="policy_loaded",
-            passed=policy_loaded,
-            detail=state.config.policy_version if policy_loaded else "policy not loaded",
-        )
-    )
-
-    detectors_ready = bool(getattr(state, "detectors_warmed", False))
-    checks.append(
-        CheckResult(
-            name="detectors_warmed",
-            passed=detectors_ready,
-            detail=None if detectors_ready else "detector warmup did not complete",
-        )
-    )
+    checks = readiness.evaluate(state)
 
     database = getattr(state, "database", None)
     if database is None:
-        # Persistence disabled is a configuration choice, not a failure. It is
-        # still reported so the breakdown never hides that auditing is off.
-        checks.append(CheckResult(name="database", passed=True, detail="persistence disabled"))
+        checks.extend(
+            readiness.database_checks(
+                configured=False, reachable=False, revision=None, expected=None, required=False
+            )
+        )
     else:
-        reachable = await database.check()
-        checks.append(
-            CheckResult(
-                name="database",
-                passed=reachable,
-                detail=None if reachable else "database unreachable",
+        probe = await database.readiness()
+        settings = state.config.settings
+        checks.extend(
+            readiness.database_checks(
+                configured=True,
+                reachable=probe.reachable,
+                revision=probe.revision,
+                expected=expected_schema_revision(),
+                required=settings.require_audit,
             )
         )
 
-    all_passed = all(check.passed for check in checks)
+    all_passed = readiness.is_ready(checks)
     if not all_passed:
         response.status_code = 503
         logger.warning(
             "not_ready",
-            failed=[check.name for check in checks if not check.passed],
+            failed=[c.name for c in checks if not c.passed and c.requirement == "required"],
         )
+    degraded = [c.name for c in checks if not c.passed and c.requirement == "advisory"]
+    if degraded:
+        # Logged even while ready: an advisory failure is a real finding that
+        # nothing else would surface, and it must not be silent just because it
+        # is not fatal.
+        logger.warning("ready_with_advisories", advisories=degraded)
 
-    return ReadyResponse(status="ready" if all_passed else "not_ready", checks=checks)
+    return ReadyResponse(
+        status="ready" if all_passed else "not_ready",
+        checks=[
+            CheckResult(
+                name=c.name,
+                passed=c.passed,
+                detail=c.detail,
+                category=c.category.value,
+                requirement=c.requirement.value,
+            )
+            for c in checks
+        ],
+    )
 
 
 @router.get("/metrics", include_in_schema=False)

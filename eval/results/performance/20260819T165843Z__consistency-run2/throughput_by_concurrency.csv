@@ -1,0 +1,5 @@
+condition,payload,concurrency,throughput_per_s,n,client_p50_ms
+B,medium,1,85.8,500,12.224
+B,medium,4,54.5,500,16.881
+C,medium,1,37.3,500,26.708
+C,medium,4,21.0,500,40.81

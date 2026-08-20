@@ -10,7 +10,8 @@ Adoption is intended to be one line:
 client = OpenAI(base_url="http://localhost:8000/v1", api_key="...")
 ```
 
-> **Status: Phase 0 slice complete; Phase 2 detection evaluated and integrated warn-only.**
+> **Status: release candidate (Phase 18 audit complete).** Detection is evaluated and
+> integrated warn-only; everything operational around it is built, tested and verified.
 > A request is normalised, inspected, decided by the policy engine, forwarded to an upstream,
 > inspected again on the way back, and audited to PostgreSQL. Blocked requests never reach the
 > model, and that invariant is asserted against a call counter rather than inferred from a
@@ -132,6 +133,59 @@ Nothing changes for the client — the OpenAI SDK already sends the credential:
 client = OpenAI(base_url="http://localhost:8000/v1", api_key="<the raw key>")
 ```
 
+### Running behind the reference edge
+
+```bash
+docker compose -f compose.yaml -f compose.edge.yaml up -d --build
+# repeat quickly and the edge starts answering 429
+curl -i localhost:8089/v1/chat/completions -H 'content-type: application/json' -d '{}'
+```
+
+The edge authenticates nobody — it bounds volume so the application never pays for a
+flood it was going to refuse. Its limits are **development defaults** chosen to be
+observable by hand, not recommendations
+([ADR-025](docs/adr/ADR-025-edge-abuse-protection.md)).
+
+### Running with HTTPS
+
+```bash
+./scripts/generate_dev_cert.sh    # writes deploy/certs/ — gitignored, never committed
+docker compose -f compose.yaml -f compose.edge.yaml -f compose.tls.yaml up -d --build
+
+curl -k https://localhost:8443/v1/chat/completions \
+  -H 'content-type: application/json' -d '{"model":"m","messages":[{"role":"user","content":"Hi"}]}'
+curl -i http://localhost:8089/v1/chat/completions      # 308 to https, method preserved
+```
+
+TLS terminates at the edge; the gateway holds no certificate and no key. It instead
+*verifies* the transport: with `FIREWALL_HTTPS_ENFORCED` on, operator and gateway
+requests are refused with **426** unless a trusted proxy asserts the client hop was
+HTTPS, and **production refuses to start without it**. The development certificate is
+self-signed and expires in 30 days, deliberately
+([ADR-026](docs/adr/ADR-026-secure-transport.md)).
+
+### Reference production deployment
+
+```bash
+./scripts/generate_dev_cert.sh        # or mount your CA's material
+./scripts/init_prod_secrets.sh        # writes deploy/secrets/, gitignored
+cp prod.env.example prod.env          # nothing secret goes in it
+
+docker compose -f compose.prod.yaml --env-file prod.env --profile migrate run --rm migrate
+docker compose -f compose.prod.yaml --env-file prod.env up -d
+```
+
+A standalone topology, not an overlay of the development stack — because what
+makes a deployment production is mostly what it *removes*, and a Compose overlay
+can only add. **Only the edge publishes a port**; the gateway and the audit store
+have no host binding, and the store sits on an `internal` network the edge cannot
+resolve. Credentials are mounted files rather than environment variables, and the
+edge waits on `/ready`, which asserts the security boundary
+([ADR-028](docs/adr/ADR-028-production-deployment-manifests.md)).
+
+The topology is asserted by tests — 43 against the manifests, 12 against a
+running stack — so an edit that publishes the gateway fails in seconds.
+
 ### Security Operations console
 
 ```bash
@@ -200,6 +254,11 @@ Invalid policy prevents startup. It is never silently repaired
 | Caller access | `/v1/**` requires a service API key, stored on the gateway as a SHA-256 digest and compared in constant time. Checked in middleware, so a refusal costs no detector inference and never reaches the model — asserted against a call counter, not a status code |
 | Upstream credential | Bound once at construction and unreachable from a request: the upstream client accepts a JSON payload and no headers, so a client's `Authorization` has no path to the provider |
 | Abuse | Per-caller sliding-window rate limit and concurrency ceiling, off by default. **Per process** — N replicas allow N times the limit |
+| Volumetric abuse | A reference nginx edge (`compose.edge.yaml`) bounds connections, request rate and body size per client address and times out slow ones — refusing an anonymous flood before the application allocates anything. Driven by real integration tests in CI |
+| Transport | TLS 1.2/1.3 at the edge with HSTS and HTTP/2; HTTP redirects with 308 and proxies nothing. The gateway refuses operator and caller traffic unless a **trusted** proxy asserts HTTPS — a client cannot promote its own connection by sending a header. Certificates are runtime mounts; unusable material stops the edge rather than degrading it to plaintext |
+| Saturation | A global in-flight ceiling that **rejects rather than queues** (503), with `/health` and `/ready` exempt so a load spike does not become an outage |
+| Readiness | `/ready` asserts the security boundary and the audit schema, not just the process. Each check is `required` or `advisory`, so a degraded dependency is reported without taking the instance out of rotation |
+| Deployment | The production topology is an artefact, not a description: only the edge is published, the audit store is on an internal network, credentials are mounted files, and both are enforced by test |
 | Console mutation | Impossible: every operator endpoint is `GET`, and the boundary refuses other methods. Authentication protects the console; it does not turn it into a control plane |
 | Container | Non-root, read-only root filesystem, dropped capabilities |
 
@@ -249,25 +308,33 @@ Testing conventions: [docs/16-testing-strategy.md](docs/16-testing-strategy.md).
 | Phase | Contents | State |
 |---|---|---|
 | 0 | Foundation, config, policy engine, baseline detectors, gateway, audit, container, CI | **Substantially complete** |
-| 1 | OpenAI-compatible proxy, upstream client, error taxonomy | Not started |
-| 2 | Injection/jailbreak classifiers, Presidio PII | Not started |
-| 3 | Output security: disclosure, tool-call and URL exfiltration | Not started |
-| 4 | Datasets, detection benchmark, latency/throughput benchmark | Not started |
-| 5 | Async audit writer, retention, exporters, dashboards | Not started |
-| 6 | Streaming inspection, rate limiting, red-team loop | Not started |
-| 7 | Production image, deployment | Not started |
+| 1 | OpenAI-compatible proxy, upstream client, error taxonomy | **Complete** — delivered with the Phase 0 vertical slice |
+| 2 | Injection/jailbreak classifiers, Presidio PII | **Partial** — heuristics ship and decide; the fine-tuned classifier is integrated warn-only and disabled ([ADR-021](docs/adr/ADR-021-layer2-transformer-integration.md)). Presidio **deferred**: the regex baseline covers structured identifiers and no evidence yet justifies the dependency |
+| 3 | Output security: disclosure, tool-call and URL exfiltration | **Partial** — output-direction PII redaction ships; `output.stub` is registered and disabled, and disclosure/exfiltration detectors are **not built** |
+| 4 | Datasets, detection benchmark, latency/throughput benchmark | **Complete** — frozen corpora with pinned hashes, ADR-014→021 detection experiments, and the Phase 15 performance matrix |
+| 5 | Async audit writer, retention, exporters, dashboards | **Complete except exporters** — audit queue ([ADR-029](docs/adr/ADR-029-audit-write-architecture.md)), retention ([ADR-030](docs/adr/ADR-030-audit-retention.md)), metrics, alert rules and runbook ([ADR-031](docs/adr/ADR-031-alerting-and-incident-response.md)) all ship. OTLP exporter and Grafana dashboards **deferred** — see [release-readiness.md](docs/release-readiness.md) |
+| 6 | Streaming inspection, rate limiting, red-team loop | **Partial** — rate limiting ships at the edge and in-process ([ADR-025](docs/adr/ADR-025-edge-abuse-protection.md)). Streaming returns `400` and is **not built**; no automated red-team loop exists |
+| 7 | Production image, deployment | **Complete** — hardened non-root image and a standalone reference topology ([ADR-028](docs/adr/ADR-028-production-deployment-manifests.md)) |
 | 8 | Security Operations console | **Complete** ([ADR-022](docs/adr/ADR-022-dashboard-frontend-architecture.md)) |
 | 9 | Operator authentication and console access control | **Complete** ([ADR-023](docs/adr/ADR-023-operator-authentication.md)) |
 | 10 | Caller authentication and abuse protection | **Complete** ([ADR-024](docs/adr/ADR-024-llm-caller-authentication.md)) |
+| 11 | Edge rate limiting and admission control | **Complete** ([ADR-025](docs/adr/ADR-025-edge-abuse-protection.md)) |
+| 12 | Secure transport (TLS/HTTPS) | **Complete** ([ADR-026](docs/adr/ADR-026-secure-transport.md)) |
+| 13 | Security-aware readiness | **Complete** ([ADR-027](docs/adr/ADR-027-readiness-contract.md)) |
+| 14 | Production deployment manifests | **Complete** ([ADR-028](docs/adr/ADR-028-production-deployment-manifests.md)) |
+| 15 | Controlled performance and capacity benchmark | **Complete** — measured, not claimed as an SLO |
+| 16 | Audit retention and data lifecycle | **Complete** ([ADR-030](docs/adr/ADR-030-audit-retention.md)) |
+| 17 | Security alerting and incident runbook | **Complete** ([ADR-031](docs/adr/ADR-031-alerting-and-incident-response.md)) |
+| 18 | Release-candidate hardening and readiness audit | **Complete** ([ADR-032](docs/adr/ADR-032-release-candidate-readiness.md), [release-readiness.md](docs/release-readiness.md)) |
 
-Known gaps today: no streaming (returns `400`); **no edge rate limiting** — an
-*unauthenticated* flood is still free, so deploy behind a rate-limiting ingress (T-18); the
-per-caller ceiling is per process rather than global (R-63); and it bounds request count, not
-tokens, so a caller sending very large prompts outspends one sending many small ones (R-64).
+Known gaps today: **every limit in the production manifests is a development default, not a measured one** (R-67) — sizing has been pending Phase 4 benchmarks since Phase 0; no streaming (returns `400`); no rolling updates in the Compose reference (R-74); the edge→firewall hop is plaintext on an
+isolated network by design (R-68, OD-39); certificate expiry is only checked at start-up, so
+one that lapses mid-run keeps being served (R-69); every shipped limit value is a development
+default rather than a measured one (R-67); enforcement is per edge and per process rather than
+global (R-63, OD-38); the ceiling bounds request count, not tokens (R-64); **retention is off by default**, so a deployment that never reads its startup warning still grows without bound (R-84); and **every alert threshold is a guess** — 16 rules and a runbook now exist, but only the thresholds derived from an invariant are validated; the rest are labelled `calibration: unvalidated` until real traffic recalibrates them (R-88).
 
-*(The phase table above is stale in places — Phase 5's `/metrics` and Security Operations
-API are built, and detection quality has been measured. Trust
-[docs/19-implementation-roadmap.md](docs/19-implementation-roadmap.md) and the ADRs.)*
+*(Every row above was re-verified against the code in the Phase 18 audit; the
+capability-by-capability evidence is in [docs/release-readiness.md](docs/release-readiness.md).)*
 
 Full plan: [docs/19-implementation-roadmap.md](docs/19-implementation-roadmap.md).
 

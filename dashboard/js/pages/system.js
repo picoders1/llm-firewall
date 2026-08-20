@@ -92,21 +92,28 @@ export function view(data) {
         el(
           "div",
           {},
-          checks.map((check) =>
-            el("div", { class: "dep" }, [
+          checks.map((check) => {
+            // A failing ADVISORY check is a real finding that is NOT taking this
+            // instance out of rotation, so it must not look like one that is.
+            // Rendering both as a red "Fail" would send an operator to page
+            // someone about a broad trusted range (ADR-027).
+            const state = check.passed
+              ? { cls: "allow", glyph: "\u25cf", label: "Pass", iconName: "check" }
+              : check.requirement === "advisory"
+                ? { cls: "warn", glyph: "\u25b2", label: "Advisory", iconName: "alert" }
+                : { cls: "block", glyph: "\u25a0", label: "Fail", iconName: "alert" };
+            return el("div", { class: "dep" }, [
               el("div", {
                 class: "dep__icon",
-                style: `background:var(--${check.passed ? "allow" : "block"}-bg);color:var(--${check.passed ? "allow" : "block"})`,
-              }, [icon(check.passed ? "check" : "alert", 16)]),
+                style: `background:var(--${state.cls}-bg);color:var(--${state.cls})`,
+              }, [icon(state.iconName, 16)]),
               el("div", { style: "min-width:0" }, [
                 el("div", { class: "dep__name", text: titleCase(check.name) }),
-                el("div", { class: "dep__detail mono truncate", text: check.detail ?? "—" }),
+                el("div", { class: "dep__detail mono truncate", text: check.detail ?? "\u2014" }),
               ]),
-              el("div", { class: "dep__status" }, [
-                check.passed ? badge("Pass", "allow", "●") : badge("Fail", "block", "■"),
-              ]),
-            ]),
-          ),
+              el("div", { class: "dep__status" }, [badge(state.label, state.cls, state.glyph)]),
+            ]);
+          }),
         ),
         { flush: true },
       ),

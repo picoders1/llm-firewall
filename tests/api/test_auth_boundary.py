@@ -144,14 +144,30 @@ async def test_hsts_is_absent_unless_https_is_declared(client: AsyncClient):
     assert "strict-transport-security" not in {k.lower() for k in response.headers}
 
 
-async def test_hsts_is_sent_when_https_is_declared():
+async def test_hsts_is_sent_only_on_a_response_that_travelled_over_tls():
+    """The world changed twice here, and the second change is the interesting one.
+
+    Phase 9: `https_enforced` meant "add an HSTS header", so it needed nothing
+    else and applied to every response. Phase 12 (ADR-026) makes it *enforce*
+    HTTPS, which requires a trusted proxy to assert the client's scheme — and
+    makes the header conditional on that same assertion.
+
+    The reason is `/health`. It stays reachable over plaintext under enforcement
+    so a misconfigured deployment is diagnosable, and a response that travelled
+    in the clear must not pin the operator's browser to a scheme that hop did not
+    serve. The pin outlives the mistake.
+    """
     from httpx import ASGITransport
 
-    app = create_app(Settings(https_enforced=True))
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://firewall") as client:
+    app = create_app(Settings(https_enforced=True, trusted_proxies="127.0.0.1/32"))
+    transport = ASGITransport(app=app, client=TRUSTED_PEER)
+    async with AsyncClient(transport=transport, base_url="http://firewall") as client:
         async with app.router.lifespan_context(app):
-            response = await client.get("/health")
-    assert response.headers["strict-transport-security"] == HSTS_HEADER[1].decode()
+            over_tls = await client.get("/health", headers={"X-Forwarded-Proto": "https"})
+            in_the_clear = await client.get("/health")
+
+    assert over_tls.headers["strict-transport-security"] == HSTS_HEADER[1].decode()
+    assert "strict-transport-security" not in {k.lower() for k in in_the_clear.headers}
 
 
 async def test_cors_is_still_absent(enforcing_client):

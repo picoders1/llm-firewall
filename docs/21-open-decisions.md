@@ -44,6 +44,11 @@ evidence that resolved it. "We just did it that way" is not a resolution.
 | OD-16 | Oversized requests (413) produce no audit row | Phase 1 | Where the limit should live |
 | OD-35 | Authentication for the Security Operations API **and console** | — | **RESOLVED by [ADR-023](adr/ADR-023-operator-authentication.md)**: identity terminated at a reverse proxy or ingress, enforced in the application, refused-at-startup in production. No user model was invented |
 | OD-36 | Authentication for **application** traffic (`/v1/chat/completions`) | — | **RESOLVED by [ADR-024](adr/ADR-024-llm-caller-authentication.md)**: a service API key on `Authorization: Bearer`, verified against configured digests. No user model, no credential store |
+| OD-42 | Should the audit write move off the request path? | — | **RESOLVED by [ADR-029](adr/ADR-029-audit-write-architecture.md)**: yes, as a bounded drop-on-full queue — the design ADR-012 registered in Phase 0. Blocking-on-full was implemented, measured and removed |
+| OD-41 | Does this project need an orchestrator (Kubernetes) at all? | **When a deployment needs more than one replica** | Compose enforces the topology today and cannot do rolling updates, NetworkPolicy or PodDisruptionBudget. Sizing is unmeasured and no cluster exists here to validate manifests against (R-74) |
+| OD-40 | Should the schema check accept a compatibility *range* rather than exact equality? | **When expand/contract migrations are first used** | Exact equality is correct while migrations run as a separate step before rollout, and wrong the moment a release deliberately spans two revisions (R-72) |
+| OD-39 | Should the edge → firewall hop use mTLS? | **When the internal network stops being private** | Today it is plaintext on a network carrying only those two participants. mTLS buys confidentiality there at the cost of a certificate lifecycle for internal components; §23 of the Phase 12 brief is explicit it should not be automatic |
+| OD-38 | Should rate-limit enforcement become distributed (shared across replicas)? | **When a deployment states the requirement** | Today enforcement is per edge and per process, so N replicas allow N times the application-side limit (R-63). Redis would fix the arithmetic and add a datastore whose failure mode is "the gateway stops working" |
 | OD-37 | Should the gateway enforce a **cost** budget, not just a request rate? | Phase 6+ | A deployment where one caller's prompt sizes actually differ enough to matter. `usage` is already recorded per request, so the data exists; what is missing is a reason to spend the complexity (R-64) |
 
 ---
@@ -1158,6 +1163,219 @@ that pin that shape rather than any code to enforce it.
 
 **What remains open:** cost budgets (OD-37), and the per-process nature of the
 rate limit (R-63).
+
+---
+
+## OD-43 — How should retention scale past `DELETE`, and who should hold the privilege?
+
+**Question.** [ADR-030](adr/ADR-030-audit-retention.md) deletes by age, in batches,
+from inside the application. Two things about that are provisional.
+
+**1. `DELETE` is O(rows); `DROP PARTITION` is O(1).** Declarative range
+partitioning on `created_at` would turn a retention sweep into dropping a
+partition — no row-by-row work, no dead tuples, no vacuum pressure, and no
+5-second-timeout problem to batch around. It is unambiguously the better mechanism
+at volume.
+
+It was not built because it is a schema migration of the three busiest tables,
+changing every index and the foreign key, on a store currently holding **55 MB**.
+Doing it now would be paying a migration to solve a problem that does not exist
+yet.
+
+*Trigger, so this is not a vague "later":* when a sweep at the default hourly
+interval routinely reaches its per-table row ceiling
+(`firewall_audit_rows_deleted_total` pinned at the cap, `retention_budget_exhausted`
+logged on consecutive sweeps), or when `firewall_audit_oldest_row_age_seconds`
+sits above the configured period while sweeps report success. Either says
+`DELETE` is no longer keeping up, which is the only evidence that justifies the
+migration.
+
+**2. The application now holds `DELETE`.** ADR-012's least-privilege model gave the
+app `SELECT/INSERT/UPDATE` and no `DROP`, so an application-level SQL flaw could
+not destroy the audit trail. An in-process sweeper needs `DELETE` (R-82). An
+external job — a small container on a timer, holding its own credentials, with the
+application role reverted to no `DELETE` — would restore that separation.
+
+It was rejected *for now* because it moves the retention policy out of the
+application that owns the configuration and into a second place where it can drift
+from `FIREWALL_RETENTION_*`, and because the grant split it protects has never
+actually been implemented in a manifest: the application connects as the table
+owner today. The separation is worth building when the grants are, and the two
+should be done together rather than one pretending to enforce the other.
+
+**Also unresolved, and deliberately not treated as urgent:** whether anything
+should be archived before it is deleted. Nothing in this project has yet needed to
+read a 200-day-old trace, and an archive inherits every property that made the
+audit store a liability while losing the access control the database provides. It
+becomes a real question the moment someone has a reason to read one — not before.
+
+---
+
+## OD-42 — Should the audit write move off the request path? — **RESOLVED 2026-08-19**
+
+**Question.** Phase 15 measured the synchronous audit write at 10.5 ms p50
+against 1.7 ms for everything else the gateway does. Should it become
+asynchronous?
+
+**What the framing got wrong.** This was recorded as an open question. It was
+already conditionally decided: [ADR-012](adr/ADR-012-persistence-and-retention.md)
+specified a bounded queue with drop-on-full in Phase 0, named the metric, and set
+the trigger — *"Phase 4 measurements show synchronous writes are a material share
+of gateway overhead"*. Phase 15 fired that trigger on the ADR's own terms. The
+open part was never *whether*; it was what the queue should do when it cannot
+keep up, which ADR-012 could not settle without a running system to measure.
+
+**Answer: [ADR-029](adr/ADR-029-audit-write-architecture.md)** — the registered
+design, unchanged.
+
+**The finding that decided the open part.** Phase 15's closing note proposed
+blocking on a full queue, reasoning that saturation would then "degrade to
+today's behaviour rather than to silent data loss". The experiment refuted it.
+Synchronous writes against a stalled database *fail*, get logged, and the request
+proceeds; a blocking queue has nothing to fail against and waits for space a
+stalled writer never frees. All 120 requests became read timeouts. Dropping, in
+the same scenario, served all 120 and counted 109 lost records.
+
+Drop therefore **dominates** sync during an outage: the same records are lost
+either way, but requests keep being served at normal latency and the loss becomes
+a number to alert on instead of a pattern in a log. The blocking mode was deleted
+rather than left selectable — a configuration measured to turn a degraded
+dependency into an outage is not an option to ship with a warning.
+
+**The cost, which ADR-012 did not know.** A queued writer loses whatever is
+queued if the process is killed without draining: 49/300 records after a
+`SIGKILL`, against 300/300 synchronously. A graceful stop loses nothing. This is
+why the code default stays `sync` and the queue is adopted explicitly in
+`compose.prod.yaml` rather than becoming everyone's behaviour on upgrade
+(R-80).
+
+**What remains open.** Whether to close the hard-kill window properly with a
+write-ahead log (ADR-029 alternative E), and whether batching is worth a second
+tuning dimension. Neither has a deployment asking for it.
+
+---
+
+## OD-41 — Does this project need an orchestrator at all?
+
+**Question.** ADR-013 said "Compose first, Kubernetes conditionally". Phase 14
+chose Compose for the reference production deployment. When does that stop being
+the right answer?
+
+**Why Compose is enough today.** One stateless service, one database, one edge.
+`internal: true` networks enforce the isolation the threat model requires,
+`secrets:` mounts credentials as files, and the topology is asserted by tests
+that run in seconds. Everything docs/17 obliges a deployment to do is now an
+artefact rather than a sentence.
+
+**What Compose cannot do, stated rather than glossed.** Rolling updates — plain
+Compose restarts a container, it cannot drain one (R-74). NetworkPolicy as a
+cluster-enforced object rather than a Docker network property.
+PodDisruptionBudget. Readiness-gated progressive rollout, which is what would
+make ADR-027's contract actually *gate* a deploy rather than gate a container.
+
+**Why manifests were not written speculatively.** Two reasons, and the second is
+decisive. Sizing would be invented — Phase 4 never ran, so any
+`resources.requests`, replica count or HPA target would be a number with no
+measurement behind it, which docs/22 exists to prevent. And **no Kubernetes
+tooling exists on the reference machine**: no `kubectl`, `kind`, `minikube` or
+`k3d`, so the manifests could not be validated even client-side. Unvalidatable
+YAML in a repository whose discipline is "do not claim what you cannot
+demonstrate" would be documentation wearing an infrastructure costume.
+
+**What would settle it.** A deployment that needs more than one replica — for
+availability or for throughput the single-node reference cannot supply — plus a
+cluster to validate against. At that point the sizing question is answerable too,
+because there is traffic to measure.
+
+---
+
+## OD-40 — Should the schema check accept a compatibility range?
+
+**Question.** `/ready` compares the applied Alembic revision against the head the
+code ships with, and reports a mismatch. With `require_audit=true` that mismatch
+is fatal. Should it instead accept a *range* of revisions the code can work with?
+
+**Why exact equality is right today.** [docs/17](17-deployment-architecture.md)
+prescribes migrations as a separate step run *before* the rollout, and this
+project has never split a migration into expand and contract phases. Under that
+process the applied revision always equals the code's head by the time any
+instance starts, so exact equality is both correct and the strictest useful
+check — it catches a forgotten migration step immediately.
+
+**Why it will eventually be wrong.** Expand/contract exists precisely so a
+release can span two revisions: expand, deploy code that tolerates both,
+contract. On that path a correctly deployed instance legitimately runs against
+the *previous* revision for a while, and an exact check would refuse readiness
+for the whole window — taking new instances out of rotation for doing exactly
+what the deployment guide says.
+
+**What is bounded today.** The check is advisory whenever `require_audit=false`,
+which is the default, so the failure mode is limited to deployments that have
+made audit persistence mandatory *and* adopted expand/contract.
+
+**What would settle it.** The first migration this project splits. The likely
+shape is a declared minimum compatible revision alongside the head — a second
+constant, which is a real maintenance cost and the reason not to add it before
+there is a migration that needs it.
+
+---
+
+## OD-39 — Should the edge → firewall hop use mTLS?
+
+**Question.** TLS terminates at the edge. Between the edge and the gateway the
+traffic is plaintext, and it carries everything the client sent: the caller's
+bearer credential, the operator's identity header, the prompt itself.
+
+**Why plaintext is defensible today.** That hop runs on a network carrying
+exactly two participants — the edge and the gateway — and the edge was placed on
+it *exclusively* in Phase 12 precisely so nothing else shares it. Anything that
+can read that hop can already read the gateway's memory or its environment,
+where the upstream key lives. mTLS would not change what such an attacker can do.
+
+**Why it is genuinely open.** That argument depends entirely on the network
+being private, and "private" is a property of a deployment, not of this
+repository. A shared cluster network, a service mesh carrying unrelated
+workloads, or a compliance regime that requires encryption in transit
+*everywhere* all break it — and in a mesh the answer is usually free, because
+the mesh already issues and rotates the certificates.
+
+**Why it was not added anyway.** §23 of the Phase 12 brief is explicit that mTLS
+must not be automatic, and the reason is sound: adding it means a certificate
+lifecycle for internal components, with its own rotation, expiry and failure
+modes, bolted onto a hop whose current threat model does not need it. That is a
+real operational cost paid for a hypothetical.
+
+**What would settle it.** A deployment on a shared network, or a mesh that
+already provides mTLS transparently — in which case the work is configuration
+rather than code, and the honest answer may be "turn it on at the mesh, change
+nothing here".
+
+---
+
+## OD-38 — Should rate-limit enforcement become distributed?
+
+**Question.** The per-caller limiter and the in-flight ceiling are per process;
+the edge limit is per edge instance. With N replicas behind M edges the effective
+ceiling is a multiple of what is configured. Should enforcement move to a shared
+store?
+
+**Why it is open rather than obviously yes.** Redis would make the arithmetic
+exact and would add a component whose unavailability has to mean something. Fail
+open and the limit silently disappears under exactly the load that motivated it;
+fail closed and a Redis blip becomes a gateway outage. Neither is clearly better
+than an approximate limit that never fails.
+
+**What is true today, stated so it cannot be inherited by accident.** The
+reference edge is a single instance, so its `limit_req` *is* global for the
+topology it describes. The application-side limits are the safety net behind it
+and are per process by design (R-63). A deployment that runs several edges gets
+several buckets.
+
+**What would settle it.** A deployment that runs multiple ingress instances *and*
+needs an exact global ceiling — most do not; they need "not unbounded", which the
+current design provides. Failing that, evidence that per-process drift caused a
+real incident. Not "the note in the risk register is annoying": §21 of the Phase
+11 brief is explicit that Redis must not be introduced to delete a caveat.
 
 ---
 

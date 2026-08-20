@@ -1,0 +1,323 @@
+# Reference PRODUCTION deployment (ADR-028).
+#
+# A standalone topology, not an overlay of the development stack — because the
+# thing that makes it production is mostly what it *removes*, and an overlay can
+# only add. `compose.yaml` publishes the gateway on :8000 and PostgreSQL on
+# :5434; no overlay can take those away, which is exactly how five phases of
+# documented obligations ended up contradicted by every artefact in the repo.
+#
+#   docker compose -f compose.prod.yaml --env-file prod.env up -d
+#
+# ## What this file enforces that prose could not
+#
+#   * ONLY the edge publishes a port. The gateway and the database are
+#     unreachable from the host and from anywhere off their networks.
+#   * PostgreSQL sits on an `internal: true` network — no route to or from the
+#     internet exists for it, enforced by the network driver rather than by a
+#     firewall rule someone has to remember.
+#   * Secrets arrive as mounted FILES, not environment variables: an environment
+#     variable is readable by `docker inspect`, by anything that can read
+#     /proc/<pid>/environ, and by every crash reporter that dumps the environment.
+#   * Every service is non-root where its image permits, read-only rooted,
+#     capability-dropped and resource-limited.
+#   * The gateway's probe is `/ready`, which since ADR-027 asserts the security
+#     boundary and the audit schema — so a container that lost its configuration
+#     never becomes healthy.
+#
+# ## What it deliberately does NOT contain
+#
+#   * **No mock upstream.** That is a development fixture (ADR-009).
+#     `FIREWALL_UPSTREAM_BASE_URL` points at a real provider.
+#     `compose.prod-selftest.yaml` adds the mock for topology verification only.
+#   * **No rolling-update semantics.** Plain Compose restarts a container; it
+#     cannot drain one. That needs an orchestrator, and ADR-028 records why one
+#     is not shipped here rather than shipping manifests nobody can validate.
+#
+# ## Required in prod.env (see prod.env.example)
+#
+#   EDGE_HTTPS_PORT, EDGE_HTTP_PORT, FIREWALL_UPSTREAM_BASE_URL,
+#   FIREWALL_TRUSTED_PROXIES, FIREWALL_CALLER_API_KEYS, POSTGRES_PASSWORD
+#
+# The process refuses to start without the security-relevant ones. That is the
+# intended failure: a gateway that starts without its boundary is worse than one
+# that does not start.
+
+name: llm-firewall-prod
+
+networks:
+  # Public entry. The edge is the only member with a published port.
+  edge:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.10.0/24
+
+  # Gateway <-> PostgreSQL. `internal` means the Docker network has no gateway
+  # to the outside: the database cannot reach the internet and the internet
+  # cannot reach it, without depending on a host firewall being right.
+  data:
+    driver: bridge
+    internal: true
+
+  # Gateway -> upstream provider. Separate from `data` so the database is not
+  # sitting on a network that has egress (T-14 in the reverse direction).
+  egress:
+    driver: bridge
+
+secrets:
+  # File names match the PREFIXED setting, which is what pydantic-settings reads
+  # from `secrets_dir`. `/run/secrets/FIREWALL_UPSTREAM_API_KEY` becomes
+  # `settings.upstream_api_key` with no glue code.
+  FIREWALL_UPSTREAM_API_KEY:
+    file: ./deploy/secrets/upstream_api_key
+  FIREWALL_DATABASE_URL:
+    file: ./deploy/secrets/database_url
+  FIREWALL_CALLER_API_KEYS:
+    file: ./deploy/secrets/caller_api_keys
+  postgres_password:
+    file: ./deploy/secrets/postgres_password
+
+services:
+  # --------------------------------------------------------------------------
+  # The only service with a published port.
+  # --------------------------------------------------------------------------
+  edge:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.edge
+    image: llm-firewall-edge:${IMAGE_TAG:-dev}
+    ports:
+      # 443 and 80 in production. Overridable because binding them needs root on
+      # the host, and the topology tests run unprivileged.
+      - "${EDGE_HTTPS_PORT:-443}:8443"
+      - "${EDGE_HTTP_PORT:-80}:8080"
+    environment:
+      EDGE_TLS_MODE: "on"
+      EDGE_TLS_CERT: /etc/nginx/tls/fullchain.pem
+      EDGE_TLS_KEY: /etc/nginx/tls/privkey.pem
+      EDGE_TLS_PUBLIC_PORT: "${EDGE_HTTPS_PORT:-443}"
+      # Sized from the deployment's own traffic. The defaults here are the
+      # development ones and are NOT a recommendation (R-67).
+      EDGE_RATE_PER_SECOND: "${EDGE_RATE_PER_SECOND:-5}"
+      EDGE_BURST: "${EDGE_BURST:-10}"
+      EDGE_CONN_PER_IP: "${EDGE_CONN_PER_IP:-20}"
+      EDGE_MAX_BODY: "${EDGE_MAX_BODY:-256k}"
+    volumes:
+      # Certificate material is a RUNTIME MOUNT, read-only, never in an image
+      # layer and never in git (ADR-026).
+      - ./deploy/certs:/etc/nginx/tls:ro
+    networks:
+      edge:
+        ipv4_address: 172.30.10.10
+    depends_on:
+      firewall-api:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+      - /var/cache/nginx:size=32m
+      - /var/run:size=1m
+      - /etc/nginx/conf.d:size=1m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      # The minimum nginx needs. DAC_OVERRIDE reads the mode-600 private key;
+      # the rest let the master drop each worker to the `nginx` user. Binding
+      # 8443/8080 needs no NET_BIND_SERVICE because they are unprivileged.
+      - DAC_OVERRIDE
+      - SETUID
+      - SETGID
+      - CHOWN
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: "1.0"
+    healthcheck:
+      # The plain listener, deliberately: a health check that follows the
+      # redirect would be validating a certificate, and `--no-check-certificate`
+      # in a health check is a habit that outlives development.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 15s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+    logging: &logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # --------------------------------------------------------------------------
+  # The gateway. NO published ports — reachable only from the edge network.
+  # --------------------------------------------------------------------------
+  firewall-api:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile
+    image: llm-firewall:${IMAGE_TAG:-dev}
+    environment:
+      FIREWALL_ENVIRONMENT: production
+      FIREWALL_LOG_FORMAT: json
+      FIREWALL_CONTENT_LOGGING: none
+      FIREWALL_POLICY_FILE: /app/config/policies/default.yaml
+      FIREWALL_PERSIST_EVENTS: "true"
+      FIREWALL_UPSTREAM_BASE_URL: ${FIREWALL_UPSTREAM_BASE_URL:?a real provider endpoint is required}
+      # The edge's address, and nothing wider. Everything that depends on the
+      # peer address — operator identity, the throttling key, the HTTPS
+      # assertion — is only as good as this being narrow.
+      FIREWALL_TRUSTED_PROXIES: ${FIREWALL_TRUSTED_PROXIES:-172.30.10.10/32}
+      FIREWALL_HTTPS_ENFORCED: "true"
+      # Sized from measured traffic; the defaults are deliberately conservative
+      # rather than recommended.
+      FIREWALL_MAX_CONCURRENT_REQUESTS: ${FIREWALL_MAX_CONCURRENT_REQUESTS:-64}
+      FIREWALL_CALLER_RATE_LIMIT_PER_MINUTE: ${FIREWALL_CALLER_RATE_LIMIT_PER_MINUTE:-0}
+      FIREWALL_REQUIRE_AUDIT: ${FIREWALL_REQUIRE_AUDIT:-false}
+      # The audit write moves off the request path (ADR-029). It was measured at
+      # 10.5 ms p50 — 86% of what a caller waits for on a small request — and
+      # ADR-012 registered this queue in Phase 0 with exactly this measurement as
+      # its trigger.
+      #
+      # The cost, stated because it is real: a queued writer loses whatever is
+      # queued if the process is killed without draining. Measured at ~250
+      # records after a burst on the reference machine. A graceful stop loses
+      # nothing, and `FIREWALL_REQUIRE_AUDIT=true` forces synchronous writes —
+      # the two settings together are refused at startup, because a queue is
+      # precisely the removal of the promise `require_audit` makes.
+      FIREWALL_AUDIT_WRITE_MODE: ${FIREWALL_AUDIT_WRITE_MODE:-queue_drop}
+      FIREWALL_AUDIT_QUEUE_SIZE: ${FIREWALL_AUDIT_QUEUE_SIZE:-1000}
+      # Retention, on (ADR-030). The audit store is the one component where doing
+      # nothing gets worse with time: it holds a caller identity per row, an
+      # operator can read it, and the queue above made writes cheaper — so there
+      # are more of them. 30 days of traces and 180 of security events are
+      # ADR-012's periods, unchanged since Phase 0 and enforced here for the
+      # first time.
+      #
+      # The default in code is OFF, and that is deliberate rather than timid:
+      # deletion is irreversible, and an upgrade must not start removing an
+      # operator's audit trail because a default moved. A production deployment
+      # opts in, here, visibly.
+      FIREWALL_RETENTION_ENABLED: ${FIREWALL_RETENTION_ENABLED:-true}
+      FIREWALL_RETENTION_TRACE_DAYS: ${FIREWALL_RETENTION_TRACE_DAYS:-30}
+      FIREWALL_RETENTION_EVENT_DAYS: ${FIREWALL_RETENTION_EVENT_DAYS:-180}
+      FIREWALL_RETENTION_INTERVAL_S: ${FIREWALL_RETENTION_INTERVAL_S:-3600}
+    secrets:
+      - FIREWALL_UPSTREAM_API_KEY
+      - FIREWALL_DATABASE_URL
+      - FIREWALL_CALLER_API_KEYS
+    networks:
+      edge: {}
+      data: {}
+      egress: {}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "2.0"
+    healthcheck:
+      # `/ready`, not `/health`. Since ADR-027 readiness asserts the security
+      # boundary and the audit schema, so a container that lost its
+      # configuration never reports healthy and `depends_on` never lets the edge
+      # start in front of it.
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/ready"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    logging: *logging
+
+  # --------------------------------------------------------------------------
+  # Audit store. Internal network only, no published port, no egress.
+  # --------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-firewall}
+      POSTGRES_DB: ${POSTGRES_DB:-firewall}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      data: {}
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      # postgres drops from root to the `postgres` user at start-up, and needs
+      # to own its data directory.
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETUID
+      - SETGID
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: "2.0"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-firewall} -d ${POSTGRES_DB:-firewall}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    logging: *logging
+
+  # --------------------------------------------------------------------------
+  # Schema migration. A SEPARATE step, never on application start-up: N replicas
+  # starting at once would race, and a failed migration would become a crash
+  # loop instead of a clear failure (docs/17).
+  #
+  #   docker compose -f compose.prod.yaml --profile migrate run --rm migrate
+  # --------------------------------------------------------------------------
+  migrate:
+    profiles: ["migrate"]
+    image: llm-firewall:${IMAGE_TAG:-dev}
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      FIREWALL_ENVIRONMENT: production
+      FIREWALL_LOG_FORMAT: json
+      # No DATABASE_URL here: `migrations/env.py` resolves it through
+      # `get_settings()`, which reads the mounted secret file directly. An
+      # explicit env var would duplicate it in a place `docker inspect` can see.
+      #
+      # The migration role should be a different, schema-owning role from the one
+      # the application runs as (docs/17 obligation 13). That is a property of
+      # the URL in the secret, not of this file.
+    secrets:
+      - FIREWALL_DATABASE_URL
+    networks:
+      data: {}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *logging
+
+volumes:
+  postgres-data:

@@ -1,0 +1,113 @@
+# Reference gateway edge (ADR-025).
+#
+#   docker compose -f compose.yaml -f compose.edge.yaml up -d --build
+#   curl localhost:8089/v1/chat/completions ...
+#
+# What this changes:
+#
+#   * an nginx edge appears on host :8089 and becomes the way in to /v1
+#     (8080 is occupied on the reference machine, like 5432 and 3000 before it —
+#      docs/17-deployment-architecture.md keeps the host-port table)
+#   * the application starts enforcing its in-process safety net — a global
+#     in-flight ceiling and authentication-failure throttling
+#   * :8000 stays published so the existing tests and the console keep working
+#     locally; a production deployment does NOT publish it (docs/17 obligation 8)
+#
+# The edge authenticates nobody. Caller credentials are still verified in the
+# application (ADR-024); this layer only bounds volume.
+
+name: llm-firewall
+
+networks:
+  edge:
+    ipam:
+      config:
+        - subnet: 172.29.72.0/24
+
+services:
+  edge:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.edge
+    image: llm-firewall-edge:dev
+    ports:
+      - "8089:8080"
+    environment:
+      # Development defaults, low enough that the limits are observable by hand.
+      # ADR-025 gives an example production starting point; neither is measured.
+      EDGE_RATE_PER_SECOND: "5"
+      EDGE_BURST: "10"
+      EDGE_CONN_PER_IP: "20"
+      EDGE_MAX_BODY: 256k
+    networks:
+      # The edge network ONLY. It joined `default` in Phase 11 and that was a
+      # latent bug: a container with two interfaces egresses from whichever the
+      # route table picks, so the gateway saw the edge's *default* address and no
+      # /32 could name it. Everything that depended on the peer address —
+      # X-Real-IP trust, and from ADR-026 the X-Forwarded-Proto assertion —
+      # silently stopped applying.
+      #
+      # It is also the tighter posture: the edge has no business reaching
+      # postgres or the mock upstream, and now cannot.
+      edge:
+        ipv4_address: 172.29.72.10
+    depends_on:
+      firewall-api:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m
+      - /var/cache/nginx:size=16m
+      - /var/run:size=1m
+      # The rendered configuration lands here, which is why the root filesystem
+      # can stay read-only.
+      - /etc/nginx/conf.d:size=1m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      # The minimum nginx actually needs, named rather than left implicit (§22).
+      # DAC_OVERRIDE is here for TLS mode: the master reads a mode-600 private key
+      # owned by another uid, and root without this capability cannot bypass file
+      # permissions — dropping it and making the key world-readable instead would
+      # be trading a capability for a much worse finding.
+      - DAC_OVERRIDE
+      # The master starts as root and drops each worker to the `nginx` user.
+      - SETUID
+      - SETGID
+      - CHOWN
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  firewall-api:
+    networks:
+      edge: {}
+      default: {}
+    environment:
+      # The in-process safety net. Small on purpose: this is what runs when the
+      # edge is missing or misconfigured, not the primary defence.
+      FIREWALL_MAX_CONCURRENT_REQUESTS: "64"
+      # The authentication-failure throttle is deliberately LEFT OFF here.
+      #
+      # Not an oversight — it was enabled at 20/min and the edge integration
+      # suite tripped it: the anonymous-flood tests produce enough 401s from one
+      # address that a legitimate authenticated request from the same address is
+      # then refused with 429. That is R-65 reproducing itself, and it is exactly
+      # why the throttle ships off by default. This overlay exists to demonstrate
+      # LAYER 1; the throttle is layer 2 and is covered exhaustively, on a fake
+      # clock, in tests/security/test_edge_abuse_protection.py.
+      #
+      # To try it here:  FIREWALL_AUTH_FAILURES_PER_MINUTE=20
+      # FIREWALL_AUTH_FAILURES_PER_MINUTE: "0"
+      # So the application reads X-Real-IP from the edge — and from nothing else.
+      FIREWALL_TRUSTED_PROXIES: 172.29.72.10/32

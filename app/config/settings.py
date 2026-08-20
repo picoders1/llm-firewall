@@ -31,6 +31,27 @@ from pydantic_settings import (
 
 DEFAULT_ENVIRONMENTS_DIR = Path("config/environments")
 
+# Where a container runtime mounts secrets. Docker Compose `secrets:` and
+# Kubernetes secret volumes both land here by convention, and pydantic-settings
+# reads a file named for the prefixed setting — `/run/secrets/FIREWALL_UPSTREAM_API_KEY`.
+#
+# A FILE rather than an environment variable, because an environment variable is
+# readable by anything that can run `docker inspect`, anything that can read
+# `/proc/<pid>/environ`, and every crash reporter that dumps the environment. A
+# mounted file is readable by the process and nothing else (ADR-028).
+#
+# Resolved at import and only when the directory exists: pydantic-settings warns
+# on a missing `secrets_dir`, and every developer machine and CI runner would
+# otherwise carry that warning for a path only containers have.
+# The floor for every audit-retention period. Lives here rather than beside the
+# sweeper because `app.database` imports this module and not the other way round.
+# Zero would mean "delete everything on the next sweep", and a mistyped
+# `FIREWALL_RETENTION_*` should not be recoverable only from a backup (ADR-030).
+MINIMUM_RETENTION_DAYS = 1
+
+DOCKER_SECRETS_DIR = Path("/run/secrets")
+_SECRETS_DIR = str(DOCKER_SECRETS_DIR) if DOCKER_SECRETS_DIR.is_dir() else None
+
 
 class Environment(StrEnum):
     DEVELOPMENT = "development"
@@ -54,6 +75,26 @@ class ContentLogging(StrEnum):
 class LogFormat(StrEnum):
     JSON = "json"
     CONSOLE = "console"
+
+
+class AuditWriteMode(StrEnum):
+    """How an audit record reaches PostgreSQL.
+
+    ``SYNC`` is Phase 0's behaviour and the default: the record is written before
+    the response is returned, so a served request always has a row. ADR-012
+    registered a bounded queue as the Phase 5 successor and named the measurement
+    that would justify it; Phase 15 supplied that measurement (10.5 ms p50).
+
+    A third mode — block on a full queue, so saturation degrades to synchronous
+    behaviour — was implemented, measured and **removed**. Against a stalled
+    database it did not degrade to synchronous behaviour; it hung the request
+    path indefinitely and turned a database stall into a total gateway outage,
+    which is strictly worse than either surviving option
+    (docs/adr/ADR-029-audit-write-architecture.md).
+    """
+
+    SYNC = "sync"
+    QUEUE_DROP = "queue_drop"
 
 
 class CallerAuthMode(StrEnum):
@@ -239,6 +280,10 @@ class Settings(BaseSettings):
         env_prefix="FIREWALL_",
         env_file=".env",
         env_file_encoding="utf-8",
+        # Environment variables still win, per the precedence chain ADR-011
+        # documents. Files are an alternative source for the four SecretStr
+        # settings, not a new layer above them.
+        secrets_dir=_SECRETS_DIR,
         extra="ignore",
         validate_default=True,
     )
@@ -258,6 +303,10 @@ class Settings(BaseSettings):
     upstream_connect_timeout_s: float = Field(default=5.0, gt=0)
     upstream_read_timeout_s: float = Field(default=60.0, gt=0)
     upstream_max_connections: int = Field(default=100, gt=0)
+    # Idle connections kept for reuse. Bounded separately from the total because
+    # an unbounded keepalive pool holds file descriptors against a provider long
+    # after a burst has passed (ADR-025 §13).
+    upstream_max_keepalive_connections: int = Field(default=20, gt=0)
 
     # --- Request limits ----------------------------------------------------
     max_request_bytes: int = Field(default=256 * 1024, gt=0)
@@ -360,6 +409,79 @@ class Settings(BaseSettings):
     caller_rate_limit_per_minute: int = Field(default=0, ge=0)
     caller_max_concurrent_requests: int = Field(default=0, ge=0)
 
+    # --- Admission control (ADR-025) ---------------------------------------
+    # The in-process safety net BEHIND the edge, not instead of it. Volumetric
+    # abuse is the edge's job; these bound what one process will accept once a
+    # request has already arrived.
+
+    # Requests in flight at once, across every route. 0 disables. Guards the
+    # process itself and, behind it, the detector thread pool and the upstream
+    # connection pool. Over this, the answer is 503 + Retry-After: the server is
+    # at capacity, which is a different fact from "you exceeded your quota" (429).
+    max_concurrent_requests: int = Field(default=0, ge=0)
+
+    # Failed caller authentications per minute per client address before that
+    # client is refused *before* the credential comparison. 0 disables. The key
+    # is the socket peer, or the trusted proxy's `client_ip_header` — never a
+    # value the client chose, or it could evade the throttle by changing it.
+    auth_failures_per_minute: int = Field(default=0, ge=0)
+
+    # Read only when the peer is inside `trusted_proxies`. Deliberately a single
+    # address header, not `X-Forwarded-For`: a forwarded-for chain is partly
+    # client-supplied and picking "the right entry" is a class of bug avoided by
+    # not having the feature.
+    client_ip_header: str = "X-Real-IP"
+
+    # --- Audit write path (ADR-012, ADR-029) --------------------------------
+    # `sync` is Phase 0's behaviour: the row is written before the response is
+    # returned, so a served request always has a record. The queued modes move
+    # the write off the request path and accept a window in which a request has
+    # been answered and its row has not been written.
+    audit_write_mode: AuditWriteMode = AuditWriteMode.SYNC
+
+    # Records held in memory awaiting a write. Bounded, always: an unbounded
+    # queue in front of a failing database converts a database outage into an
+    # out-of-memory kill (ADR-012). Dropping is visible in a metric; an OOM is
+    # visible as an outage.
+    audit_queue_size: int = Field(default=1000, gt=0)
+
+    # How long shutdown waits for the queue to drain before abandoning what is
+    # left. Bounded so a stuck database cannot hold a rolling deploy open.
+    audit_drain_timeout_s: float = Field(default=5.0, gt=0)
+
+    # --- Audit retention (ADR-012, ADR-030) --------------------------------
+    # Off by default, and enabled explicitly in `compose.prod.yaml`. Deletion is
+    # irreversible, so an upgrade must not start removing an operator's audit
+    # trail because a default changed underneath them — the same reasoning that
+    # keeps `audit_write_mode` at `sync` (ADR-029). Startup warns when it is off,
+    # because a store that only grows is a liability that gets worse with time.
+    retention_enabled: bool = False
+
+    # `request_traces` (and, by cascade, `detector_results`). 30 days is the
+    # operational tuning window from ADR-012, and it is also the console's
+    # maximum query window, so retention never removes a row the console could
+    # still have displayed.
+    retention_trace_days: int = Field(default=30, ge=MINIMUM_RETENTION_DAYS)
+
+    # `security_events`. Longer because an investigation usually starts well
+    # after the event; the denormalised auditor table is meant to outlive the
+    # operational one.
+    retention_event_days: int = Field(default=180, ge=MINIMUM_RETENTION_DAYS)
+
+    # A sweep at startup and then on this interval. Not a daily cron: there is no
+    # scheduler in this deployment (OD-41), and a once-a-day job inside a process
+    # that gets redeployed daily is a job that never runs.
+    retention_interval_s: float = Field(default=3600.0, gt=0)
+
+    # Rows removed per statement. Small on purpose: `Database` applies a 5-second
+    # command timeout, so one unbounded DELETE against a backlog would time out,
+    # roll back, and delete nothing — permanently.
+    retention_batch_size: int = Field(default=1000, gt=0)
+
+    # Ceiling per table per sweep, so a misconfiguration cannot empty the audit
+    # trail in one pass unobserved. Reaching it is logged, never silent.
+    retention_max_rows_per_sweep: int = Field(default=50_000, gt=0)
+
     # --- Observability -----------------------------------------------------
     metrics_enabled: bool = True
     tracing_enabled: bool = False
@@ -371,6 +493,26 @@ class Settings(BaseSettings):
     # --- Server ------------------------------------------------------------
     host: str = "0.0.0.0"  # noqa: S104 — binding in a container is intended
     port: int = Field(default=8000, gt=0, le=65535)
+
+    @field_validator("retention_event_days")
+    @classmethod
+    def _validate_retention_ordering(cls, value: int, info: Any) -> int:
+        """`security_events` must outlive `request_traces`.
+
+        Not a taste preference: the console's event-detail endpoint LEFT JOINs an
+        event to its trace precisely because events survive longer, and the
+        contract documents null operational fields on an old event as normal.
+        Inverting the order would make the longer-lived table the one that
+        disappears first, which nothing in the design expects.
+        """
+        traces = info.data.get("retention_trace_days")
+        if traces is not None and value < traces:
+            raise ValueError(
+                f"retention_event_days ({value}) must be >= retention_trace_days ({traces}): "
+                "security_events is the record an investigation reads months later and is "
+                "designed to outlive the request traces (ADR-012)"
+            )
+        return value
 
     @field_validator("log_level", mode="before")
     @classmethod
@@ -398,6 +540,7 @@ class Settings(BaseSettings):
         "auth_subject_header",
         "auth_roles_header",
         "caller_identity_header",
+        "client_ip_header",
     )
     @classmethod
     def _validate_header_name(cls, value: str) -> str:
@@ -549,6 +692,11 @@ class Settings(BaseSettings):
             "database_configured": self.database_url is not None,
             "persist_events": self.persist_events,
             "require_audit": self.require_audit,
+            "audit_write_mode": self.audit_write_mode.value,
+            "audit_queue_size": self.audit_queue_size,
+            "retention_enabled": self.retention_enabled,
+            "retention_trace_days": self.retention_trace_days,
+            "retention_event_days": self.retention_event_days,
             "metrics_enabled": self.metrics_enabled,
             "tracing_enabled": self.tracing_enabled,
             # The shared secret is reported as set/unset only. Everything else
@@ -568,6 +716,10 @@ class Settings(BaseSettings):
             "caller_proxy_shared_secret_set": self.caller_proxy_shared_secret is not None,
             "caller_rate_limit_per_minute": self.caller_rate_limit_per_minute,
             "caller_max_concurrent_requests": self.caller_max_concurrent_requests,
+            "max_concurrent_requests": self.max_concurrent_requests,
+            "auth_failures_per_minute": self.auth_failures_per_minute,
+            "upstream_max_connections": self.upstream_max_connections,
+            "upstream_max_keepalive_connections": self.upstream_max_keepalive_connections,
         }
 
 

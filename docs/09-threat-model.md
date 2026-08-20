@@ -46,7 +46,7 @@ enough that people actually read it.
    └─────────────────────────────────────────────────────────┘
 ```
 
-### 2a. Provenance and the B1/B2 boundary — designed, not implemented
+### 2a. Provenance and the B1/B2 boundary — implemented, and shipped off
 
 The diagram above already places retrieved documents and tool output in
 **UNTRUSTED**, and the client application in **SEMI-TRUSTED**. The gap this
@@ -79,7 +79,7 @@ the implementation.
 | B1 | User/document content → application | Outside our control; the reason B2 must assume hostile input |
 | B2 | Application → gateway | Size limits, schema validation, normalisation, detection, policy, audit |
 | B3 | Gateway → upstream | Egress to a configured base URL only; key never logged; timeouts; response body never reflected to the client |
-| B4 | Gateway → PostgreSQL | Least-privilege role, no `DROP`, no raw content columns |
+| B4 | Gateway → PostgreSQL | No raw content columns; parameterised statements only. **The least-privilege role split described in [ADR-012](adr/ADR-012-persistence-and-retention.md) was never implemented in any manifest** — the application connects as the table owner, and since Phase 16 it genuinely needs `DELETE` for retention (R-82, OD-43) |
 
 **The critical observation:** content arriving in the `tool` role has crossed B1 without
 ever being seen by a human, and the application relays it with the same syntactic status as
@@ -145,8 +145,13 @@ the control is designed but not yet built.
 | ID | Threat | Status | Control | Residual risk |
 |---|---|---|---|---|
 | T-16 | Oversized request → memory exhaustion | **Mitigated** | `max_request_bytes` enforced during body read; `max_inspect_chars` bounds detector work | |
-| T-17 | Slowloris / connection exhaustion | **Partial** | Server timeouts; connection limits belong to the reverse proxy | Ingress responsibility |
-| T-18 | Request flood / cost amplification | **Planned (P6)** | Rate-limit architecture designed, not implemented | Deploy behind a rate-limiting ingress until then — stated in README |
+| T-17 | Slowloris / connection exhaustion | **Mitigated at the edge (P11)** | `client_header_timeout` 10s, `client_body_timeout` 15s and `limit_conn` per address in the reference edge ([ADR-025](adr/ADR-025-edge-abuse-protection.md)). The application never sees the socket | Only where an ingress with these controls is actually deployed — the gateway cannot enforce it, and the reference config is one topology among several |
+| T-18 | Request flood / cost amplification | **Mitigated (P11)** | Two layers ([ADR-025](adr/ADR-025-edge-abuse-protection.md)): `limit_req`/`limit_conn` per address at the reference edge, refusing an anonymous flood before the application allocates anything; and a global in-flight ceiling in the process for when the edge is missing. Exercised against real nginx in CI | Enforcement is **per edge and per process**, not global (R-63). Every shipped limit is a development default, not a measured one |
+| T-30 | **Credential-guessing flood** — repeated bad keys to burn CPU on comparisons | **Mitigated (P11)** | Per-client authentication-failure throttle, checked *before* the credential comparison, so guessing costs a dictionary lookup rather than a SHA-256 and a scan of every digest | **Off by default**, and it punishes shared addresses: a legitimate caller behind the same NAT as an attacker is refused for the window (R-65). The edge limit is the primary defence |
+| T-32 | **Credentials read off the wire** — operator identity, caller bearer key, proxy shared secret in plaintext | **Mitigated (P12)** | TLS 1.2/1.3 terminates at the reference edge; the application refuses operator and gateway surfaces unless a trusted proxy asserts the client hop was HTTPS, and production refuses to start without it ([ADR-026](adr/ADR-026-secure-transport.md)) | The edge → firewall hop is plaintext by design on an isolated network (OD-39). `/metrics` is scraped over that same hop |
+| T-33 | **Forged transport claim** — a client sends `X-Forwarded-Proto: https` on a plaintext connection | **Mitigated (P12)** | The header is read only when the socket peer falls inside `FIREWALL_TRUSTED_PROXIES` — the same rule as T-25 and the throttling key, sharing the same function. `Forwarded` is not parsed at all | A trusted proxy that lies, or is itself reached over plaintext, defeats this. The trust range must name the ingress, not a subnet |
+| T-34 | **Silent downgrade to plaintext** — TLS misconfigured, edge serves HTTP anyway | **Mitigated (P12)** | The edge validates certificate and key at start-up — present, readable, parseable, matching, unexpired — and exits rather than starting. Asserted by starting real containers with broken material | A certificate that expires *while running* is not caught; nginx holds it until reload. Expiry monitoring belongs to the deployment |
+| T-31 | **The limiter's own state as a memory-exhaustion vector** | **Mitigated (P11)** | Every per-client map is capped at 16,384 entries and expiring, evicting expired entries before live ones. Asserted at 50,000 distinct addresses | Under a flood from more addresses than the cap an attacker can evict their own entry, so the throttle degrades to no-worse-than-absent — never to unbounded memory |
 | T-19 | Upstream API key theft | **Mitigated** | Env-only, `SecretStr`, never logged or persisted, not in YAML (structurally rejected), not in the image | Process memory access implies host compromise |
 | T-20 | Compromised or hostile upstream | **Out of scope** | Output inspection catches *some* hostile content | A compromised model provider is not a threat a proxy can solve |
 | T-21b | Audit-trail tampering | **Partial** | Append-only usage, least-privilege DB role without `DROP` | No cryptographic chaining; a DB-level compromise defeats it. *(Numbering note: `T-21` was assigned twice — to spoofed provenance metadata above and to this row. Both IDs are cited elsewhere, so renumbering either would break those citations; this row is disambiguated as `T-21b` and new threats start at T-24.)* |

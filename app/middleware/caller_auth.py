@@ -39,6 +39,7 @@ import structlog
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.api.errors import error_body
+from app.auth.admission import AuthFailureThrottle, client_identity
 from app.auth.caller import CallerAuthConfig, CallerDenyReason, CallerPrincipal
 from app.auth.identity import AccessClass, classify_path
 from app.auth.ratelimit import CallerLimiter, LimitRejection
@@ -48,13 +49,24 @@ logger = structlog.get_logger(__name__)
 
 UNAUTHORIZED_MESSAGE = "Incorrect API key provided."
 RATE_LIMITED_MESSAGE = "Rate limit exceeded for this caller."
+# The same text an over-quota caller gets, with a distinct `code` for an operator
+# reading a client-side log. Hiding the distinction was considered and rejected:
+# a client sending credentials it knows are wrong already knows why it is being
+# refused, so concealment buys nothing and costs debuggability.
+AUTH_THROTTLED_MESSAGE = RATE_LIMITED_MESSAGE
+AUTH_THROTTLE_RETRY_AFTER = 60
 
 
 class CallerAuthMiddleware:
     """Authenticates and throttles application traffic to `/v1/**`."""
 
     def __init__(
-        self, app: ASGIApp, *, config: CallerAuthConfig, limiter: CallerLimiter | None = None
+        self,
+        app: ASGIApp,
+        *,
+        config: CallerAuthConfig,
+        limiter: CallerLimiter | None = None,
+        throttle: AuthFailureThrottle | None = None,
     ) -> None:
         self.app = app
         self.config = config
@@ -62,6 +74,7 @@ class CallerAuthMiddleware:
             per_minute=config.rate_limit_per_minute,
             max_concurrent=config.max_concurrent_requests,
         )
+        self.throttle = throttle
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -86,11 +99,35 @@ class CallerAuthMiddleware:
             return
 
         headers = {name.lower(): value for name, value in scope.get("headers", ())}
+
+        # Checked BEFORE the credential comparison, which is the whole point: a
+        # guessing flood should cost a dictionary lookup, not a SHA-256 and a
+        # scan of every configured digest (ADR-025 §7).
+        #
+        # The cost of that ordering, stated where someone changing this code will
+        # see it: a client identity is an ADDRESS, and addresses are shared. A
+        # legitimate caller behind the same NAT or egress gateway as an attacker
+        # is refused for the rest of the window, and cannot clear its own count
+        # because it never reaches the comparison. That is why the throttle is
+        # off by default and why the edge — which can be generous because it is
+        # cheap — is the primary defence (R-65).
+        client = self._client(scope)
+        if self.throttle is not None and client is not None and self.throttle.is_throttled(client):
+            await self._refuse_auth_throttled(scope, send)
+            return
+
         principal, reason = self.config.authenticate(scope, headers)
 
         if principal is None:
+            if self.throttle is not None and client is not None:
+                self.throttle.record_failure(client)
             await self._refuse_unauthorized(scope, send, reason)
             return
+
+        if self.throttle is not None and client is not None:
+            # A caller that fumbled a rotation and then succeeded must not stay
+            # throttled on the strength of its earlier attempts.
+            self.throttle.record_success(client)
 
         rejection = await self.limiter.acquire(principal.caller_id)
         if rejection is not None:
@@ -107,6 +144,34 @@ class CallerAuthMiddleware:
             await self.limiter.release(principal.caller_id)
 
     # --- Refusals -----------------------------------------------------------
+
+    def _client(self, scope: Scope) -> str | None:
+        if self.throttle is None:
+            return None
+        config = self.throttle.config
+        if not config.auth_throttle_enabled:
+            return None
+        return client_identity(scope, config.trusted_proxies, config.client_ip_header)
+
+    async def _refuse_auth_throttled(self, scope: Scope, send: Send) -> None:
+        logger.warning(
+            "caller_auth_throttled",
+            path=scope.get("path"),
+            method=scope.get("method"),
+            # Never the client address: it is a metric-label and log-field
+            # cardinality hazard, and in a shared-egress deployment it is closer
+            # to personal data than to a useful operational signal (ADR-025 §17).
+        )
+        metrics = self._metrics(scope)
+        if metrics is not None:
+            metrics.record_auth_failure_throttled()
+        await self._send(
+            scope,
+            send,
+            429,
+            error_body(AUTH_THROTTLED_MESSAGE, "rate_limit_exceeded", code="auth_failures"),
+            extra_headers=[(b"retry-after", str(AUTH_THROTTLE_RETRY_AFTER).encode())],
+        )
 
     def _metrics(self, scope: Scope) -> Metrics | None:
         metrics = getattr(getattr(scope.get("app"), "state", None), "metrics", None)

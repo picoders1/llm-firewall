@@ -1,0 +1,55 @@
+# Topology verification for the production stack (ADR-028).
+#
+#   docker compose -f compose.prod.yaml -f compose.prod-selftest.yaml \
+#     --env-file prod.selftest.env up -d --build
+#
+# Exists so the production topology can be *run and probed* rather than reviewed
+# by eye. It changes exactly two things, and neither is a security property:
+#
+#   1. Publishes the edge on unprivileged ports, because binding 443 needs root
+#      on the host and the verification runs as an ordinary user.
+#   2. Adds the mock upstream on the `egress` network, because the production
+#      file deliberately has no upstream of its own.
+#
+# It does NOT relax network isolation, capabilities, read-only roots, secrets or
+# probes. If it did, verifying against it would prove nothing about the thing
+# being verified.
+
+name: llm-firewall-prod
+
+services:
+  mock-upstream:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile.mock
+    image: llm-firewall-mock-upstream:${IMAGE_TAG:-dev}
+    environment:
+      MOCK_LATENCY_MS: "0"
+    networks:
+      # `egress` only. It stands in for a provider on the internet, so it must
+      # not be reachable from `data` — a database with a route to the upstream
+      # network is the shape T-14 warns about.
+      egress: {}
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8081/health"]
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+      retries: 3
+
+  firewall-api:
+    depends_on:
+      mock-upstream:
+        condition: service_healthy

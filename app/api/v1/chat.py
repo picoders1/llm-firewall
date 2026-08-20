@@ -391,6 +391,20 @@ async def _persist(
     if metrics is not None:
         record_trace(metrics, trace, route=ROUTE_CHAT)
 
+    # The audit write happens BEFORE the log line, because the log line reports
+    # `audit_ms` and reporting a duration you have not measured yet is reporting
+    # zero. It did, for every request, until the Phase 15 benchmark noticed that
+    # a write costing ~10 ms of client-visible latency was being logged as 0.000.
+    #
+    # Ordering only — no behaviour changes. `total_ms` is still frozen by
+    # `timings.finish()` before this function runs, so `gateway_overhead_ms`
+    # still excludes the audit write; that exclusion is deliberate (the write is
+    # off the security decision path, ADR-012) but it means the metric
+    # understates what a caller waits for, which is now recorded rather than
+    # silently true (R-77).
+    with timings.measure("audit_ms"):
+        await state.audit.record(trace)
+
     logger.info(
         "request_decided",
         decision=trace.decision.value if trace.decision else "not_evaluated",
@@ -400,9 +414,6 @@ async def _persist(
         inspected_messages=trace.inspected_messages,
         **timings.as_dict(),
     )
-
-    with timings.measure("audit_ms"):
-        await state.audit.record(trace)
 
 
 @router.get("/models", summary="Proxied model list (Phase 1)")

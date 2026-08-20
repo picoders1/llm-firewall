@@ -1,0 +1,37 @@
+# Prometheus over the development stack, for validating the shipped alert rules
+# against a real gateway (ADR-031).
+#
+#   docker compose -f compose.yaml -f compose.observability.yaml up -d
+#   open http://localhost:9091/alerts
+#
+# Opt-in, like every other overlay in this repository. It is a validation tool and
+# a local convenience, NOT part of the production topology: `compose.prod.yaml` is
+# standalone and deliberately publishes nothing but the edge, and a monitoring stack
+# belongs to the platform rather than to the application it watches.
+#
+# Host 9091: 9090 is commonly taken by an existing Prometheus on a developer
+# machine, and this must not disturb one.
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deploy/alerts:/etc/prometheus/rules:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=24h
+      - --web.enable-lifecycle
+    depends_on:
+      firewall-api:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 512m

@@ -15,9 +15,11 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 
 import structlog
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -38,6 +40,17 @@ STATEMENT_TIMEOUT_S = 5.0
 
 class Base(DeclarativeBase):
     """Declarative base for audit and evaluation models."""
+
+
+@dataclass(frozen=True, slots=True)
+class DatabaseReadiness:
+    """What one readiness probe learned about the audit store."""
+
+    reachable: bool
+    # `None` means the connection worked but Alembic's bookkeeping table is not
+    # there — a database that has never been migrated. Distinguished from
+    # unreachable so an operator is not sent to debug the network.
+    revision: str | None
 
 
 class Database:
@@ -78,13 +91,35 @@ class Database:
     async def check(self) -> bool:
         """Readiness probe. Returns False rather than raising: readiness reports
         a per-check breakdown and must not itself fail with a 500."""
+        return (await self.readiness()).reachable
+
+    async def readiness(self) -> DatabaseReadiness:
+        """Reachability and applied schema revision, in one connection.
+
+        Both facts in one round trip because `/ready` is polled by an
+        orchestrator on a short interval, and two connections per probe is a
+        cost paid forever for information that arrives together anyway.
+
+        Deliberately cheap: `SELECT 1` and a single-row read of Alembic's own
+        bookkeeping table. Readiness must not become a load source (ADR-027).
+        """
         try:
             async with self._engine.connect() as connection:
                 await connection.execute(text("SELECT 1"))
+                try:
+                    result = await connection.execute(
+                        text("SELECT version_num FROM alembic_version")
+                    )
+                    revision = result.scalar_one_or_none()
+                except SQLAlchemyError:
+                    # Reachable but un-migrated: the table itself is absent. A
+                    # distinct state from "unreachable", and the one a fresh
+                    # database is in before the first `alembic upgrade`.
+                    revision = None
         except Exception as exc:
             logger.warning("database_check_failed", error_kind=type(exc).__name__)
-            return False
-        return True
+            return DatabaseReadiness(reachable=False, revision=None)
+        return DatabaseReadiness(reachable=True, revision=revision)
 
     async def aclose(self) -> None:
         await self._engine.dispose()

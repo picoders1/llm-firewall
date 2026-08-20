@@ -4,6 +4,18 @@
 !.env.example
 *.pem
 *.key
+*.crt
+*.p12
+*.pfx
+# TLS material is a RUNTIME MOUNT, never a repository file (ADR-026). The
+# directory itself is ignored, not just its contents, so `git add deploy/certs`
+# cannot succeed by accident.
+deploy/certs/
+# Production secret material is a RUNTIME MOUNT, never a repository file
+# (ADR-028). The directory is ignored, not just its contents, so
+# `git add deploy/secrets` cannot succeed by accident.
+deploy/secrets/
+prod.env
 
 # Python
 __pycache__/

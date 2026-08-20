@@ -66,6 +66,19 @@ which remains structurally impossible (see *Sensitivity*); it is thresholds and
 block rates by category, which together describe how to tune an evasion against
 this gateway without tripping it.
 
+### `GET /ready` — consumed by the System view
+
+Public and unauthenticated, so its payload is deliberately vaguer than this API's:
+it reports *that* a boundary is configured, never how. No CIDR, mode name, caller
+id, role or path appears in it — those live on `/api/v1/system/status`, which is
+operator-authenticated ([ADR-027](adr/ADR-027-readiness-contract.md)).
+
+Each check carries `category` (`configuration` | `security_boundary` |
+`detectors` | `database`) and `requirement` (`required` | `advisory`). **Only
+`required` failures change the status code.** The console renders an advisory
+failure as an amber *Advisory*, not a red *Fail* — a finding that is not taking
+the instance out of rotation must not look like one that is.
+
 ### `GET /api/v1/system/status` — caller-boundary fields
 
 `caller_auth_mode` (`disabled` | `api_key` | `proxy`) and `caller_auth_enforced`.

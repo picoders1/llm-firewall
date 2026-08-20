@@ -1,0 +1,38 @@
+# syntax=docker/dockerfile:1
+#
+# Reference gateway edge (ADR-025, TLS added in ADR-026). Not built by the
+# default stack; see compose.edge.yaml and compose.tls.yaml.
+#
+# This is an *example* production ingress. The project supports any ingress that
+# provides the same controls — an ALB, Envoy, an API gateway, a Kubernetes
+# Ingress. What is normative is the set of controls, not that nginx supplies them.
+FROM nginx:1.27-alpine
+
+# openssl is needed at START-UP, not at build time: the entrypoint matches the
+# private key against the certificate before nginx is asked to load either.
+RUN apk add --no-cache openssl
+
+COPY deploy/docker/edge/available/ /etc/nginx/available/
+COPY deploy/docker/edge/render-edge-config.sh /docker-entrypoint.d/05-render-edge-config.sh
+RUN chmod +x /docker-entrypoint.d/05-render-edge-config.sh
+
+# Development defaults, deliberately low enough that the limits are observable in
+# a manual test. An example production starting point is in ADR-025; neither is
+# derived from measured traffic.
+ENV EDGE_TLS_MODE=off \
+    EDGE_RATE_PER_SECOND=5 \
+    EDGE_BURST=10 \
+    EDGE_CONN_PER_IP=20 \
+    EDGE_MAX_BODY=256k \
+    EDGE_TLS_CERT=/etc/nginx/tls/fullchain.pem \
+    EDGE_TLS_KEY=/etc/nginx/tls/privkey.pem \
+    EDGE_TLS_PUBLIC_PORT=8443
+
+# Unprivileged ports on purpose: binding 80/443 would need NET_BIND_SERVICE,
+# and the container drops every capability instead. The host publishes them on
+# whatever ports the deployment wants (§22).
+EXPOSE 8080 8443
+
+# NO certificate or key is ever copied into this image. They are runtime mounts,
+# and .dockerignore excludes deploy/certs from the build context so a stray file
+# cannot become an image layer (ADR-026 §4).

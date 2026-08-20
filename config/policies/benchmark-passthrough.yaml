@@ -1,0 +1,179 @@
+# BENCHMARK-ONLY POLICY — NEVER DEPLOY THIS.
+#
+# Condition B of the registered benchmark design (docs/15) isolates the gateway's
+# proxy cost: HTTP parsing, validation, routing and connection reuse, with the
+# detection stage removed. C minus B is therefore the cost of detection, and B
+# minus A is the cost of being a proxy at all.
+#
+# **Every detector is disabled here.** A gateway running this policy inspects
+# nothing, blocks nothing and redacts nothing — it is a plain proxy that happens
+# to hold an upstream credential. It exists to be measured, not to run.
+#
+# It is generated from `default.yaml` by flipping `enabled:` and nothing else, so
+# the two cannot drift in shape, and `tests/security/test_benchmark_isolation.py`
+# asserts that production still loads `default.yaml` and that this file never
+# becomes the configured policy outside a benchmark container.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+
+# LLM Firewall — default security policy
+#
+# SECRETS ARE STRUCTURALLY FORBIDDEN IN THIS FILE. Any key matching *secret*,
+# *password*, *token*, *_key* or *credential* fails startup. Secrets are supplied
+# as FIREWALL_* environment variables only (docs/adr/ADR-011-configuration-model.md).
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# READ THIS BEFORE TRUSTING ANY VALUE HERE
+#
+# 1. The injection and jailbreak detectors are **baseline heuristics**. They
+#    recognise a small set of published attack phrasings and will miss anything
+#    reworded, translated, or produced after one round of iterating against them.
+#    They are not prompt-injection detection; they are the control condition the
+#    Phase 2 classifier will be measured against (docs/05-detector-architecture.md).
+#
+# 2. The PII detector covers **structured identifiers only** — no names, no
+#    addresses, no organisations. For many deployments that is the majority of
+#    their PII risk (docs/08-pii-security.md).
+#
+# 3. Every `threshold:` below is a **placeholder**, not a calibrated value. No
+#    evaluation has been run. Thresholds are selected in Phase 2 from a published
+#    precision/recall sweep, tuned on `dev` and reported on `test`
+#    (docs/13-evaluation-strategy.md, OD-3 in docs/21-open-decisions.md).
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: 1
+policy_name: benchmark-passthrough
+
+# Which message roles are inspected.
+#   user — direct injection and user-supplied PII.
+#   tool — THE indirect-injection surface. Retrieved documents and tool output
+#          are attacker-controlled in any RAG or agent system, and arrive with
+#          the same syntactic status as the user's own words.
+#   system/developer — trusted by configuration. Enable if you template user
+#          data into your system prompt.
+#   assistant — already inspected on the way out.
+inspect_roles:
+  - user
+  - tool
+
+# ── Inbound inspection ───────────────────────────────────────────────────────
+input:
+  prompt_injection:
+    detector: injection.heuristic   # → injection.transformer (Phase 2)
+    enabled: false
+    threshold: 0.85                 # PLACEHOLDER — uncalibrated
+    action: block
+    on_error: fail_closed           # a firewall that stops inspecting must fail loudly (ADR-007)
+    timeout_ms: 250
+    # Provenance-conditional tightening is available and DELIBERATELY UNUSED here
+    # (ADR-017). Uncommenting the block below would make detection stricter for
+    # content the gateway classified as untrusted — retrieved documents, tool
+    # output, web content:
+    #
+    #   by_trust:
+    #     untrusted:
+    #       threshold: 0.60         # lower = stricter. A HIGHER value is REJECTED
+    #       action: block           #   at startup: provenance may only tighten.
+    #
+    # It ships off because no threshold here is calibrated (OD-3) and because the
+    # false-positive cost of escalating on untrusted content has not been
+    # measured. Enabling it is a reviewable policy edit, not a default.
+
+  # Layer 2 — the fine-tuned classifier from ADR-014/ADR-015, integrated by
+  # ADR-021. SHIPS DISABLED, and enabling it is a deliberate operator action.
+  #
+  # Why disabled by default:
+  #   * the checkpoint is NOT in this repository and never will be — model
+  #     weights are not committed (docs/14-dataset-strategy.md). `model_path`
+  #     must point outside the application tree;
+  #   * the `ml` extra (transformers, torch) is not in the default install;
+  #   * every published latency figure for this model was measured on CUDA. A
+  #     CPU deployment is materially slower, so timeout_ms below is set for CPU,
+  #     not for the GPU numbers in the reports.
+  #
+  # Enabling it without the weights or the extra is a startup failure, not a
+  # per-request 503: a security control that cannot load should stop a
+  # deployment rather than quietly degrade one.
+  #
+  # action is `warn`, NOT `block`. ADR-015 met four of six blocking criteria and
+  # ADR-016 measured indirect-injection recall at 0.1423; blocking stays refused
+  # until shadow-mode false-positive data exists on real traffic (OD-18). Running
+  # this detector in warn mode is how that data gets collected.
+  prompt_injection_ml:
+    detector: injection.transformer
+    enabled: false
+    threshold: 0.9955               # Strategy A's locked operating point, frozen
+                                    #   in its selection lock BEFORE the hold-out
+                                    #   was scored. Not re-tuned here.
+    action: warn                    # never block — promotion needs its own ADR
+    on_error: fail_open             # layer 1 still inspects every request, so a
+                                    #   layer-2 outage degrades evidence, not
+                                    #   enforcement. Named in the startup warning.
+    timeout_ms: 2000                # CPU inference, not the CUDA figures
+    options:
+      model_path: artifacts/finetune/stratA__lr1e-05__ep2__seed13
+      device: cpu
+
+  jailbreak:
+    detector: jailbreak.heuristic   # → jailbreak.transformer (Phase 2)
+    enabled: false
+    threshold: 0.85                 # PLACEHOLDER — uncalibrated
+    action: block
+    on_error: fail_closed
+    timeout_ms: 250
+
+  pii:
+    detector: pii.regex             # → pii.presidio (Phase 2)
+    enabled: false
+    # Entities below this confidence are not reported at all. PHONE sits at 0.60
+    # and is the largest false-positive source, so raising this to 0.7 disables
+    # phone matching without touching the entity list.
+    threshold: 0.50                 # PLACEHOLDER — uncalibrated
+    action: redact                  # redact, not block: "summarise this customer
+                                    # email" is the application, not the attack
+    on_error: fail_closed
+    timeout_ms: 100
+    options:
+      entities: [EMAIL, PHONE, CREDIT_CARD, IPV4, IBAN]
+      # Enterprise identifiers are the PII an organisation actually cares about,
+      # and only the operator knows their format. Patterns are policy, so they
+      # are reviewable in a diff.
+      custom_patterns: []
+
+# ── Outbound inspection ──────────────────────────────────────────────────────
+# Note the asymmetry with `input`. Input inspection is prevention and blocking is
+# cheap. Output inspection is containment: the upstream call is already paid for
+# and the model has already produced the content, so redaction is usually right
+# where blocking would be right on input (docs/03-request-response-flow.md).
+output:
+  pii:
+    detector: pii.regex
+    enabled: false
+    threshold: 0.50                 # PLACEHOLDER — uncalibrated
+    action: redact
+    on_error: fail_closed
+    timeout_ms: 100
+    options:
+      entities: [EMAIL, PHONE, CREDIT_CARD]
+
+  output_policy:
+    detector: output.stub           # → Phase 3 (disclosure, tool-call and URL exfiltration)
+    enabled: false                  # nothing to enforce until Phase 3
+    threshold: 0.90                 # PLACEHOLDER — uncalibrated
+    action: block
+    on_error: fail_closed
+    timeout_ms: 250
+
+# ── Redaction ────────────────────────────────────────────────────────────────
+redaction:
+  # Labelled tokens, never fixed-width masking: the text stays readable, the
+  # sentence keeps its structure, and the caller can see what was removed.
+  template: "<{entity}_REDACTED>"
+
+# ── Limits ───────────────────────────────────────────────────────────────────
+# Bound the work an attacker can force. Truncation is recorded on the security
+# event, so a partially-inspected request is never mistaken for a clean one.
+limits:
+  max_inspect_chars: 100000
+  max_messages: 200
+  base64_segments: 8

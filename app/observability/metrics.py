@@ -27,8 +27,14 @@ from __future__ import annotations
 import threading
 from typing import Final
 
-from prometheus_client import CollectorRegistry, Counter, Histogram, generate_latest
-from prometheus_client.openmetrics.exposition import CONTENT_TYPE_LATEST
+from prometheus_client import (
+    CONTENT_TYPE_LATEST,
+    CollectorRegistry,
+    Counter,
+    Gauge,
+    Histogram,
+    generate_latest,
+)
 
 # docs/12: millisecond-resolution buckets, expressed in seconds because that is
 # the Prometheus convention and dashboards assume it.
@@ -170,6 +176,102 @@ class Metrics:
             ("caller", "limit"),
             registry=self.registry,
         )
+        self.auth_failure_rate_limited_total = Counter(
+            "firewall_auth_failure_rate_limited_total",
+            "Requests refused because the client had already failed authentication too often. "
+            "Rising means someone is guessing credentials.",
+            registry=self.registry,
+        )
+        self.concurrency_rejections_total = Counter(
+            "firewall_concurrency_rejections_total",
+            "Requests refused because the process was already at its in-flight ceiling.",
+            ("scope",),
+            registry=self.registry,
+        )
+        self.active_requests = Gauge(
+            "firewall_active_requests",
+            "Requests in flight in this process. A gauge, so it is the current value "
+            "and not a rate; compare it against the configured ceiling.",
+            registry=self.registry,
+        )
+        self.audit_events_dropped_total = Counter(
+            "firewall_audit_events_dropped_total",
+            "Audit records discarded because the write queue was full. Named in "
+            "ADR-012 before the queue existed: dropping must be visible in a metric, "
+            "because an audit trail that thins out under load without saying so is "
+            "worse than one that is honestly absent.",
+            registry=self.registry,
+        )
+        self.audit_rows_deleted_total = Counter(
+            "firewall_audit_rows_deleted_total",
+            "Audit rows removed by the retention sweep, by table. Counts the rows "
+            "the foreign key cascaded as well as the ones deleted directly, "
+            "because the child table is four times the volume and a metric that "
+            "reported only parents would understate the work by that factor.",
+            ("table",),
+            registry=self.registry,
+        )
+        self.retention_sweeps_total = Counter(
+            "firewall_retention_sweeps_total",
+            "Retention sweeps, by outcome. A sustained `failed` rate means the "
+            "audit store is growing without bound and nothing is saying so louder.",
+            ("outcome",),
+            registry=self.registry,
+        )
+        self.retention_last_success_timestamp_seconds = Gauge(
+            "firewall_retention_last_success_timestamp_seconds",
+            "Unix time of the last successful sweep. Alert on its age, not on its "
+            "value: retention failing silently is the failure mode that matters.",
+            registry=self.registry,
+        )
+        self.audit_oldest_row_age_seconds = Gauge(
+            "firewall_audit_oldest_row_age_seconds",
+            "Age of the oldest surviving row, by table. This — not the delete "
+            "counter — is what says retention is working: a counter can tick "
+            "steadily while the backlog grows. Compare it against the configured "
+            "period.",
+            ("table",),
+            registry=self.registry,
+        )
+        self.audit_queue_depth = Gauge(
+            "firewall_audit_queue_depth",
+            "Audit records waiting to be written. Sustained depth means the writer "
+            "is not keeping up and records are about to be dropped or the request "
+            "path is about to start waiting.",
+            registry=self.registry,
+        )
+        # --- Configuration, exported so an alert never hardcodes a threshold the
+        # application owns. A rule that says "older than 30 days" silently becomes
+        # wrong the day someone sets FIREWALL_RETENTION_TRACE_DAYS=7; a rule that
+        # compares against this gauge cannot (ADR-031).
+        self.retention_enabled = Gauge(
+            "firewall_retention_enabled",
+            "1 when this process deletes audit rows past their retention period. "
+            "Alert on a production instance reporting 0: nothing is enforcing the "
+            "periods and the store grows without bound (ADR-030, R-84).",
+            registry=self.registry,
+        )
+        self.audit_retention_period_seconds = Gauge(
+            "firewall_audit_retention_period_seconds",
+            "Configured maximum age per audit table. Exported so the backlog alert "
+            "compares the oldest surviving row against the period actually in force "
+            "rather than against a number copied into a rule file.",
+            ("table",),
+            registry=self.registry,
+        )
+        self.audit_queue_capacity = Gauge(
+            "firewall_audit_queue_capacity",
+            "Bound on the audit write queue. Absent in `sync` mode, which is the "
+            "honest representation: there is no queue to saturate, so the "
+            "saturation alert has no data rather than a fabricated denominator.",
+            registry=self.registry,
+        )
+        self.https_enforced = Gauge(
+            "firewall_https_enforced",
+            "1 when this process refuses requests whose client hop was not TLS. "
+            "Alert on a production instance reporting 0.",
+            registry=self.registry,
+        )
         self.auth_denials_total = Counter(
             "firewall_auth_denials_total",
             "Refused operator-console requests. A sustained rate is either a "
@@ -231,6 +333,58 @@ class Metrics:
         # this method cannot introduce an unbounded label without noticing.
         self.caller_auth_failures_total.labels(reason=bounded_label("deny_reason", reason)).inc()
 
+    def record_audit_dropped(self) -> None:
+        self.audit_events_dropped_total.inc()
+
+    def set_audit_queue_depth(self, depth: int) -> None:
+        self.audit_queue_depth.set(depth)
+
+    def record_rows_deleted(self, *, table: str, rows: int) -> None:
+        """`table` is one of a fixed set defined in `app.database.retention`, not
+        a caller-supplied value, so the label cardinality is bounded by the
+        schema. Zero is still recorded: a sweep that deleted nothing is
+        information, and a counter that only appears when it moves cannot be
+        alerted on for absence."""
+        self.audit_rows_deleted_total.labels(table=table).inc(rows)
+
+    def record_retention_sweep(self, *, outcome: str) -> None:
+        self.retention_sweeps_total.labels(outcome=outcome).inc()
+
+    def set_retention_last_success(self, *, timestamp: float) -> None:
+        self.retention_last_success_timestamp_seconds.set(timestamp)
+
+    def set_oldest_audit_row_age(self, *, table: str, age_seconds: float) -> None:
+        self.audit_oldest_row_age_seconds.labels(table=table).set(age_seconds)
+
+    def set_retention_enabled(self, enabled: bool) -> None:
+        """A configuration fact, like `https_enforced`. Reported by every process
+        whether or not it is on, so "nothing is enforcing retention" is a value
+        rather than an absent series nobody notices."""
+        self.retention_enabled.set(1 if enabled else 0)
+
+    def set_retention_period(self, *, table: str, seconds: float) -> None:
+        self.audit_retention_period_seconds.labels(table=table).set(seconds)
+
+    def set_audit_queue_capacity(self, capacity: int) -> None:
+        self.audit_queue_capacity.set(capacity)
+
+    def set_https_enforced(self, enforced: bool) -> None:
+        """A configuration fact, not a rate. No label: there is nothing to break
+        it down by that would not be either constant or unbounded."""
+        self.https_enforced.set(1 if enforced else 0)
+
+    def record_auth_failure_throttled(self) -> None:
+        """No label at all. The only value worth breaking this down by is the
+        client address, which is unbounded by definition and is exactly what §16
+        forbids as a label."""
+        self.auth_failure_rate_limited_total.inc()
+
+    def record_concurrency_rejection(self, *, scope_name: str) -> None:
+        self.concurrency_rejections_total.labels(scope=scope_name).inc()
+
+    def set_active_requests(self, value: int) -> None:
+        self.active_requests.set(value)
+
     def record_rate_limited(self, *, caller: str, limit: str) -> None:
         self.rate_limited_requests_total.labels(
             caller=bounded_label("caller", caller), limit=limit
@@ -246,6 +400,13 @@ class Metrics:
         self.request_bytes.labels(route=bounded_label("route", route)).observe(size)
 
     def render(self) -> tuple[bytes, str]:
+        # Both halves must come from the same exposition module. Until Phase 17
+        # the content type was imported from `prometheus_client.openmetrics` while
+        # the body came from `generate_latest`, which emits the Prometheus text
+        # format. Prometheus trusts the declared type, parsed the body as
+        # OpenMetrics, and rejected every scrape for missing the mandatory `# EOF`
+        # terminator — so the entire metric catalogue was unreachable and no alert
+        # could ever have fired (R-87).
         return generate_latest(self.registry), CONTENT_TYPE_LATEST
 
 
