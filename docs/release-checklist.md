@@ -14,7 +14,7 @@ documented, tested, and unscrapeable.
 
 - [x] Working tree clean apart from the intended release changes — `git status --porcelain`
 - [x] Branch is `main` and tracks `origin/main`
-- [x] Release commit created and pushed — `f4bce17`, `local main == origin/main`
+- [x] Release commit created and pushed — **`76d6fad`**, `HEAD == origin/main`, worktree clean
 - [x] Release commit SHA recorded in [release-ci-evidence.md](release-ci-evidence.md)
 
 ## 2. Local validation
@@ -69,20 +69,28 @@ documented, tested, and unscrapeable.
 - [x] Secrets arrive as file mounts; none baked into a layer
 - [x] `/ready` is the health gate
 
-## 7. Scanners
+## 7. Scanners — **verified by remote CI**
 
-- [x] gitleaks executed — **locally**, v8.30.1, full history, 0 findings after a
-      per-finding allow-list, negative-controlled
-- [x] Trivy executed — **locally**, 0.58.2, both images, 0 HIGH/CRITICAL
-- [ ] **gitleaks result observed from a remote CI run** — blocked: no GitHub credential in this environment
-- [ ] **Trivy result observed from a remote CI run** — blocked: same
-- [ ] CI evidence artefact `release-evidence-f4bce17` downloaded and attached
+Run **32501090591**, commit `76d6fad`, conclusion `success`, 11/11 jobs.
 
-The push of `f4bce17` triggered the pipeline. Its result has **not been read**: the
-repository is private, `gh` is not installed, and no token, `~/.netrc`,
-`~/.git-credentials` or credential helper is configured. The remote is reached over
-SSH, which authenticates git and grants no Actions API access. Nothing is inferred
-from the local results (see [release-ci-evidence.md](release-ci-evidence.md), Run 2).
+- [x] gitleaks executed **remotely** — job `dependency and secret scanning` success,
+      `gitleaks-results.sarif` downloaded, **0 findings**
+- [x] Trivy executed **remotely** on the application image — `llm-firewall:ci
+      (debian 13.6)`, **0 vulnerabilities**, policy `HIGH,CRITICAL` /
+      `ignore-unfixed` / `exit-code 1`
+- [x] Trivy executed **remotely** on the edge image — `llm-firewall-edge:ci
+      (alpine 3.21.3)`, **0 vulnerabilities**, same policy
+- [x] CI evidence artefact downloaded — `release-evidence-76d6fadc60492c32a628ff673297317cef4383ec`,
+      digest `sha256:8786082d75ae…`
+- [x] Integration tests green remotely
+- [x] TLS integration green remotely
+- [x] Production topology green remotely
+- [x] Frontend tests green remotely
+- [x] Container build and smoke test green remotely
+- [x] Dockerfile `SecretsUsedInArgOrEnv` annotation classified — false positive on
+      the variable **name**; the value is a path, `/etc/nginx/tls/` is absent from
+      the image, and "Prove no key reached the image" passed. Follow-up hardening,
+      not a blocker
 
 ## 8. Documentation
 
@@ -94,13 +102,13 @@ from the local results (see [release-ci-evidence.md](release-ci-evidence.md), Ru
 
 ## 9. Tag
 
-- [ ] **`v1.0.0-rc1` — NOT YET.**
+- [x] **`v1.0.0-rc1` permitted.** Section 7 is satisfied by remote run 32501090591:
+      conclusion `success`, 11/11 jobs, both Trivy scans and gitleaks observed
+      remotely, evidence artefact downloaded, and the production policy verified
+      unchanged against the committed tree.
 
-Blocked on section 7, and on nothing else. Every other line in this checklist is
-green against the exact commit that is on `origin/main`.
-
-The tag may be created only when a remote CI run is green, the Trivy result is
-recorded and the gitleaks result is recorded. All three are outstanding for one
-reason, and it is not a code reason: **the pipeline's result cannot be read from
-this environment.** The single remediation is access — `gh auth login`, or a
-fine-grained token with `Actions: read` — not a change to the software.
+The tag points at **`76d6fadc60492c32a628ff673297317cef4383ec`** and nothing else. It is a release *candidate*:
+nothing here has served production traffic, most operational numbers are
+development defaults (R-67, R-88), and enforcement is heuristic by design
+(ADR-016). Those are stated in [release-readiness.md](release-readiness.md), not
+hidden behind a green pipeline.

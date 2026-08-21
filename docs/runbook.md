@@ -231,6 +231,22 @@ by hand, not a regression.
 
 ### What to look at
 
+> **Prerequisite.** `scripts/purge_audit.py` reads the same settings the gateway
+> does, so it needs `FIREWALL_DATABASE_URL` (and `FIREWALL_PERSIST_EVENTS=true`)
+> in its environment or it exits with *"No audit database is configured"* without
+> touching anything. Inside the container the settings are already present; from a
+> shell they are not. Source your own `.env`, or pass them explicitly — the value
+> below is the local development database from `.env.example`, **not** a
+> production credential:
+>
+> ```bash
+> export FIREWALL_PERSIST_EVENTS=true
+> export FIREWALL_DATABASE_URL='postgresql+asyncpg://USER:PASSWORD@HOST:PORT/DBNAME'
+> ```
+>
+> Found in the Phase 20 runbook dry run: the command below was documented without
+> this and failed for every operator who copied it (R-105).
+
 ```bash
 curl -s localhost:8000/metrics | grep -E 'retention_enabled|audit_retention_period'
 docker compose logs firewall-api | jq -c 'select(.event=="audit_retention_disabled")'
@@ -471,6 +487,22 @@ and neither is redundant.
 
 ### What to look at
 
+> **Prerequisite.** `scripts/purge_audit.py` reads the same settings the gateway
+> does, so it needs `FIREWALL_DATABASE_URL` (and `FIREWALL_PERSIST_EVENTS=true`)
+> in its environment or it exits with *"No audit database is configured"* without
+> touching anything. Inside the container the settings are already present; from a
+> shell they are not. Source your own `.env`, or pass them explicitly — the value
+> below is the local development database from `.env.example`, **not** a
+> production credential:
+>
+> ```bash
+> export FIREWALL_PERSIST_EVENTS=true
+> export FIREWALL_DATABASE_URL='postgresql+asyncpg://USER:PASSWORD@HOST:PORT/DBNAME'
+> ```
+>
+> Found in the Phase 20 runbook dry run: the command below was documented without
+> this and failed for every operator who copied it (R-105).
+
 ```bash
 curl -s localhost:8000/metrics | grep -E 'retention_(last_success|sweeps_total|enabled)|oldest_row_age'
 docker compose logs --since 6h firewall-api | jq -c 'select(.event|startswith("retention_"))'
@@ -562,6 +594,22 @@ application exports from its own configuration. Change
 number of its own to go stale.
 
 ### What to look at
+
+> **Prerequisite.** `scripts/purge_audit.py` reads the same settings the gateway
+> does, so it needs `FIREWALL_DATABASE_URL` (and `FIREWALL_PERSIST_EVENTS=true`)
+> in its environment or it exits with *"No audit database is configured"* without
+> touching anything. Inside the container the settings are already present; from a
+> shell they are not. Source your own `.env`, or pass them explicitly — the value
+> below is the local development database from `.env.example`, **not** a
+> production credential:
+>
+> ```bash
+> export FIREWALL_PERSIST_EVENTS=true
+> export FIREWALL_DATABASE_URL='postgresql+asyncpg://USER:PASSWORD@HOST:PORT/DBNAME'
+> ```
+>
+> Found in the Phase 20 runbook dry run: the command below was documented without
+> this and failed for every operator who copied it (R-105).
 
 ```bash
 curl -s localhost:8000/metrics | grep -E 'oldest_row_age|retention_period|rows_deleted'

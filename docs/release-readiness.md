@@ -4,6 +4,11 @@ The Phase 18 audit. Every capability was verified **against the code and against
 running system**, not against the document that describes it. Where the two
 disagreed, this audit changed the document — or, twice, the code.
 
+> **Release candidate `v1.0.0-rc1` — 76d6fad.** Every row below was re-verified
+> against remote CI run [32501090591](release-ci-evidence.md) (conclusion `success`,
+> 11/11 jobs). The two scanner rows moved from "executed locally" to **verified by
+> remote CI** on that run's evidence, and on nothing else.
+
 **Status vocabulary**
 
 | | Meaning |
@@ -94,8 +99,8 @@ Test counts are collected counts from `uv run pytest --collect-only`, at
 | Kubernetes manifests | — | — | — | [OD-41](21-open-decisions.md) | **DEFERRED** | No measured sizing and no cluster to validate against. Writing manifests nobody can run is how fictional infrastructure enters a repository |
 | Frontend tests | `tests/frontend/*.test.mjs` | 13 node tests | **Now run in CI** — there was no frontend job until Phase 19, and the documented invocation had been broken since Node 22 | [ADR-022](adr/ADR-022-dashboard-frontend-architecture.md) | **PASS** | — |
 | Dependency audit | `uv.lock` | CI `security` job | `pip-audit --skip-editable`: **No known vulnerabilities found** | [18](18-ci-cd-strategy.md) | **PASS** | `torch` is not on PyPI in its CUDA build and cannot be audited by `pip-audit`; it is not a runtime dependency of the application |
-| Image vulnerability scan | CI `trivy-action`, both images | `test_image_build_context.py` | **Executed locally (Phase 19), Trivy 0.58.2**: application 36 HIGH → **0**, edge 21 HIGH → **0**. Remote CI result **still unobserved** | [ADR-033](adr/ADR-033-release-scanning-and-base-image-patching.md) | **PARTIAL** | Local scan, not the CI-built artefact. The edge had never been scanned by anything before this phase |
-| Secret scanning | CI `gitleaks-action`, `.gitleaks.toml` | — | **Executed locally (Phase 19), gitleaks v8.30.1** over 24 commits: 7 findings, all classified, **0 real credentials**; 0 after a per-finding allow-list, negative-controlled with two planted keys | [ADR-033](adr/ADR-033-release-scanning-and-base-image-patching.md) | **PARTIAL** | Local scan; the remote CI result is **still unobserved**. Each allow-list entry is a standing assertion nothing re-checks |
+| Image vulnerability scan | CI `trivy-action` (SHA-pinned), both images | `test_image_build_context.py` | **Verified by remote CI** — run 32501090591, commit `76d6fad`: application `debian 13.6` **0**, edge `alpine 3.21.3` **0**; artefact `release-evidence-76d6fad…` downloaded, digest `sha256:8786082d75ae…` | [ADR-033](adr/ADR-033-release-scanning-and-base-image-patching.md) | **PASS** | Base-image CVEs recur and nothing watches for them between runs (R-99) |
+| Secret scanning | CI `gitleaks-action@v2`, `.gitleaks.toml` | negative-controlled allow-list | **Verified by remote CI** — run 32501090591: job success, `gitleaks-results.sarif` downloaded, **0 findings** | [ADR-033](adr/ADR-033-release-scanning-and-base-image-patching.md) | **PASS** | Each allow-list entry is a standing assertion nothing re-checks when the file it points at changes |
 
 ## Evaluation discipline
 

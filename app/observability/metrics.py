@@ -261,9 +261,10 @@ class Metrics:
         )
         self.audit_queue_capacity = Gauge(
             "firewall_audit_queue_capacity",
-            "Bound on the audit write queue. Absent in `sync` mode, which is the "
-            "honest representation: there is no queue to saturate, so the "
-            "saturation alert has no data rather than a fabricated denominator.",
+            "Bound on the audit write queue. Reads 0 in `sync` mode, where there "
+            "is no queue: the gauge is unlabelled and therefore always exists "
+            "(R-106). Queue depth is 0 there too, and 0/0 is NaN, so the "
+            "saturation alert stays silent.",
             registry=self.registry,
         )
         self.https_enforced = Gauge(

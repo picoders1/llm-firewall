@@ -12,7 +12,7 @@ this file never lets one stand in for the other.
 
 ## Run 1 — Phase 19, local scanner execution
 
-**Status: REMOTE RUN NOT YET OBSERVED.**
+**Status: superseded by Run 3. Retained as the record of how the gap was closed.**
 
 | | |
 |---|---|
@@ -23,6 +23,81 @@ this file never lets one stand in for the other.
 | Environment | Reference development machine, not GitHub Actions |
 | Remote workflow run ID | **pending** |
 | Remote conclusion | **pending** |
+
+## Run 3 — the release-candidate run: **SUCCESS**
+
+**Status: GREEN. This is the run the release candidate rests on.**
+
+| | |
+|---|---|
+| Workflow | `CI` |
+| Run ID | **32501090591** |
+| Commit | **`76d6fadc60492c32a628ff673297317cef4383ec`** — *"point the CI readiness probe at the port compose actually publishes"* |
+| Event / branch | `push` → `main`; `HEAD == origin/main`, worktree clean |
+| Started | 2026-08-21T16:05:19Z |
+| Conclusion | **`success`** — observed via `gh api …/actions/runs/32501090591` |
+
+### Job matrix — 11/11 success
+
+| Job | Result |
+|---|---|
+| lockfile is current | success |
+| lint and format | success |
+| type check | success |
+| unit, api and security tests | success |
+| frontend tests | success |
+| alert rules | success |
+| dependency and secret scanning | success |
+| container build and smoke test | success |
+| TLS integration | success |
+| production topology | success |
+| integration tests | success |
+
+### Scanner evidence — observed remotely, downloaded
+
+`release-evidence-76d6fadc60492c32a628ff673297317cef4383ec` (1695 B, expires 2026-11-19):
+
+```
+commit:     76d6fadc60492c32a628ff673297317cef4383ec
+workflow:   32501090591 attempt 1
+dockerfile: deploy/docker/Dockerfile
+image_id:   sha256:43abf734497bb63c44e0ba5d7abe2dbd7c8cfe0f350cae9974ff8d144c200d69
+digest:     sha256:8786082d75ae19ed089ff307c997b043ee24924669b61df58b6ebaecb87205ac
+```
+
+| Scanner | Target | Result |
+|---|---|---|
+| Trivy | `llm-firewall:ci (debian 13.6)` | **0 vulnerabilities** |
+| Trivy | `llm-firewall-edge:ci (alpine 3.21.3)` | **0 vulnerabilities** |
+| gitleaks | full history | **0 findings** (`gitleaks-results.sarif`, job success) |
+
+Policy unchanged throughout: `HIGH,CRITICAL`, `--ignore-unfixed`, `exit-code 1`, both
+images. No `continue-on-error`, no skippable job.
+
+**The gap opened in Phase 18 is closed.** Both scanners have now produced an
+observed remote result tied to one exact commit and one image digest — which is
+what Run 1 and Run 2 could not do.
+
+### The Dockerfile annotation, classified rather than ignored
+
+The run carries `SecretsUsedInArgOrEnv: ENV "EDGE_TLS_KEY"`.
+
+**Classification: B — false positive on the variable name. Not release-blocking.**
+
+`EDGE_TLS_KEY=/etc/nginx/tls/privkey.pem` is a **path**, not key material.
+BuildKit's linter matches the identifier (`*KEY`), never the value. Verified
+against the built image rather than argued:
+
+* `/etc/nginx/tls/` **does not exist** in the image — it is a runtime mount only.
+* The only `.pem` files present are the distribution CA trust store.
+* CI's own **"Prove no key reached the image"** step passed in this run.
+
+That is the guarantee ADR-026 §4 makes, and it holds. Recorded as a follow-up
+hardening item — renaming to `EDGE_TLS_KEY_PATH` would silence the linter and
+say what the variable means — **not** as a release blocker, and the Dockerfile is
+not changed on the strength of a name-pattern match.
+
+---
 
 ## Run 2 — Phase 19B, remote observation attempt
 

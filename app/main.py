@@ -187,9 +187,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             )
             await queued.start()
             app.state.audit = queued
-            # Only in the queued modes: in `sync` there is no queue to saturate,
-            # and an exported capacity of zero would give the saturation alert a
-            # fabricated denominator instead of no data.
+            # Only in the queued modes: in `sync` there is no queue to saturate.
+            # Note the gauge still READS 0 there — an unlabelled Prometheus gauge
+            # is created with the registry and cannot be absent (R-106). The
+            # saturation alert stays silent because depth is 0 too and `0 / 0` is
+            # NaN, not because the series is missing.
             app.state.metrics.set_audit_queue_capacity(config.settings.audit_queue_size)
             logger.info(
                 "audit_queue_started",

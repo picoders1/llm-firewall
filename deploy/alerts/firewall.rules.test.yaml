@@ -197,12 +197,16 @@ tests:
 
   # -- Queue saturation in sync mode -----------------------------------------
   - interval: 1m
-    name: sync mode has no queue and therefore no saturation alert
+    name: sync mode reads capacity 0 and must still not alert
     input_series:
-      # `firewall_audit_queue_capacity` is deliberately absent: in `sync` mode
-      # there is no queue. The expression must produce nothing rather than divide
-      # by a fabricated denominator.
+      # Corrected in Phase 20 (R-106). This case used to omit the capacity series
+      # to model `sync` mode. That was wrong: the gauge is UNLABELLED, so it is
+      # created with the registry and always exists, reading 0. Depth is 0 too,
+      # and 0/0 is NaN, which no comparison satisfies. Modelling reality rather
+      # than the assumption keeps the silence a tested property.
       - series: firewall_audit_queue_depth
+        values: "0x30"
+      - series: firewall_audit_queue_capacity
         values: "0x30"
     alert_rule_test:
       - eval_time: 20m
@@ -543,4 +547,95 @@ tests:
     alert_rule_test:
       - eval_time: 40m
         alertname: FirewallGatewayOverheadHigh
+        exp_alerts: []
+
+  # -- R-104: a counter that springs into existence at a positive value --------
+  #
+  # `_` means "no sample". These series do not exist for the first minutes and
+  # then appear ALREADY positive, which is exactly what a lazily-created labelled
+  # Prometheus counter does on its first event: there is no prior zero to rise
+  # from, so `increase()` over the flat series is 0 and an `increase(...) > 0`
+  # rule never fires.
+  #
+  # Measured on a real gateway in Phase 20 run 2: 56 admission rejections
+  # produced `firewall_concurrency_rejections_total{scope="gateway"} 56` in
+  # Prometheus with `sum(increase(...[5m])) = 0`. The alert missed the first
+  # occurrence of the condition it exists to catch.
+  - interval: 1m
+    name: R-104 the first burst of admission rejections must alert
+    input_series:
+      - series: firewall_concurrency_rejections_total{scope="gateway"}
+        values: "_ _ _ _ _ 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56"
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: FirewallConcurrencyRejections
+        exp_alerts: []
+      - eval_time: 12m
+        alertname: FirewallConcurrencyRejections
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: capacity
+            exp_annotations:
+              summary: Requests are being refused at the in-flight ceiling
+              description: >-
+                56 request(s) refused with 503 in 5 minutes because the process was
+                already at its concurrency ceiling. Either the ceiling is too low or
+                something upstream of it is retrying.
+              runbook: docs/runbook.md#firewallconcurrencyrejections
+
+  - interval: 1m
+    name: R-104 the first detector error must alert
+    input_series:
+      - series: firewall_detector_errors_total{detector="injection.heuristic",error_kind="TimeoutError"}
+        values: "_ _ _ 1 1 1 1 1 1 1"
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: FirewallDetectorErrorsPresent
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: detection
+              detector: injection.heuristic
+              error_kind: TimeoutError
+            exp_annotations:
+              summary: Detector injection.heuristic errored (TimeoutError)
+              description: >-
+                1 error(s) of kind TimeoutError from injection.heuristic in 30 minutes.
+                A detector erroring is a security failure even when it fails closed.
+              runbook: docs/runbook.md#firewalldetectorerrorspresent
+
+  - interval: 1m
+    name: R-104 the first failed retention sweep must alert
+    input_series:
+      - series: firewall_retention_sweeps_total{outcome="failed"}
+        values: "_ _ _ 1 1 1 1 1 1 1"
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: FirewallRetentionSweepsFailing
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              component: audit
+            exp_annotations:
+              summary: Retention sweeps are failing
+              description: >-
+                1 sweep(s) failed in the last hour. The failure is contained by design
+                and the process stays healthy, which is exactly why nothing else will
+                mention it.
+              runbook: docs/runbook.md#firewallretentionsweepsfailing
+
+  - interval: 1m
+    name: R-104 a counter reset must not manufacture an alert
+    input_series:
+      # The series exists, records nothing, then the process restarts and it
+      # returns as 0. Neither transition is an event.
+      - series: firewall_concurrency_rejections_total{scope="gateway"}
+        values: "0 0 0 0 0 0 _ 0 0 0 0 0 0 0 0 0 0 0"
+    alert_rule_test:
+      - eval_time: 12m
+        alertname: FirewallConcurrencyRejections
+        exp_alerts: []
+      - eval_time: 17m
+        alertname: FirewallConcurrencyRejections
         exp_alerts: []

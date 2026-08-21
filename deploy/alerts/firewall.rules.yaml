@@ -128,7 +128,26 @@ groups:
         # Deliberately separate from the ratio alert above. A trickle of errors on
         # a low-traffic instance never reaches 1% and is still a detector that is
         # not working.
-        expr: sum by (detector, error_kind) (increase(firewall_detector_errors_total[30m])) > 0
+        # R-104: `increase() > 0` alone cannot see the FIRST event on a
+        # lazily-created labelled counter. The series does not exist until the
+        # event happens, so it appears already positive with no prior zero to
+        # rise from, and `increase()` over a flat series is 0. Measured on a real
+        # gateway: 56 rejections, `increase[5m] = 0`, no alert.
+        #
+        # The second clause catches exactly that case — the series is positive
+        # now and did not exist one window ago. It stops matching once a sample
+        # exists at the offset, so the alert still resolves, a steady zero stays
+        # silent, and a counter reset (which returns the series to 0) cannot
+        # satisfy `> 0`. Aggregation, labels, threshold and severity are
+        # unchanged; no application metric or label was touched, so cardinality
+        # is unaffected.
+        expr: >-
+          sum by (detector, error_kind) (increase(firewall_detector_errors_total[30m])) > 0
+          or
+          (
+            sum by (detector, error_kind) (firewall_detector_errors_total) > 0
+            unless sum by (detector, error_kind) (firewall_detector_errors_total offset 30m)
+          )
         labels:
           severity: warning
           component: detection
@@ -215,7 +234,26 @@ groups:
         # Covers the gap the alert above cannot: a process whose every sweep has
         # failed since startup never sets the success timestamp, so its gauge stays
         # at 0 and is filtered out there.
-        expr: sum(increase(firewall_retention_sweeps_total{outcome="failed"}[1h])) > 0
+        # R-104: `increase() > 0` alone cannot see the FIRST event on a
+        # lazily-created labelled counter. The series does not exist until the
+        # event happens, so it appears already positive with no prior zero to
+        # rise from, and `increase()` over a flat series is 0. Measured on a real
+        # gateway: 56 rejections, `increase[5m] = 0`, no alert.
+        #
+        # The second clause catches exactly that case — the series is positive
+        # now and did not exist one window ago. It stops matching once a sample
+        # exists at the offset, so the alert still resolves, a steady zero stays
+        # silent, and a counter reset (which returns the series to 0) cannot
+        # satisfy `> 0`. Aggregation, labels, threshold and severity are
+        # unchanged; no application metric or label was touched, so cardinality
+        # is unaffected.
+        expr: >-
+          sum(increase(firewall_retention_sweeps_total{outcome="failed"}[1h])) > 0
+          or
+          (
+            sum(firewall_retention_sweeps_total{outcome="failed"}) > 0
+            unless sum(firewall_retention_sweeps_total{outcome="failed"} offset 1h)
+          )
         labels:
           severity: warning
           component: audit
@@ -274,7 +312,31 @@ groups:
     interval: 30s
     rules:
       - alert: FirewallConcurrencyRejections
-        expr: sum(increase(firewall_concurrency_rejections_total[5m])) > 0
+        # R-104: `increase() > 0` alone cannot see the FIRST event on a
+        # lazily-created labelled counter. The series does not exist until the
+        # event happens, so it appears already positive with no prior zero to
+        # rise from, and `increase()` over a flat series is 0. Measured on a real
+        # gateway: 56 rejections, `increase[5m] = 0`, no alert.
+        #
+        # The second clause catches exactly that case — the series is positive
+        # now and did not exist one window ago. It stops matching once a sample
+        # exists at the offset, so the alert still resolves, a steady zero stays
+        # silent, and a counter reset (which returns the series to 0) cannot
+        # satisfy `> 0`. Aggregation, labels, threshold and severity are
+        # unchanged; no application metric or label was touched, so cardinality
+        # is unaffected.
+        #
+        # The offset is 15m, not 5m, because this rule has `for: 5m`. A newness
+        # clause that holds for exactly one window leaves no room for the hold to
+        # elapse — the alert would become eligible and stop being eligible in the
+        # same instant it was due to fire. The lookback must outlast the `for`.
+        expr: >-
+          sum(increase(firewall_concurrency_rejections_total[5m])) > 0
+          or
+          (
+            sum(firewall_concurrency_rejections_total) > 0
+            unless sum(firewall_concurrency_rejections_total offset 15m)
+          )
         for: 5m
         labels:
           severity: warning

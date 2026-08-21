@@ -509,6 +509,8 @@ surviving row does not.
 To see what it would remove without removing it:
 
 ```bash
+# Needs FIREWALL_DATABASE_URL and FIREWALL_PERSIST_EVENTS in the environment;
+# without them it exits with "No audit database is configured" (R-105).
 uv run python scripts/purge_audit.py            # dry run; --execute to actually delete
 ```
 

@@ -62,9 +62,13 @@ against the period the application actually has configured makes that class of d
 impossible, and a promtool test proves it by running the backlog alert against a
 **seven**-day deployment.
 
-`firewall_audit_queue_capacity` is absent in `sync` mode rather than zero. An
-absent series makes the saturation rule produce no result; a zero would make it
-divide by a denominator that does not exist.
+`firewall_audit_queue_capacity` reads **0** in `sync` mode. This ADR originally
+claimed the series was *absent*; Phase 20 found that wrong (R-106). An unlabelled
+Prometheus gauge is created with the registry and therefore always exists. The
+saturation rule is still silent, but by arithmetic rather than by absence:
+`firewall_audit_queue_depth` is also 0 in `sync` mode, and `0 / 0` is NaN, which
+no comparison satisfies. A promtool case pins that behaviour so it cannot become
+incidental again.
 
 ### Every rule is unit-tested, and the near-misses are the point
 
