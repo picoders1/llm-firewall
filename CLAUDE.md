@@ -18,7 +18,7 @@ uv lock --check                               # CI fails if the lock is stale
 Containers and DB:
 
 ```bash
-docker compose up -d --build                  # gateway :8000, mock upstream :8081, postgres
+docker compose up -d --build                  # gateway :8005, mock upstream :8081, postgres
 uv run alembic upgrade head
 curl localhost:8081/__stats                   # mock upstream call counter — proves a BLOCK never forwarded
 ```
@@ -154,7 +154,7 @@ the request path until every client timed out. A graceful stop drains and loses 
 combination is refused at startup (ADR-029, amending ADR-012).
 
 **Deployment is an artefact, not a description.** `compose.yaml` is development — it publishes
-the gateway on :8000 and PostgreSQL on :5434 for convenience. `compose.prod.yaml` is the
+the gateway on host :8005 and PostgreSQL on :5434 for convenience. `compose.prod.yaml` is the
 reference production topology and is *standalone*, because an overlay cannot un-publish a
 port: only the edge publishes, the audit store sits on an `internal: true` network the edge
 cannot even resolve, the four `SecretStr` settings arrive as mounted files at

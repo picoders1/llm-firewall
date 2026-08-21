@@ -16,7 +16,10 @@ services:
       dockerfile: deploy/docker/Dockerfile
     image: llm-firewall:dev
     ports:
-      - "8000:8000"
+      # Host :8005 -> container :8000. Only the published side moves: the
+      # container, the edge's proxy_pass and the Prometheus target all keep
+      # :8000, so the internal contract is unchanged.
+      - "8005:8000"
     environment:
       FIREWALL_ENVIRONMENT: development
       FIREWALL_LOG_FORMAT: json

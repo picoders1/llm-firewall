@@ -77,7 +77,8 @@ def test_the_benchmark_stack_publishes_its_instruments_on_distinct_ports():
     }
     assert ports["firewall-passthrough"] == ["8100:8000"]
     assert ports["firewall-noaudit"] == ["8101:8000"]
-    # The gateway under test keeps :8000 from compose.yaml and is not redefined.
+    # The gateway under test keeps its compose.yaml publishing (host :8005 ->
+    # container :8000) and is not redefined here.
     assert "firewall-api" not in ports
 
 

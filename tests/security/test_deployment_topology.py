@@ -54,7 +54,8 @@ def prod() -> dict:
 
 
 def test_only_the_edge_publishes_a_port(prod: dict):
-    """docs/17 obligation 8. `compose.yaml` publishes the gateway on :8000 and
+    """docs/17 obligation 8. `compose.yaml` publishes the gateway on host :8005
+    (container :8000, changed from :8000 when the host port was remapped) and
     PostgreSQL on :5434 — correct for development and the exact thing production
     must not do."""
     published = {

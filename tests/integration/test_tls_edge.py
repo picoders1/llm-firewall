@@ -28,7 +28,7 @@ HOST = os.environ.get("EDGE_TLS_HOST", "localhost")
 PORT = int(os.environ.get("EDGE_TLS_PORT", "8443"))
 CERT = os.environ.get("EDGE_TLS_CERT_PATH", "deploy/certs/fullchain.pem")
 
-GATEWAY = os.environ.get("EDGE_GATEWAY_URL", "http://localhost:8000")
+GATEWAY = os.environ.get("EDGE_GATEWAY_URL", "http://localhost:8005")
 CHAT = "/v1/chat/completions"
 BODY = {"model": "mock", "messages": [{"role": "user", "content": "What is 2 + 2?"}]}
 

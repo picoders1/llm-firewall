@@ -6,10 +6,10 @@
 # What this changes:
 #
 #   * a reverse proxy appears on :8088 and becomes the ONLY way in to the console
-#   * the application starts enforcing, so :8000 refuses console requests directly —
+#   * the application starts enforcing, so host :8005 refuses console requests directly —
 #     including a request that supplies the identity headers itself, because the
 #     trusted address is the proxy's alone
-#   * :8000 still serves /v1/chat/completions unchanged — application traffic is a
+#   * host :8005 still serves /v1/chat/completions unchanged — application traffic is a
 #     different access class and is not what this boundary protects (OD-36)
 #
 # It is an override file rather than a profile because a profile can add a

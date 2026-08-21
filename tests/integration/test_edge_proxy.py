@@ -28,7 +28,7 @@ pytestmark = pytest.mark.integration
 # FIREWALL_* variable so a developer's shell cannot change what the suite tests,
 # and a knob named that way would be silently deleted before the test read it.
 EDGE = os.environ.get("EDGE_PROXY_URL", "http://localhost:8089")
-GATEWAY = os.environ.get("EDGE_GATEWAY_URL", "http://localhost:8000")
+GATEWAY = os.environ.get("EDGE_GATEWAY_URL", "http://localhost:8005")
 CHAT = "/v1/chat/completions"
 BODY = {"model": "mock", "messages": [{"role": "user", "content": "What is 2 + 2?"}]}
 
@@ -212,7 +212,7 @@ async def test_a_valid_caller_credential_still_works_through_the_edge():
 
 
 async def test_the_edge_is_not_the_only_thing_protecting_the_gateway(edge):
-    """The overlay keeps :8000 published for local work; a production deployment
+    """The overlay keeps the gateway published on host :8005 for local work; a production deployment
     does not (docs/17 obligation 8). What matters here is that the application's
     own answer is unchanged by the edge's presence — the edge is a layer in front
     of the application's controls, not a replacement for them."""

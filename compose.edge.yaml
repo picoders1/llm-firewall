@@ -10,8 +10,9 @@
 #      docs/17-deployment-architecture.md keeps the host-port table)
 #   * the application starts enforcing its in-process safety net — a global
 #     in-flight ceiling and authentication-failure throttling
-#   * :8000 stays published so the existing tests and the console keep working
-#     locally; a production deployment does NOT publish it (docs/17 obligation 8)
+#   * the gateway stays published on host :8005 so the existing tests and the
+#     console keep working locally; a production deployment does NOT publish it
+#     (docs/17 obligation 8)
 #
 # The edge authenticates nobody. Caller credentials are still verified in the
 # application (ADR-024); this layer only bounds volume.

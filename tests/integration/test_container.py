@@ -10,6 +10,7 @@ than none, so CI starts the stack explicitly (docs/18-ci-cd-strategy.md).
 
 from __future__ import annotations
 
+import os
 import subprocess
 
 import httpx
@@ -17,7 +18,8 @@ import pytest
 
 pytestmark = pytest.mark.integration
 
-BASE_URL = "http://localhost:8000"
+# compose.yaml publishes the gateway on host :8005 (container :8000).
+BASE_URL = os.environ.get("FIREWALL_BASE_URL", "http://localhost:8005")
 SERVICE = "firewall-api"
 
 
