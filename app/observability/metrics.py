@@ -436,14 +436,27 @@ def record_trace(metrics: Metrics, trace: object, *, route: str) -> None:
         metrics.record_caller_request(caller=str(caller_id))
 
     upstream_latency = getattr(trace, "upstream_latency_ms", None)
-    if getattr(trace, "upstream_called", False) and upstream_latency is not None:
+    if getattr(trace, "upstream_called", False):
         status_code = int(getattr(trace, "status_code", 0) or 0)
-        metrics.record_upstream(
-            model=getattr(trace, "model", None),
-            outcome="ok" if status_code < 500 else "error",
-            latency_ms=float(upstream_latency),
-        )
-        if status_code >= 500:
+        if upstream_latency is not None:
+            # The call COMPLETED. A 5xx here is not an upstream failure — the
+            # client raises on an upstream error status, so reaching this branch
+            # means the model answered and something after it (output inspection,
+            # a detector failure) set the status.
+            metrics.record_upstream(
+                model=getattr(trace, "model", None),
+                outcome="ok" if status_code < 500 else "error",
+                latency_ms=float(upstream_latency),
+            )
+        else:
+            # Attempted and never returned a latency: `chat_completions` raised —
+            # timeout, unreachable, an upstream error status, or a malformed body.
+            # **This is the upstream failure case, and it was the one not being
+            # counted** (R-107). The old guard required a latency, which only
+            # exists when the call succeeded, so `firewall_upstream_errors_total`
+            # stayed empty for every real upstream failure while a post-upstream
+            # detector failure was miscounted as one. Verified against the audit
+            # trail: an induced 502 records upstream_called=t with a NULL latency.
             metrics.record_upstream_error(kind=status_class(status_code))
 
     for outcome in getattr(trace, "detector_outcomes", ()) or ():
