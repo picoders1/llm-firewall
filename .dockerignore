@@ -20,6 +20,14 @@ venv
 
 tests
 docs
+# The Run 3 fault-injection policy (ADR-035, Fixture B) must not exist inside a
+# shipped image. `COPY config ./config` is unfiltered, so without this line the
+# file would ship in the production image and production would be one
+# environment variable — FIREWALL_POLICY_FILE — away from loading a policy whose
+# whole purpose is to stall the detector. `compose.fault.yaml` bind-mounts it at
+# runtime instead, which is why the fixture is opt-in at the mount rather than at
+# the setting. Asserted by tests/security/test_fault_fixtures_are_not_production.py.
+config/policies/fault-injection.yaml
 # Evaluation artefacts: ship EXACTLY the files the dashboard opens and nothing
 # else. `app/api/dashboard/evaluations.py` reads one filename — `result.json`,
 # one level under eval/results — so that is the whole allow-list.

@@ -1,0 +1,129 @@
+# Run 3 FAULT-INJECTION overlay (ADR-035, Fixtures B and C). Opt-in, never production.
+#
+#   docker compose -f compose.yaml -f compose.fault.yaml up -d --build
+#   docker compose -f compose.yaml -f compose.fault.yaml \
+#     run --rm firewall-api alembic upgrade head
+#
+# Add `-f compose.observability.yaml` for Prometheus when validating alerts, and
+# remember `--renew-anon-volumes` before #6 and #10 — a carried-over TSDB does not
+# merely add noise to a newness clause, it silently invalidates the test (ADR-035 §4).
+#
+# Teardown, which removes the disposable database and nothing else:
+#
+#   docker compose -f compose.yaml -f compose.fault.yaml down -v
+#
+# ## Why this is a SEPARATE COMPOSE PROJECT
+#
+# `name:` is overridden to `llm-firewall-fault`. Without that, `down -v` would
+# remove `llm-firewall_postgres-data` — the development audit store — because
+# `down -v` removes the volumes of the project it is invoked against. A separate
+# project is what makes teardown safe rather than careful. The cost is that the
+# published host ports must move (8006 / 8082 / 5435), so the fault stack and the
+# development stack can run side by side instead of fighting over :8005.
+#
+# ## The database is disposable, by construction
+#
+#   * its own named volume, `firewall-fault-pgdata`, never `postgres-data`;
+#   * its own database NAME, `firewall_fault`, which is what
+#     `scripts/seed_backdated_audit.py` checks before it will write a row.
+#
+# Both are asserted by tests/security/test_fault_fixtures_are_not_production.py.
+#
+# ## Both fault modes are supported, and they are NOT interchangeable
+#
+#   docker compose -f compose.yaml -f compose.fault.yaml stop postgres
+#       connection refused immediately -> fast repeated write failures.
+#       Drives #2 FirewallAuditWriteFailing and #10 FirewallRetentionSweepsFailing.
+#
+#   docker compose -f compose.yaml -f compose.fault.yaml pause postgres
+#       the socket stays open and calls hang to the 5 s command timeout, so the
+#       audit writer STALLS at ~0.2 items/s and the queue fills.
+#       Drives #1 FirewallAuditEventsDropped and #12 FirewallAuditQueueSaturating.
+#
+# A refused connection fails fast and never fills the queue; conflating the two
+# makes #1 and #12 unreachable. Restore with `start postgres` / `unpause postgres`.
+#
+# ## What this overlay does NOT do
+#
+# It changes no detector, no threshold, no action, no alert rule, and no
+# production manifest. The only policy difference is one `custom_patterns` entry
+# (ADR-035 §3). Upstream faults keep using the mock's existing triggers —
+# `__return_500__`, `__return_malformed__`, `__return_huge__`, `__slow__` — and no
+# second upstream mechanism is introduced.
+
+name: llm-firewall-fault
+
+services:
+  firewall-api:
+    # !override, not a merge: `ports` concatenates, so without it this stack
+    # would also try to publish :8005 and collide with a running dev stack.
+    ports: !override
+      - "8006:8000"
+    volumes:
+      # Fixture B arrives as a RUNTIME MOUNT. The policy is excluded from the
+      # build context (`.dockerignore`), so it exists in no image layer — which
+      # is why production cannot reach it even by setting FIREWALL_POLICY_FILE.
+      - ./config/policies/fault-injection.yaml:/app/config/policies/fault-injection.yaml:ro
+    environment:
+      FIREWALL_POLICY_FILE: config/policies/fault-injection.yaml
+      FIREWALL_DATABASE_URL: postgresql+asyncpg://firewall:firewall@postgres:5432/firewall_fault
+
+      # --- Fixture C: audit queue (#1 dropped, #12 saturating) ---------------
+      # queue_drop puts the bounded queue in front of PostgreSQL so a stalled
+      # database fills it. 5000 is sized so depth crosses 50% at ~125 s at 20
+      # req/s and then pins at capacity, holding the ratio above 0.5 for the
+      # full 10 m `for:` while #1 also becomes reachable.
+      FIREWALL_AUDIT_WRITE_MODE: ${FAULT_AUDIT_WRITE_MODE:-queue_drop}
+      FIREWALL_AUDIT_QUEUE_SIZE: ${FAULT_AUDIT_QUEUE_SIZE:-5000}
+
+      # --- Fixture C: retention (#10 sweeps failing, #11 backlog) ------------
+      # 30 s interval so a failing sweep is visible in under a minute instead of
+      # an hour. 1 day is MINIMUM_RETENTION_DAYS, the floor the settings accept;
+      # events must be >= traces, so both sit at the floor. One row per sweep
+      # makes deletion succeed while never keeping up, which is the only way #11
+      # gets a numerator — a FAILING sweep raises before `_observe()` and never
+      # sets `firewall_audit_oldest_row_age_seconds` at all.
+      FIREWALL_RETENTION_ENABLED: ${FAULT_RETENTION_ENABLED:-true}
+      FIREWALL_RETENTION_INTERVAL_S: ${FAULT_RETENTION_INTERVAL_S:-30}
+      FIREWALL_RETENTION_TRACE_DAYS: ${FAULT_RETENTION_TRACE_DAYS:-1}
+      FIREWALL_RETENTION_EVENT_DAYS: ${FAULT_RETENTION_EVENT_DAYS:-1}
+      FIREWALL_RETENTION_MAX_ROWS_PER_SWEEP: ${FAULT_RETENTION_MAX_ROWS_PER_SWEEP:-1}
+
+      # --- Caller boundary (#14) --------------------------------------------
+      # Off unless explicitly supplied. NO CREDENTIAL IS COMMITTED HERE, not even
+      # a development one: mint a pair with `uv run python scripts/generate_caller_key.py`
+      # and export FAULT_CALLER_AUTH_MODE=api_key with FAULT_CALLER_API_KEYS.
+      # The gateway stores only the SHA-256 digest either way (ADR-024).
+      FIREWALL_CALLER_AUTH_MODE: ${FAULT_CALLER_AUTH_MODE:-disabled}
+      FIREWALL_CALLER_API_KEYS: ${FAULT_CALLER_API_KEYS:-}
+      # Left at 0 deliberately. Enabling the throttle would turn some credential
+      # failures into 429s ahead of the comparison and change the `reason` label
+      # mid-run, splitting the series #14 aggregates by (ADR-035 §5).
+      FIREWALL_AUTH_FAILURES_PER_MINUTE: "0"
+
+  mock-upstream:
+    ports: !override
+      - "8082:8081"
+
+  postgres:
+    ports: !override
+      - "5435:5432"
+    volumes: !override
+      # NEVER `postgres-data`. That volume belongs to the development stack and
+      # holds an audit trail this fixture has no business deleting.
+      - firewall-fault-pgdata:/var/lib/postgresql/data
+    environment:
+      # A distinct database NAME is the check `seed_backdated_audit.py` enforces
+      # before it will insert: a URL alone cannot distinguish this store from the
+      # development one, because host, port and role are otherwise identical.
+      POSTGRES_DB: firewall_fault
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U firewall -d firewall_fault"]
+
+volumes:
+  firewall-fault-pgdata:
+    # Pinned so the volume is literally `firewall-fault-pgdata` rather than
+    # `llm-firewall-fault_firewall-fault-pgdata`. It is what ADR-035 registered,
+    # it is what the guard test asserts, and it is what an operator greps for
+    # before running `docker volume rm`.
+    name: firewall-fault-pgdata
