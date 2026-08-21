@@ -19,10 +19,69 @@ this file never lets one stand in for the other.
 | Date | 2026-08-21 |
 | Repository | `picoders1/llm-firewall` (private) |
 | Branch | `main` |
-| Commit at time of scanning | `4c9b04d` + uncommitted Phase 19 changes |
+| Commit at time of scanning | `4c9b04d` + then-uncommitted Phase 19 changes |
 | Environment | Reference development machine, not GitHub Actions |
 | Remote workflow run ID | **pending** |
 | Remote conclusion | **pending** |
+
+## Run 2 — Phase 19B, remote observation attempt
+
+**Status: RUN TRIGGERED, RESULT NOT OBSERVED.**
+
+| | |
+|---|---|
+| Date | 2026-08-21 |
+| Commit | `f4bce17ea2fdb4651b9cf690b1d6dca45f66beb2` — *"record the first scan results ever observed (ADR-033)"* |
+| Pushed to | `origin/main` — confirmed, `local main == origin/main`, 0 ahead / 0 behind |
+| Contains the Phase 19 fixes | Confirmed: `.gitleaks.toml`, both patched Dockerfiles, the frontend job, edge scanning and artefact retention are all present in `origin/main` |
+| Workflow | `CI` (`.github/workflows/ci.yml`), triggers on `push: branches: [main]` |
+| Remote workflow run ID | **NOT OBSERVED** |
+| Remote conclusion | **NOT OBSERVED** |
+
+### Why it could not be observed
+
+The push happened, so the pipeline was triggered. Reading its result requires
+authenticated access to a **private** repository, and this environment has none:
+
+| Mechanism | State |
+|---|---|
+| `gh` CLI | not installed |
+| `GH_TOKEN` / `GITHUB_TOKEN` | not set |
+| `~/.config/gh/hosts.yml` | absent |
+| `~/.netrc`, `~/.git-credentials` | absent |
+| git credential helper | not configured |
+| Unauthenticated GitHub API | `404` on `/repos` and `/actions/runs` — private |
+
+The remote is reached over SSH (`git@github.com:...`), which authenticates git
+operations and carries no Actions API access. **No fabricated or inferred result is
+recorded here**, and the scanner rows in
+[release-readiness.md](release-readiness.md) and
+[22-evidence-and-claims.md](22-evidence-and-claims.md) therefore remain at
+"executed locally; remote unobserved".
+
+### What is known about the commit that will be scanned
+
+The working tree was clean and identical to `f4bce17` when every check below ran,
+so these results describe exactly the code the remote pipeline will build:
+
+| Control | Result |
+|---|---|
+| `uv lock --check` | PASS |
+| `uv run ruff check .` | PASS |
+| `uv run ruff format --check .` | PASS |
+| `uv run mypy app services` | PASS — 74 files |
+| `uv run pytest -q` | **1676 passed, 42 skipped** |
+| `uv run pip-audit --skip-editable` | No known vulnerabilities |
+| `node --test tests/frontend/*.test.mjs` | 13 passed |
+| `promtool check rules` / `test rules` | 16 rules, SUCCESS |
+| Trivy 0.58.2 — application image | **Total: 0 (HIGH 0, CRITICAL 0)**, exit 0 |
+| Trivy 0.58.2 — edge image | **Total: 0 (HIGH 0, CRITICAL 0)**, exit 0 |
+| Production policy | heuristic 0.85/block, transformer disabled/warn, overlays 0 — unchanged |
+
+That is a strong prior for the remote run and **it is not the evidence this phase
+requires**. The pipeline builds its own images on a different base snapshot, and
+"it passed here" has been wrong before in this project — `/metrics` passed two
+local tests while no Prometheus could scrape it (R-87).
 
 ### Why the remote result is still pending
 

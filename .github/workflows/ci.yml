@@ -241,8 +241,14 @@ jobs:
       # build, unfixed findings are excluded because there is no action to take on
       # them. Phase 19 adds only the report file and its retention -- a scan whose
       # result exists solely in an expiring job log is not release evidence.
+      # Pinned to the v0.36.0 commit, not to a tag: this is the security scanner,
+      # and a tag can be moved under it. The previous reference was
+      # `aquasecurity/trivy-action@0.28.0`, which has never existed — the tag is
+      # `v0.28.0`, with the `v`. GitHub could not resolve it, so the job died at
+      # workflow resolution and **the scan never started**. The policy below is
+      # unchanged (ADR-033).
       - name: Scan image for vulnerabilities
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: llm-firewall:ci
           format: table
@@ -270,7 +276,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Scan the edge image for vulnerabilities
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: llm-firewall-edge:ci
           format: table
@@ -499,19 +505,47 @@ jobs:
       # false (docs/22-evidence-and-claims.md).
       - name: Provision a caller credential and re-run the edge suite
         run: |
+          set -euo pipefail
+          # Cleanup on EVERY exit path. Previously `rm -f .env` was the last line,
+          # so a failing pytest left the digest on the runner for whatever ran
+          # next. The credential is ephemeral and must behave like it.
+          trap 'rm -f .env' EXIT
+
           out=$(uv run python scripts/generate_caller_key.py ci-app)
-          raw=$(echo "$out" | sed -n '4p' | tr -d ' ')
-          digest=$(echo "$out" | sed -n '7p' | tr -d ' ' | sed 's/FIREWALL_CALLER_API_KEYS=//')
+          # Matched by SHAPE, not by line number. This read lines 4 and 7 of a
+          # human-readable report, which silently yields garbage the first time
+          # that report gains a line — and the failure would look like a broken
+          # auth boundary rather than a broken parser.
+          raw=$(printf '%s\n' "$out" | grep -oE 'fw-[A-Za-z0-9_-]{20,}' | head -1)
+          digest=$(printf '%s\n' "$out" | grep -oE 'ci-app:[0-9a-f]{64}' | head -1)
+          if [ -z "$raw" ] || [ -z "$digest" ]; then
+            echo "credential provisioning produced nothing usable"; exit 1
+          fi
           echo "::add-mask::$raw"
+
           # `.env` is already an optional env_file for firewall-api and is
           # gitignored, so no new mechanism is introduced. The digest goes to the
           # gateway and the raw key to the test, exactly as a real deployment
           # splits them (ADR-024) — neither is ever written to the repository.
           printf 'FIREWALL_CALLER_AUTH_MODE=api_key\nFIREWALL_CALLER_API_KEYS=%s\n' "$digest" > .env
-          docker compose -f compose.yaml -f compose.edge.yaml up -d --no-deps \
-            --force-recreate --wait firewall-api
+
+          # Same file set as the initial `up`, so recreating one service cannot
+          # resolve to a different topology than the stack it rejoins.
+          docker compose -f compose.yaml -f compose.edge.yaml -f compose.observability.yaml \
+            up -d --no-deps --force-recreate --wait firewall-api
+
+          # Prove the boundary actually came up before claiming to have tested it.
+          # Without this a misconfiguration runs the "authenticated" suite against
+          # an unauthenticated gateway and reports success — a false green on the
+          # single property this step exists to demonstrate.
+          enforced=$(curl -fsS http://localhost:8000/api/v1/system/status \
+            | python3 -c 'import sys,json;print(json.load(sys.stdin)["caller_auth_enforced"])')
+          if [ "$enforced" != "True" ]; then
+            echo "caller authentication did not engage (caller_auth_enforced=$enforced)"; exit 1
+          fi
+          echo "caller boundary enforced; running the authenticated edge suite"
+
           EDGE_TEST_CALLER_KEY="$raw" uv run pytest tests/integration/test_edge_proxy.py -q
-          rm -f .env
 
       - name: Dump logs on failure
         if: failure()

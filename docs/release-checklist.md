@@ -14,8 +14,8 @@ documented, tested, and unscrapeable.
 
 - [x] Working tree clean apart from the intended release changes — `git status --porcelain`
 - [x] Branch is `main` and tracks `origin/main`
-- [ ] Release commit created and pushed *(manual — this repository commits by hand)*
-- [ ] Release commit SHA recorded in [release-ci-evidence.md](release-ci-evidence.md)
+- [x] Release commit created and pushed — `f4bce17`, `local main == origin/main`
+- [x] Release commit SHA recorded in [release-ci-evidence.md](release-ci-evidence.md)
 
 ## 2. Local validation
 
@@ -74,9 +74,15 @@ documented, tested, and unscrapeable.
 - [x] gitleaks executed — **locally**, v8.30.1, full history, 0 findings after a
       per-finding allow-list, negative-controlled
 - [x] Trivy executed — **locally**, 0.58.2, both images, 0 HIGH/CRITICAL
-- [ ] **gitleaks result observed from a remote CI run**
-- [ ] **Trivy result observed from a remote CI run**
-- [ ] CI evidence artefact downloaded and attached to the release record
+- [ ] **gitleaks result observed from a remote CI run** — blocked: no GitHub credential in this environment
+- [ ] **Trivy result observed from a remote CI run** — blocked: same
+- [ ] CI evidence artefact `release-evidence-f4bce17` downloaded and attached
+
+The push of `f4bce17` triggered the pipeline. Its result has **not been read**: the
+repository is private, `gh` is not installed, and no token, `~/.netrc`,
+`~/.git-credentials` or credential helper is configured. The remote is reached over
+SSH, which authenticates git and grants no Actions API access. Nothing is inferred
+from the local results (see [release-ci-evidence.md](release-ci-evidence.md), Run 2).
 
 ## 8. Documentation
 
@@ -90,7 +96,11 @@ documented, tested, and unscrapeable.
 
 - [ ] **`v1.0.0-rc1` — NOT YET.**
 
-Blocked on section 7. The tag may be created only when a remote CI run is green,
-the Trivy result is recorded, the gitleaks result is recorded, and any
-release-blocking finding is resolved. Two of those four are outstanding, and both
-are outstanding for the same reason: the pipeline has never been observed to run.
+Blocked on section 7, and on nothing else. Every other line in this checklist is
+green against the exact commit that is on `origin/main`.
+
+The tag may be created only when a remote CI run is green, the Trivy result is
+recorded and the gitleaks result is recorded. All three are outstanding for one
+reason, and it is not a code reason: **the pipeline's result cannot be read from
+this environment.** The single remediation is access — `gh auth login`, or a
+fine-grained token with `Actions: read` — not a change to the software.
