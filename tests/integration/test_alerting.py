@@ -32,6 +32,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 ALERTS_DIR = REPO_ROOT / "deploy" / "alerts"
 PROM_IMAGE = "prom/prometheus:v3.5.0"
 PROM_URL = "http://localhost:9091"
+GATEWAY_URL = "http://localhost:8000"
 
 
 def docker_binary() -> str | None:
@@ -138,9 +139,18 @@ def test_every_metric_the_rules_reference_exists_in_the_scraped_data():
     checks the names against the registry; this checks them against what a scrape
     actually produced.
 
-    Metrics that only appear once something goes wrong are exempt by name — a
-    healthy gateway legitimately has no detector errors and no rate-limit denials,
-    and requiring them here would mean requiring the system to be broken.
+    **The test drives the traffic it depends on.** Request-path metrics
+    (`firewall_requests_total`, the overhead histogram, the detector histogram)
+    do not exist until the gateway has served something, and Prometheus has to
+    have scraped since. Before Phase 19B this test simply assumed both, so it
+    passed whenever an earlier test in the session happened to generate traffic
+    and failed in CI when it ran first — remote run 32441308224, naming exactly
+    those three series. Establishing the precondition is the fix; exempting them
+    would have deleted the assertion.
+
+    Metrics that only appear once something goes wrong stay exempt by name — a
+    healthy gateway legitimately has no detector errors and no rate-limit
+    denials, and requiring them would mean requiring the system to be broken.
     """
     only_on_failure = {
         "firewall_detector_errors_total",
@@ -154,6 +164,7 @@ def test_every_metric_the_rules_reference_exists_in_the_scraped_data():
         "firewall_audit_queue_depth",
     }
     import re
+    import time
 
     import yaml
 
@@ -162,11 +173,35 @@ def test_every_metric_the_rules_reference_exists_in_the_scraped_data():
     for group in rules["groups"]:
         for rule in group["rules"]:
             referenced |= set(re.findall(r"\bfirewall_[a-z_]+\b", rule["expr"]))
+    expected = referenced - only_on_failure
 
-    names = set(query("/api/v1/label/__name__/values")["data"])
-    missing = {
-        name
-        for name in referenced - only_on_failure
-        if name not in names and name.removesuffix("_bucket").removesuffix("_count") not in names
-    }
+    # One benign request, so the request-path families exist at all.
+    request = urllib.request.Request(  # noqa: S310 - fixed http:// literal, no user input
+        f"{GATEWAY_URL}/v1/chat/completions",
+        data=json.dumps(
+            {"model": "mock-model", "messages": [{"role": "user", "content": "2+2?"}]}
+        ).encode(),
+        headers={"content-type": "application/json"},
+    )
+    try:
+        urllib.request.urlopen(request, timeout=15).read()  # noqa: S310
+    except Exception as exc:
+        print(f"traffic generation failed: {type(exc).__name__}")
+
+    # Then wait for a scrape to pick it up. Bounded: the scrape interval is 15s,
+    # so this polls rather than sleeping a fixed guess.
+    deadline = time.monotonic() + 90
+    missing: set[str] = set()
+    while time.monotonic() < deadline:
+        names = set(query("/api/v1/label/__name__/values")["data"])
+        missing = {
+            name
+            for name in expected
+            if name not in names
+            and name.removesuffix("_bucket").removesuffix("_count") not in names
+        }
+        if not missing:
+            break
+        time.sleep(5)
+
     assert not missing, f"rules reference metrics no scrape produced: {sorted(missing)}"

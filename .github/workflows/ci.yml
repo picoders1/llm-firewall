@@ -17,9 +17,21 @@ env:
   UV_VERSION: "0.12.5"
   PYTHON_VERSION: "3.12"
 
+# Feature branches cancel in progress; `main` never does.
+#
+# A push to `main` used to cancel the run already validating the previous commit,
+# and the jobs it killed were exactly the slow ones that produce release
+# evidence — container build, Trivy, TLS, integration, production topology. Run
+# 32452165561 died that way with 7 green jobs and 4 cancelled, and the evidence
+# upload then reported "No files were found", which reads like a scanner failure
+# and is not one.
+#
+# Release evidence has to correspond to a COMPLETED validation of one exact
+# commit, so on `main` a newer push queues behind the current run instead of
+# killing it. Elsewhere fast feedback is worth more than a complete matrix.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   lock-check:
@@ -449,15 +461,29 @@ jobs:
           docker compose -f compose.yaml -f compose.edge.yaml
           -f compose.observability.yaml up -d --build
 
+      # The loop used to discard curl's error, so a timeout could not be told
+      # apart from a refused connection, a 404, or a 503 from a required
+      # readiness check. Run 32452271962 failed here with the gateway visibly
+      # healthy — serving /health to the edge and /metrics to Prometheus — and
+      # the log said nothing about why the runner could not reach it.
       - name: Wait for readiness
         run: |
           for i in $(seq 1 60); do
             if curl -fsS http://localhost:8000/ready >/dev/null 2>&1; then
-              echo "ready after ${i}s"; exit 0
+              echo "ready after $((i * 2))s"; exit 0
             fi
             sleep 2
           done
-          echo "stack did not become ready"; docker compose logs; exit 1
+          echo "::error::the gateway never became ready on localhost:8000"
+          echo "--- last curl attempt, verbose ---"
+          curl -sS -o /tmp/ready.out -w 'http_code=%{http_code} exitcode=%{exitcode} connect=%{time_connect}s\n' \
+            http://localhost:8000/ready || echo "curl exit=$?"
+          echo "--- body ---"; head -c 2000 /tmp/ready.out || true
+          echo "--- container state and published ports ---"
+          docker compose -f compose.yaml -f compose.edge.yaml -f compose.observability.yaml ps || true
+          echo "--- host listeners ---"; ss -ltnp || true
+          docker compose -f compose.yaml -f compose.edge.yaml -f compose.observability.yaml logs
+          exit 1
 
       - name: Wait for the edge
         run: |
