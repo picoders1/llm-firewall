@@ -18,6 +18,7 @@ advertising OpenMetrics while serving the text format (R-87).
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import socket
 import subprocess
@@ -32,7 +33,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 ALERTS_DIR = REPO_ROOT / "deploy" / "alerts"
 PROM_IMAGE = "prom/prometheus:v3.5.0"
 PROM_URL = "http://localhost:9091"
-GATEWAY_URL = "http://localhost:8000"
+# Same convention as every sibling integration test: the gateway is published
+# on host :8005 by compose.yaml, overridable for a differently-mapped stack.
+GATEWAY_URL = os.environ.get("FIREWALL_BASE_URL", "http://localhost:8005")
 
 
 def docker_binary() -> str | None:

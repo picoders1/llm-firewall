@@ -447,6 +447,15 @@ jobs:
     name: integration tests
     runs-on: ubuntu-latest
     needs: [lint, types, test]
+    # The gateway's PUBLISHED host port, declared once. `compose.yaml` maps
+    # host :8005 -> container :8000; the container, the edge's proxy_pass and the
+    # Prometheus target all still use :8000, so only this outside-facing number
+    # moved. CI probed :8005's old value and got a refused connection that looked
+    # like a dead gateway (run 32499859845). The integration tests already read
+    # this variable, so declaring it here keeps the probes and the suite pointed
+    # at the same place by construction rather than by two matching literals.
+    env:
+      FIREWALL_BASE_URL: http://localhost:8005
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -469,15 +478,15 @@ jobs:
       - name: Wait for readiness
         run: |
           for i in $(seq 1 60); do
-            if curl -fsS http://localhost:8000/ready >/dev/null 2>&1; then
+            if curl -fsS "$FIREWALL_BASE_URL/ready" >/dev/null 2>&1; then
               echo "ready after $((i * 2))s"; exit 0
             fi
             sleep 2
           done
-          echo "::error::the gateway never became ready on localhost:8000"
+          echo "::error::the gateway never became ready on $FIREWALL_BASE_URL"
           echo "--- last curl attempt, verbose ---"
           curl -sS -o /tmp/ready.out -w 'http_code=%{http_code} exitcode=%{exitcode} connect=%{time_connect}s\n' \
-            http://localhost:8000/ready || echo "curl exit=$?"
+            "$FIREWALL_BASE_URL/ready" || echo "curl exit=$?"
           echo "--- body ---"; head -c 2000 /tmp/ready.out || true
           echo "--- container state and published ports ---"
           docker compose -f compose.yaml -f compose.edge.yaml -f compose.observability.yaml ps || true
@@ -564,7 +573,7 @@ jobs:
           # Without this a misconfiguration runs the "authenticated" suite against
           # an unauthenticated gateway and reports success — a false green on the
           # single property this step exists to demonstrate.
-          enforced=$(curl -fsS http://localhost:8000/api/v1/system/status \
+          enforced=$(curl -fsS "$FIREWALL_BASE_URL/api/v1/system/status" \
             | python3 -c 'import sys,json;print(json.load(sys.stdin)["caller_auth_enforced"])')
           if [ "$enforced" != "True" ]; then
             echo "caller authentication did not engage (caller_auth_enforced=$enforced)"; exit 1
