@@ -43,7 +43,19 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM ${PYTHON_IMAGE} AS runtime
 
 # curl is present solely for HEALTHCHECK; everything else is the base image.
+#
+# `apt-get upgrade` sits in tension with the digest pin above, and the tension is
+# resolved deliberately in favour of patching. The pin fixes which base this build
+# starts from, so the change is reviewable; the upgrade applies the security
+# updates Debian has published since that base was built. Without it the image
+# ships whatever was current when upstream last rebuilt, which in Phase 19 meant
+# four HIGH util-linux CVEs (CVE-2026-53612/13/14/15) with a fix available in the
+# archive and not yet in `python:3.12-slim-trixie` (ADR-033).
+#
+# Reproducibility is not lost, it moves: CI records the built image's identity
+# alongside the commit, which is the identifier a release is actually traced by.
 RUN apt-get update \
+    && apt-get upgrade -y --no-install-recommends \
     && apt-get install --no-install-recommends -y curl \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 10001 --shell /usr/sbin/nologin app

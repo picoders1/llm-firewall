@@ -10,7 +10,14 @@ FROM nginx:1.27-alpine
 
 # openssl is needed at START-UP, not at build time: the entrypoint matches the
 # private key against the certificate before nginx is asked to load either.
-RUN apk add --no-cache openssl
+#
+# `apk upgrade` for the same reason the application image runs `apt-get upgrade`:
+# this container is the one on the public internet, and Phase 19 found 21 HIGH
+# CVEs in it — musl, zlib, libxml2, libexpat, libpng and nghttp2-libs, the last of
+# which serves the HTTP/2 this edge terminates. Every one had a fix in the Alpine
+# archive and none was in the base image, which nothing had ever scanned
+# (ADR-033).
+RUN apk upgrade --no-cache && apk add --no-cache openssl
 
 COPY deploy/docker/edge/available/ /etc/nginx/available/
 COPY deploy/docker/edge/render-edge-config.sh /docker-entrypoint.d/05-render-edge-config.sh
