@@ -6,7 +6,12 @@
  * which is the failure mode this project cares about most. A browser driver
  * would test that they were called, not that they are right.
  *
- *   node --test tests/frontend/
+ *   node --test tests/frontend/*.test.mjs
+ *
+ * The directory form (`node --test tests/frontend/`) is NOT equivalent on Node 22:
+ * it resolves the directory as a module and exits 1 before running anything, which
+ * looks exactly like a failing suite. Corrected in Phase 19 after CI was found not
+ * to run these at all.
  */
 
 import { test } from "node:test";

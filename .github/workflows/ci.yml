@@ -85,6 +85,27 @@ jobs:
           echo "collected: $count"
           uv run pytest -m security -q
 
+  frontend:
+    name: frontend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # No package.json, no install, no lockfile: the console has no build step and
+      # no dependencies, so its tests use node's built-in runner and nothing else
+      # (ADR-022). Adding a package manager here to run 13 tests would introduce
+      # the dependency surface the dashboard was designed to avoid.
+      #
+      # The explicit glob is load-bearing. `node --test tests/frontend/` resolves
+      # the directory as a module on Node 22 and exits 1 before running anything --
+      # which is why this job did not exist until Phase 19 found the documented
+      # invocation was broken.
+      - name: Formatter and DOM-safety tests
+        run: node --test tests/frontend/*.test.mjs
+
   alerts:
     name: alert rules
     runs-on: ubuntu-latest
@@ -150,6 +171,7 @@ jobs:
 
       - uses: docker/setup-buildx-action@v3
       - name: Build image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -159,14 +181,45 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # The identifier of the artefact everything below actually inspects. Without
+      # it the scan result names a mutable local tag and cannot be tied to a
+      # commit after the fact, which makes it evidence of nothing.
+      - name: Record the release-candidate image identity
+        run: |
+          {
+            echo "commit:     ${{ github.sha }}"
+            echo "workflow:   ${{ github.run_id }} attempt ${{ github.run_attempt }}"
+            echo "dockerfile: deploy/docker/Dockerfile"
+            echo "image_id:   ${{ steps.build.outputs.imageid }}"
+            echo "digest:     ${{ steps.build.outputs.digest }}"
+            echo "inspected:  $(docker image inspect --format '{{.Id}}' llm-firewall:ci)"
+          } | tee image-identity.txt
+
       - name: Image must not contain secrets, tests or build tools
         run: |
           docker run --rm --entrypoint sh llm-firewall:ci -c '
             test ! -e /app/.env      || { echo "FAIL: .env in image"; exit 1; }
             test ! -e /app/tests     || { echo "FAIL: tests in image"; exit 1; }
+            test ! -e /app/.git      || { echo "FAIL: .git in image"; exit 1; }
+            test ! -e /app/artifacts || { echo "FAIL: checkpoints in image"; exit 1; }
             ! command -v gcc >/dev/null || { echo "FAIL: compiler in runtime"; exit 1; }
             test "$(id -u)" != "0"   || { echo "FAIL: running as root"; exit 1; }
             echo OK'
+
+      # Phase 18 found 17 MB of per-sample benchmark rows shipping in this image:
+      # the .dockerignore excluded `predictions*`, and the harness had started
+      # writing `raw_results.jsonl`. The allow-list that replaced it is asserted
+      # here against the built artefact rather than against the ignore file,
+      # because the ignore file is what was wrong (R-92).
+      - name: Image must carry only the evaluation summaries the console opens
+        run: |
+          stray=$(docker run --rm --entrypoint sh llm-firewall:ci -c \
+            'find /app/eval -type f ! -name result.json 2>/dev/null')
+          if [ -n "$stray" ]; then
+            echo "FAIL: non-summary evaluation artefacts in the image:"; echo "$stray"; exit 1
+          fi
+          docker run --rm --entrypoint sh llm-firewall:ci -c \
+            'echo "result.json files: $(find /app/eval -name result.json | wc -l)"'
 
       - name: Boot the container and check /health
         run: |
@@ -184,14 +237,64 @@ jobs:
           curl -fsS http://localhost:8000/ready  | tee /dev/stderr | grep -q '"status":"ready"'
           docker rm -f firewall
 
+      # Policy unchanged from docs/18-ci-cd-strategy.md: HIGH/CRITICAL fails the
+      # build, unfixed findings are excluded because there is no action to take on
+      # them. Phase 19 adds only the report file and its retention -- a scan whose
+      # result exists solely in an expiring job log is not release evidence.
       - name: Scan image for vulnerabilities
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: llm-firewall:ci
           format: table
+          output: trivy-image-report.txt
           exit-code: "1"
           ignore-unfixed: true
           severity: HIGH,CRITICAL
+
+      - name: Show the scan result
+        if: always()
+        run: cat trivy-image-report.txt || echo "(no report produced)"
+
+      # The edge is the container on the public internet and nothing scanned it
+      # until Phase 19, which found 21 HIGH CVEs in it including nghttp2 — the
+      # library serving the HTTP/2 it terminates. Same policy as the application
+      # image; there is no reason the ingress should be held to a looser one.
+      - name: Build the reference edge image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.edge
+          tags: llm-firewall-edge:ci
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Scan the edge image for vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: llm-firewall-edge:ci
+          format: table
+          output: trivy-edge-report.txt
+          exit-code: "1"
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+
+      - name: Show the edge scan result
+        if: always()
+        run: cat trivy-edge-report.txt || echo "(no report produced)"
+
+      # `always()`: the report matters most on the run where the gate failed.
+      - name: Retain the release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-evidence-${{ github.sha }}
+          path: |
+            image-identity.txt
+            trivy-image-report.txt
+            trivy-edge-report.txt
+          retention-days: 90
+          if-no-files-found: warn
 
   tls:
     name: TLS integration
