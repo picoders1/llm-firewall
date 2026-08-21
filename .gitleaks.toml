@@ -1,0 +1,66 @@
+# gitleaks configuration (ADR-033).
+#
+# Extends the default rule set — it is NOT replaced, and no rule is disabled.
+# What follows is a per-finding allow-list, and every entry names the finding it
+# covers and why that string is not a credential. A blanket `paths = ['tests/']`
+# would be the easy version and would also mean a real key committed to a test
+# fixture never trips the scanner again.
+#
+# Rule for adding an entry: state the classification. If the honest answer is
+# "it is a secret but an unimportant one", rotate it instead.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = """
+FALSE POSITIVE (4 findings). `tokenizer_revision` pins the upstream HuggingFace
+tokenizer repository to an exact commit, which is 40 hex characters and therefore
+high-entropy. It is the reproducibility metadata docs/13-evaluation-strategy.md
+requires every evaluation artefact to carry: without it a report cannot be tied to
+the tokenizer that produced it. Removing it to satisfy a scanner would destroy the
+provenance of four committed experiments.
+"""
+targetRules = ["generic-api-key"]
+regexTarget = "match"
+regexes = ['''tokenizer_revision"?\s*:\s*"?[0-9a-f]{40}''']
+
+[[allowlists]]
+description = """
+SYNTHETIC FIXTURE (1 finding). The caller credential the test suite presents to
+the /v1 boundary. It is high-entropy on purpose — ADR-024 mints keys with
+`secrets.token_urlsafe(32)` and a memorable fixture would quietly break the
+assumption that an unsalted SHA-256 is adequate. It authenticates against nothing
+outside the test process, and the digest the gateway would compare it to is
+computed in the same file.
+"""
+targetRules = ["generic-api-key"]
+paths = ['''^tests/conftest\.py$''']
+regexTarget = "match"
+regexes = ['''fw-test-[A-Za-z0-9_-]+''']
+
+[[allowlists]]
+description = """
+SYNTHETIC CANARY (1 finding). A deliberately token-shaped string in a privacy
+test, whose entire purpose is to assert that a value like this never reaches a log
+line, an audit row or a dashboard response. The test is the reason the string
+exists.
+"""
+targetRules = ["generic-api-key"]
+paths = ['''^tests/security/test_provenance_privacy\.py$''']
+regexTarget = "match"
+regexes = ['''token=abcdef123456''']
+
+[[allowlists]]
+description = """
+DOCUMENTATION EXAMPLE (1 finding). The htpasswd credential from
+compose.console-auth.yaml, an opt-in local overlay used to exercise the operator
+boundary by hand. It is named `development-only` in the manifest, the overlay is
+never part of the production topology, and compose.prod.yaml is standalone so it
+cannot inherit it. Documenting the exact command an operator runs is worth more
+than hiding a string that grants access to a container on their own laptop.
+"""
+targetRules = ["curl-auth-user"]
+paths = ['''^docs/.*\.md$''']
+regexTarget = "match"
+regexes = ['''operator:development-only''']
