@@ -326,6 +326,7 @@ Testing conventions: [docs/16-testing-strategy.md](docs/16-testing-strategy.md).
 | 16 | Audit retention and data lifecycle | **Complete** ([ADR-030](docs/adr/ADR-030-audit-retention.md)) |
 | 17 | Security alerting and incident runbook | **Complete** ([ADR-031](docs/adr/ADR-031-alerting-and-incident-response.md)) |
 | 18 | Release-candidate hardening and readiness audit | **Complete** ([ADR-032](docs/adr/ADR-032-release-candidate-readiness.md), [release-readiness.md](docs/release-readiness.md)) |
+| 19 | Release scanning and CI evidence | **Partial** — both scanners executed and both images now clean ([ADR-033](docs/adr/ADR-033-release-scanning-and-base-image-patching.md)); **a remote CI run has still never been observed** |
 
 Known gaps today: **every limit in the production manifests is a development default, not a measured one** (R-67) — sizing has been pending Phase 4 benchmarks since Phase 0; no streaming (returns `400`); no rolling updates in the Compose reference (R-74); the edge→firewall hop is plaintext on an
 isolated network by design (R-68, OD-39); certificate expiry is only checked at start-up, so

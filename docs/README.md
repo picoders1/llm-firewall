@@ -78,6 +78,8 @@ summary elsewhere.
 | [12-observability.md](12-observability.md) | Logs, metric catalogue, span structure, health vs readiness |
 | [runbook.md](runbook.md) | Incident runbook: one entry per alert — meaning, evidence, mitigation, escalation, resolution — and the conditions deliberately not alerted |
 | [release-readiness.md](release-readiness.md) | Phase 18 audit: every capability graded PASS/PARTIAL/DEFERRED/SUPERSEDED against implementation, tests, live evidence and docs |
+| [release-ci-evidence.md](release-ci-evidence.md) | What each scanner and pipeline control actually produced, and in which environment |
+| [release-checklist.md](release-checklist.md) | The gate between a release candidate and a tag |
 
 ### Evaluation
 | Doc | Contents |

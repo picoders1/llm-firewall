@@ -35,12 +35,21 @@ transports are exercised and neither is assumed from the other.
 | `test` | `pytest -m "unit or api or security" --cov=app` | Any failure; coverage below floor |
 | `integration` | Postgres service container, `alembic upgrade head`, `pytest -m integration` | Any failure |
 | `security` | `pip-audit`, ruff `S` rules, `gitleaks` | Known CVE in a pinned dependency; any detected secret |
-| `build` | `docker build`, boot the container, `curl /health`, Trivy image scan | Build failure, unhealthy container, HIGH/CRITICAL CVE |
+| `frontend` | `node --test tests/frontend/*.test.mjs` | Any failure. **The glob is load-bearing**: `node --test tests/frontend/` resolves the directory as a module on Node 22 and exits 1 before running anything |
+| `alerts` | `promtool check rules`, `promtool test rules` | Invalid rule; any alert whose behaviour differs from its registered test |
+| `build` | `docker build`, record image identity, image-content assertions, boot the container, `curl /health`, Trivy scan of **both** the application and edge images | Build failure, unhealthy container, HIGH/CRITICAL CVE, any non-summary evaluation artefact in the image |
 | `eval-smoke` | `pytest -m evaluation` + a smoke evaluation run | Harness failure or invalid report |
 | `lock-check` | `uv lock --check` | Lockfile out of date with `pyproject.toml` |
 
-`lint`, `types`, `test`, `security` and `lock-check` run in parallel; `integration` and
-`build` follow.
+`lint`, `types`, `test`, `frontend`, `alerts`, `security` and `lock-check` run in parallel;
+`integration`, `tls`, `deployment` and `build` follow.
+
+**Evidence retention.** The `build` job uploads `image-identity.txt` (commit, run,
+Dockerfile, image ID and digest) and both Trivy reports as `release-evidence-<sha>`,
+kept 90 days, with `if: always()` so the report survives the run where the gate
+failed — which is the run whose report someone will actually want. A scan whose
+result exists only in an expiring job log is not release evidence
+([release-ci-evidence.md](release-ci-evidence.md)).
 
 ## Why `eval-smoke` is a CI job
 
@@ -86,7 +95,9 @@ Placeholders and documentation for deployment live in
 | `types` | A new untyped dependency needs a stub or an override entry |
 | `integration` | Postgres service not healthy yet — the job waits on `pg_isready`, not a sleep |
 | `security` | New CVE in a pinned dependency; bump and re-lock rather than suppress |
-| `build` | Trivy HIGH/CRITICAL — usually the base image; refresh the pinned digest |
+| `build` | Trivy HIGH/CRITICAL — usually the base image. Refresh the pinned digest **first**, then check whether it actually helped: in Phase 19 the current upstream tag carried the same vulnerable `util-linux`, and the fix had to come from `apt-get upgrade` in the runtime layer ([ADR-033](adr/ADR-033-release-scanning-and-base-image-patching.md)). Never `.trivyignore` a fixable finding because a container flag makes it hard to exploit |
+| `build` | A file under `/app/eval` that is not `result.json` — the build context allow-list and the dashboard's reader have diverged (R-92) |
+| `security` | A gitleaks finding — **classify it before touching `.gitleaks.toml`**. Allow-list entries are scoped to the matched value, never to a path alone, and the allow-list must stay negative-controlled |
 | `eval-smoke` | Report schema changed without updating the harness test |
 
 ## Not in CI, deliberately

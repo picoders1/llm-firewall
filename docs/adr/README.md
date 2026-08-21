@@ -43,6 +43,7 @@ Unresolved questions are **not** here; they are in
 | [030](ADR-030-audit-retention.md) | Audit retention: a batched, age-only deletion job with no aimable predicate | Accepted | [11](../11-data-model.md), [12](../12-observability.md) |
 | [031](ADR-031-alerting-and-incident-response.md) | Alerting policy, incident runbook, and the conditions deliberately not alerted | Accepted | [12](../12-observability.md), [runbook](../runbook.md) |
 | [032](ADR-032-release-candidate-readiness.md) | Release-candidate readiness audit: 46 capabilities graded against evidence | Accepted | [release-readiness](../release-readiness.md) |
+| [033](ADR-033-release-scanning-and-base-image-patching.md) | Scanner allow-lists, base-image patching, and edge image scanning | Accepted | [release-ci-evidence](../release-ci-evidence.md) |
 
 **Numbering note.** ADRs are numbered in the order the decisions were made and are never
 renumbered — cross-references would rot. The brief's suggested ordering (ADR-007
