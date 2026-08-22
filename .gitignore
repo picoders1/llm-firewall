@@ -55,3 +55,41 @@ eval/datasets/raw/
 # Fine-tuning checkpoints (Strategy A onward). Weights are never committed;
 # reproduce with scripts/finetune_strategy_a.py at the recorded commit + seed.
 artifacts/
+
+# --- Local-only tooling and working files ------------------------------------
+# AI coding assistants: their configuration is per-developer and per-machine, so
+# it stays out of the shared history. The files remain on disk and keep working;
+# they are simply not this project's business. CLAUDE.md is repository guidance
+# for one such tool — ADR-032 and docs/release-readiness.md refer to it as a
+# historical record of a documentation drift, and those references are to a file
+# that is now local-only by choice.
+.claude/
+CLAUDE.md
+.cursor/
+.cursorrules
+.aider*
+.continue/
+.windsurfrules
+.github/copilot-instructions.md
+
+# Machine-specific compose overlays. `compose.lan.yaml` and friends bind a
+# particular host's addresses and ports; committing one would hand the next
+# person a deployment pointed at somebody else's machine.
+compose.lan.yaml
+compose.local.yaml
+compose.*.local.yaml
+
+# Transfer artefacts and editor debris. Git bundles are how this repository
+# reaches an air-gapped host; they are a copy of the history, not part of it.
+*.bundle
+*.bundle.sha256
+*.bak
+*.orig
+*.rej
+*~
+
+# Local operational output: database dumps and anything a run leaves behind.
+# An audit dump contains real decision records and must never be committed.
+*.sql.gz
+*.sql.gz.rejected
+backups/
