@@ -1306,6 +1306,24 @@ phase-7 ledgers, and the `v1.0.0-rc1` tag.
 **No production runtime code changes.** The seam is configuration plus request
 content, exercising shipped code paths unmodified.
 
+> **Scope of this list — noted after Run 3 execution.** This list governs the
+> **phase 0c seam implementation**, and the sentence "No production runtime code
+> changes" describes **the seam**, not the run. Run 3 execution subsequently found
+> **R-111** — `firewall_audit_write_failures_total` was exported, ruled on and
+> documented, and `record_audit_failure()` had zero call sites, so
+> `FirewallAuditWriteFailing` (severity critical) could never fire. Correcting it
+> necessarily touched `app/database/repository.py` and `app/main.py`.
+>
+> That is **outside this list's subject, not a violation of it**: "What Run 3 may
+> not do" does not forbid a corrective production fix, and this project has fixed
+> R-104, R-105, R-106 and R-107 the same way — as recorded bug fixes carrying their
+> evidence, not as new ADRs. The seam itself is unchanged and remains configuration
+> plus request content, exercising shipped code paths unmodified, exactly as
+> registered above.
+>
+> R-111's evidence is in
+> `eval/results/shadow/20260821T201400Z__phase20-run3-alert-validation/report.md`.
+
 ### Amended status of #5 and #6
 
 | # | Status after Phase 0c |

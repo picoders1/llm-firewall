@@ -173,7 +173,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     if database is None:
         app.state.audit = NullAuditRepository()
     else:
-        sink = PostgresAuditRepository(database, require_audit=config.settings.require_audit)
+        sink = PostgresAuditRepository(
+            database,
+            require_audit=config.settings.require_audit,
+            # Passed in BOTH modes. The queue wraps this same sink, so a write
+            # that fails behind the queue is the same failure and has to be
+            # counted the same way (R-111).
+            metrics=app.state.metrics,
+        )
         mode = config.settings.audit_write_mode
         if mode is AuditWriteMode.SYNC:
             app.state.audit = sink

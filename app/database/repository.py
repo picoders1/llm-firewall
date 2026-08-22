@@ -51,9 +51,16 @@ class NullAuditRepository:
 
 
 class PostgresAuditRepository:
-    def __init__(self, database: Database, *, require_audit: bool = False) -> None:
+    def __init__(
+        self,
+        database: Database,
+        *,
+        require_audit: bool = False,
+        metrics: object | None = None,
+    ) -> None:
         self._database = database
         self._require_audit = require_audit
+        self._metrics = metrics
 
     async def record(self, trace: RequestTrace) -> None:
         try:
@@ -65,6 +72,19 @@ class PostgresAuditRepository:
                 error_kind=type(exc).__name__,
                 request_id=trace.request_id,
             )
+            # COUNTED, not only logged. ADR-012 promised this in Phase 0 — "the
+            # write failure is logged at ERROR and increments
+            # firewall_audit_write_failures_total, which is an alerting metric" —
+            # and `record_audit_failure()` was written, exported, given a rule
+            # (FirewallAuditWriteFailing, severity critical) and a runbook entry,
+            # and then never called from anywhere in the application.
+            #
+            # Measured in Run 3 against a stopped database: 660 `audit_write_failed`
+            # log lines in five minutes with the counter still reading 0. A critical
+            # alert whose numerator cannot move is worse than no alert, because the
+            # silence reads as health — the same defect shape as R-107 (R-111).
+            if self._metrics is not None:
+                self._metrics.record_audit_failure()  # type: ignore[attr-defined]
             if self._require_audit:
                 raise AuditWriteFailed(
                     "The audit trail is unavailable and this deployment requires it."
