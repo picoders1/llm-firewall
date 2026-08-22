@@ -25,7 +25,11 @@ from __future__ import annotations
 import pytest
 
 from app.core.types import Action
-from app.database.repository import PostgresAuditRepository, QueuedAuditRepository
+from app.database.repository import (
+    AuditWriteFailed,
+    PostgresAuditRepository,
+    QueuedAuditRepository,
+)
 from app.models.events import RequestTrace
 from app.observability.metrics import Metrics
 
@@ -111,6 +115,36 @@ async def test_the_request_still_succeeds_when_the_audit_write_fails(metrics: Me
     record, never the decision. `record` must not raise unless `require_audit`."""
     repo = PostgresAuditRepository(ExplodingDatabase(), metrics=metrics)
     await repo.record(trace())  # must not raise
+
+
+async def test_require_audit_still_raises_and_still_counts(metrics: Metrics):
+    """The `require_audit=true` branch — the one line below the R-111 change.
+
+    Nothing in the repository constructed `PostgresAuditRepository(require_audit=True)`
+    before this test (F6): the only `AuditWriteFailed` coverage used a hand-written
+    stub, so the real repository's inversion of ADR-012's default was untested both
+    before and after R-111.
+
+    Two properties, and both matter. The refusal must still happen — that is the
+    whole point of the setting — and the failure must *also* be counted, because a
+    `require_audit` deployment losing its audit trail is at least as alerting-worthy
+    as one that shrugs it off. The increment is placed above the raise for exactly
+    that reason.
+    """
+    repo = PostgresAuditRepository(ExplodingDatabase(), require_audit=True, metrics=metrics)
+
+    with pytest.raises(AuditWriteFailed):
+        await repo.record(trace())
+
+    assert failures(metrics) == 1.0
+
+
+async def test_require_audit_false_is_the_shipped_default(metrics: Metrics):
+    """ADR-012's default is deliberate and easy to invert by accident, so it is
+    asserted rather than assumed: no keyword, no raise."""
+    repo = PostgresAuditRepository(ExplodingDatabase(), metrics=metrics)
+    await repo.record(trace())  # must not raise
+    assert failures(metrics) == 1.0
 
 
 async def test_metrics_are_optional(metrics: Metrics):

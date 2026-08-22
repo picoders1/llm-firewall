@@ -29,6 +29,8 @@ import argparse
 import asyncio
 import sys
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.config.settings import Settings
 from app.database.retention import RetentionPolicy, RetentionSweeper, SweepReport
 from app.database.session import Database
@@ -80,6 +82,27 @@ async def _run(execute: bool, max_rows: int) -> int:
     )
     try:
         report = await sweeper.sweep(dry_run=not execute)
+    except (OSError, SQLAlchemyError) as exc:
+        # The runbook sends an operator here from FirewallRetentionStalled and
+        # FirewallAuditBacklogExceedsRetention — the two entries whose whole
+        # subject is retention not running, which very often means the database
+        # is down. Answering that with 129 lines of traceback and no message is
+        # the least useful thing this tool could do at 3am (R-112, found by
+        # walking the runbook against a genuinely firing alert rather than a
+        # healthy stack).
+        #
+        # The URL is NOT echoed: it carries the password. The exception type and
+        # its message are enough to distinguish "wrong host", "refused" and
+        # "authentication failed", and none of those need the credential.
+        print(
+            f"Cannot reach the audit database ({type(exc).__name__}: {exc}).\n"
+            "Nothing was read and nothing was deleted. Check that the database is "
+            "running and that FIREWALL_DATABASE_URL points at it — from a shell "
+            "that is not the gateway's container, the host is usually not the one "
+            "in compose.",
+            file=sys.stderr,
+        )
+        return 1
     finally:
         await database.aclose()
 
