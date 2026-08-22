@@ -8,59 +8,85 @@
 #
 # Rule for adding an entry: state the classification. If the honest answer is
 # "it is a secret but an unimportant one", rotate it instead.
+#
+# --- Why this file is shaped the way it is (2026-08-22) ----------------------
+#
+# It used to declare four `[[allowlists]]` tables, one per finding, each with its
+# own `paths` and `targetRules`. That is valid TOML, gitleaks loaded it without
+# complaint, and it suppressed **nothing**: gitleaks 8.24.3 reads a single
+# `[allowlist]` table and ignores the plural form entirely. Measured, not
+# guessed — scanning all 48 commits reported 8 findings with the config and the
+# same 8 with the default rules alone.
+#
+# It went unnoticed because the CI job scans only the commit range being pushed
+# (`<base>^..<head>`), and no push had ever included these files in its range
+# until a history rewrite re-scanned eighteen commits at once. A control that
+# passes because nothing exercised it is not a passing control.
+#
+# Two consequences for how entries are written now:
+#
+#   * One `[allowlist]` table. Per-finding structure is carried by the comments
+#     below, because the format allows only one.
+#   * `regexes` only, no `paths`. Within an allowlist gitleaks ORs its criteria,
+#     so a `paths` entry would exempt the whole file for every rule — the exact
+#     blanket the header above refuses. Matching the literal string instead is
+#     strictly narrower: a real credential added to any of these files is still
+#     caught. That is asserted, not assumed — injecting a live-format GitHub PAT
+#     and Slack bot token into tests/conftest.py is still reported.
+#   * `regexTarget = "match"` because the default target is the extracted secret,
+#     and two of these patterns describe the surrounding assignment rather than
+#     the secret itself. With the default target they silently do not apply.
 
 [extend]
 useDefault = true
 
-[[allowlists]]
+[allowlist]
 description = """
-FALSE POSITIVE (4 findings). `tokenizer_revision` pins the upstream HuggingFace
-tokenizer repository to an exact commit, which is 40 hex characters and therefore
-high-entropy. It is the reproducibility metadata docs/13-evaluation-strategy.md
-requires every evaluation artefact to carry: without it a report cannot be tied to
-the tokenizer that produced it. Removing it to satisfy a scanner would destroy the
-provenance of four committed experiments.
+Five classified findings. Each regex below is the exact string, and nothing
+broader. See the per-finding classification in the comments above each entry.
 """
-targetRules = ["generic-api-key"]
 regexTarget = "match"
-regexes = ['''tokenizer_revision"?\s*:\s*"?[0-9a-f]{40}''']
+regexes = [
+  # FALSE POSITIVE (4 findings). `tokenizer_revision` pins the upstream
+  # HuggingFace tokenizer repository to an exact commit, which is 40 hex
+  # characters and therefore high-entropy. It is the reproducibility metadata
+  # docs/13-evaluation-strategy.md requires every evaluation artefact to carry:
+  # without it a report cannot be tied to the tokenizer that produced it.
+  # Removing it to satisfy a scanner would destroy the provenance of four
+  # committed experiments.
+  '''tokenizer_revision"?\s*:\s*"?[0-9a-f]{40}''',
 
-[[allowlists]]
-description = """
-SYNTHETIC FIXTURE (1 finding). The caller credential the test suite presents to
-the /v1 boundary. It is high-entropy on purpose — ADR-024 mints keys with
-`secrets.token_urlsafe(32)` and a memorable fixture would quietly break the
-assumption that an unsalted SHA-256 is adequate. It authenticates against nothing
-outside the test process, and the digest the gateway would compare it to is
-computed in the same file.
-"""
-targetRules = ["generic-api-key"]
-paths = ['''^tests/conftest\.py$''']
-regexTarget = "match"
-regexes = ['''fw-test-[A-Za-z0-9_-]+''']
+  # SYNTHETIC FIXTURE (1 finding, tests/conftest.py). The caller credential the
+  # test suite presents to the /v1 boundary. It is high-entropy on purpose —
+  # ADR-024 mints keys with `secrets.token_urlsafe(32)` and a memorable fixture
+  # would quietly break the assumption that an unsalted SHA-256 is adequate. It
+  # authenticates against nothing outside the test process, and the digest the
+  # gateway would compare it to is computed in the same file.
+  '''fw-test-[A-Za-z0-9_-]+''',
 
-[[allowlists]]
-description = """
-SYNTHETIC CANARY (1 finding). A deliberately token-shaped string in a privacy
-test, whose entire purpose is to assert that a value like this never reaches a log
-line, an audit row or a dashboard response. The test is the reason the string
-exists.
-"""
-targetRules = ["generic-api-key"]
-paths = ['''^tests/security/test_provenance_privacy\.py$''']
-regexTarget = "match"
-regexes = ['''token=abcdef123456''']
+  # SYNTHETIC CANARY (1 finding, tests/security/test_provenance_privacy.py). A
+  # deliberately token-shaped string in a privacy test, whose entire purpose is
+  # to assert that a value like this never reaches a log line, an audit row or a
+  # dashboard response. The test is the reason the string exists.
+  '''token=abcdef123456''',
 
-[[allowlists]]
-description = """
-DOCUMENTATION EXAMPLE (1 finding). The htpasswd credential from
-compose.console-auth.yaml, an opt-in local overlay used to exercise the operator
-boundary by hand. It is named `development-only` in the manifest, the overlay is
-never part of the production topology, and compose.prod.yaml is standalone so it
-cannot inherit it. Documenting the exact command an operator runs is worth more
-than hiding a string that grants access to a container on their own laptop.
-"""
-targetRules = ["curl-auth-user"]
-paths = ['''^docs/.*\.md$''']
-regexTarget = "match"
-regexes = ['''operator:development-only''']
+  # DOCUMENTATION EXAMPLE (1 finding, docs/**). The htpasswd credential from
+  # compose.console-auth.yaml, an opt-in local overlay used to exercise the
+  # operator boundary by hand. It is named `development-only` in the manifest,
+  # the overlay is never part of the production topology, and compose.prod.yaml
+  # is standalone so it cannot inherit it. Documenting the exact command an
+  # operator runs is worth more than hiding a string that grants access to a
+  # container on their own laptop.
+  '''operator:development-only''',
+
+  # SYNTHETIC FIXTURE (1 finding, tests/unit/test_upstream_status_handling.py).
+  # A deliberately key-shaped string in the R-114 regression tests, whose
+  # subject is that an upstream error body is NEVER reflected to a caller. The
+  # fixture reproduces what a provider actually returns on 401 — "Incorrect API
+  # key provided: ..." — precisely because that is the material which must not
+  # escape through the gateway; the test asserts the substring is absent from
+  # the raised error. Replacing it with something unlike a key would leave the
+  # test asserting nothing anyone cares about. Thirteen characters of obvious
+  # placeholder, issued by nobody.
+  '''sk-live-abc123''',
+]
