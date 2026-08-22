@@ -104,6 +104,14 @@ March" is unanswerable after any config change.
 *(Implementation note: the original plan hashed the file bytes. Changed during Phase 0 —
 see `PolicyConfig.version_hash` and `tests/unit/test_policy_version.py`.)*
 
+The sentence above — *the version changes if and only if behaviour changes* — was false
+until Phase 20. A set-valued policy field serialised in `PYTHONHASHSEED`-dependent order,
+so one unchanged policy hashed to either of two values depending on which process loaded
+it, and the shipped policy carried two identities that flipped on restart. Corrected in
+R-115; the reasoning, the accepted cost, and what it means for rows written before
+2026-08-22 are in the ADR-012 amendment of that date. **When reading audit history from
+before that date, `sha256:b0bf8fa3…` and `sha256:d9cfbdea…` denote the same policy.**
+
 ### `security_events`
 The append-only security record. Deliberately denormalised: an auditor reads one table, and
 it survives independently of the trace tables' retention.

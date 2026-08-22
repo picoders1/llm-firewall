@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Any, Self
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, model_validator
 
 from app.core.exceptions import ConfigurationError
 from app.core.types import ACTION_PRECEDENCE, Action, Direction, ErrorPolicy, Role, TrustLevel
@@ -47,6 +47,14 @@ SECRET_KEY_HINTS: tuple[str, ...] = (
 
 # Actions that require the detector to report character spans.
 SPAN_REQUIRING_ACTIONS = frozenset({Action.REDACT})
+
+# Identifies how `PolicyConfig.version_hash` canonicalises the model before
+# hashing. It is hashed alongside the policy so that a value produced by this
+# scheme can never be mistaken for one produced by the previous, defective one
+# (R-115). Bump it whenever the canonical form changes for a reason other than
+# the policy itself changing; every stored `policy_version` from before the bump
+# then belongs unambiguously to the older scheme.
+CANONICALISATION_SCHEME = "v2-sorted-sets"
 
 
 class DetectorCapabilities(BaseModel):
@@ -217,6 +225,23 @@ class PolicyConfig(BaseModel):
     # RAG or agent system (docs/03-request-response-flow.md).
     inspect_roles: frozenset[Role] = frozenset({Role.USER, Role.TOOL})
 
+    @field_serializer("inspect_roles")
+    def _serialise_inspect_roles(self, roles: frozenset[Role]) -> list[str]:
+        """Sorted, because a set has no order and Python's is not stable (R-115).
+
+        Pydantic renders a ``frozenset`` as a list in *set-iteration* order, which
+        for strings depends on ``PYTHONHASHSEED`` — randomised per process. That
+        made ``version_hash`` return one of two values at random for a byte-identical
+        policy, so one policy appeared in the audit trail as two versions. Sorting
+        here makes the serialised order a property of the values rather than of the
+        interpreter that happened to load them.
+
+        A new set-valued field on this model would reintroduce the defect silently;
+        `tests/unit/test_policy_version.py` fails if one is added without a
+        deterministic serialiser.
+        """
+        return sorted(role.value for role in roles)
+
     input: dict[str, DetectorPolicy] = Field(default_factory=dict)
     output: dict[str, DetectorPolicy] = Field(default_factory=dict)
 
@@ -284,11 +309,22 @@ class PolicyConfig(BaseModel):
         every persisted decision, without which "why was this blocked in March"
         is unanswerable after any config change (docs/11-data-model.md).
 
+        "Deterministic" includes *across processes*, which it was not until R-115:
+        a set-valued field serialised in ``PYTHONHASHSEED``-dependent order, so a
+        byte-identical policy hashed to one of two values at random and one policy
+        reached the audit trail as two versions. Determinism is the entire point of
+        the field, so it is asserted in a subprocess with a varied hash seed rather
+        than in-process, where the seed is fixed and the defect is invisible.
+
+        The canonicalisation scheme is hashed with the policy, so a value produced
+        here cannot be confused with one produced before the fix. Values recorded
+        by the defective scheme are not repairable and stay as they are.
+
         The policy contains no secrets by construction, so nothing secret enters
         the hash.
         """
         canonical = json.dumps(
-            self.model_dump(mode="json"),
+            {"canonicalisation": CANONICALISATION_SCHEME, "policy": self.model_dump(mode="json")},
             sort_keys=True,
             separators=(",", ":"),
             ensure_ascii=True,

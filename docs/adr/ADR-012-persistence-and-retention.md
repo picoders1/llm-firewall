@@ -203,3 +203,58 @@ preserve it — an external job holding its own credentials — is **OD-43**. Th
 grant split was in any case never implemented in a manifest: the application
 connects as the table owner today.
 
+
+## Amendment — 2026-08-22: `policy_version` was not deterministic (R-115)
+
+This ADR asserts twice that `policy_version` is what makes a historical decision
+interpretable after the policy has changed. For the whole life of the project it
+did not identify a policy.
+
+`PolicyConfig.inspect_roles` is a `frozenset[Role]`. Pydantic renders a set as a
+list in *set-iteration* order, and for strings that order derives from the hash
+seed, which CPython randomises per process. `version_hash()` therefore returned
+one of **two** values at random for a byte-identical policy, flipping on each
+restart. Two elements give two orderings, so the shipped policy had exactly two
+identities.
+
+It was found by looking at a real deployment rather than a test. 559 audit rows
+written under an unchanged policy split **404 / 155** across `sha256:b0bf8fa3…`
+and `sha256:d9cfbdea…`, the boundary falling on a container restart; a fresh
+`load_config()` *inside the running container* disagreed with what that same
+container had just recorded. The evidence was also already committed and
+unread — the twelve performance manifests of 2026-08-19 carry both values for one
+campaign against one policy, split 10 / 2.
+
+**What it did and did not affect.** No security decision changed: detectors,
+thresholds and actions were always the ones in the file, and the defect produces
+false *differences*, never false sameness. What broke is the property this ADR
+claims — asking "which policy was in force" returned two answers for one policy,
+and `/ready` and the dashboard reported whichever value their process happened to
+draw.
+
+**Why the tests did not catch it.** `tests/unit/test_policy_version.py` exists for
+this invariant and states it in prose: *"changes if and only if behaviour
+changes."* But `test_hash_is_stable_across_separate_loads` performs both loads in
+one interpreter, where the seed is constant and the two orderings cannot both
+occur. The invariant was asserted in the only environment where it could not
+fail — the same shape as R-87, R-104, R-107, R-111 and R-114, and the sixth time
+in this project that a documented, tested capability turned out never to have
+worked.
+
+**The fix**, in `app/config/policy.py`: a `@field_serializer` that sorts, so the
+serialised order is a property of the values rather than of the interpreter. The
+canonicalisation scheme identifier is hashed alongside the policy, so a value
+produced by the corrected scheme can never be read as one produced by the broken
+one. Determinism is now asserted in **subprocesses with differing
+`PYTHONHASHSEED`**, because `PYTHONHASHSEED` is read once at interpreter start and
+no in-process test can vary it. A guard test fails if any future set-valued field
+is added to the policy tree without a deterministic serialiser.
+
+**Accepted cost, and it is a real one.** The shipped policy's version becomes
+`sha256:1ad1351b…`. Rows already written under the defective scheme are **not
+repairable**: there is no record of which ordering produced which row, so the
+404/155 split stays ambiguous between two labels for one policy. They are at least
+now distinguishable from everything written afterwards, which is the reason the
+scheme identifier is in the hash rather than the fix being made silently. Operators
+reading audit history from before 2026-08-22 should treat `sha256:b0bf8fa3…` and
+`sha256:d9cfbdea…` as **the same policy**.
