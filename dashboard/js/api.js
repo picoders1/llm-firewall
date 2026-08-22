@@ -136,6 +136,8 @@ export async function get(path, { params = {}, signal, timeout = DEFAULT_TIMEOUT
  * Returns `{ key: {ok, data|error} }` so a caller renders what succeeded.
  */
 export async function getAll(requests, { signal } = {}) {
+  // Each thunk receives the signal as its argument. Thunks written `() => ...`
+  // silently drop it, which is how every page ended up uncancellable.
   const entries = Object.entries(requests);
   const settled = await Promise.allSettled(
     entries.map(([, request]) =>
@@ -153,17 +155,28 @@ export async function getAll(requests, { signal } = {}) {
   return out;
 }
 
+/**
+ * Endpoints.
+ *
+ * Every entry takes its options — crucially `signal` — as a **separate**
+ * argument from its query parameters. That separation is the whole point: when
+ * the two were merged, callers wrote `endpoints.events({ ...filters, signal })`
+ * and the AbortSignal was serialised into the query string as
+ * `signal=[object AbortSignal]`, while the request itself stayed uncancellable.
+ * The gateway ignores unknown query parameters, so nothing ever failed and the
+ * router's abort machinery was inert.
+ */
 export const endpoints = {
-  overview: (params) => get("/api/v1/overview", { params }),
-  events: (params) => get("/api/v1/security/events", { params }),
-  event: (id) => get(`/api/v1/security/events/${encodeURIComponent(id)}`),
-  latency: (params) => get("/api/v1/metrics/latency", { params }),
-  traffic: (params) => get("/api/v1/metrics/traffic", { params }),
-  detectors: () => get("/api/v1/detectors"),
-  policy: () => get("/api/v1/policy"),
-  system: () => get("/api/v1/system/status"),
-  evaluations: () => get("/api/v1/evaluations"),
-  evaluation: (id) => get(`/api/v1/evaluations/${encodeURIComponent(id)}`),
-  session: () => get("/api/v1/session"),
-  ready: () => get("/ready"),
+  overview: (params, options) => get("/api/v1/overview", { params, ...options }),
+  events: (params, options) => get("/api/v1/security/events", { params, ...options }),
+  event: (id, options) => get(`/api/v1/security/events/${encodeURIComponent(id)}`, options),
+  latency: (params, options) => get("/api/v1/metrics/latency", { params, ...options }),
+  traffic: (params, options) => get("/api/v1/metrics/traffic", { params, ...options }),
+  detectors: (options) => get("/api/v1/detectors", options),
+  policy: (options) => get("/api/v1/policy", options),
+  system: (options) => get("/api/v1/system/status", options),
+  evaluations: (options) => get("/api/v1/evaluations", options),
+  evaluation: (id, options) => get(`/api/v1/evaluations/${encodeURIComponent(id)}`, options),
+  session: (options) => get("/api/v1/session", options),
+  ready: (options) => get("/ready", options),
 };

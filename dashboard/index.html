@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="/dashboard/css/base.css" />
     <link rel="stylesheet" href="/dashboard/css/layout.css" />
     <link rel="stylesheet" href="/dashboard/css/components.css" />
+    <link rel="stylesheet" href="/dashboard/css/utilities.css" />
+    <link rel="stylesheet" href="/dashboard/css/interactive.css" />
     <link rel="stylesheet" href="/dashboard/css/pages.css" />
   </head>
   <body>
@@ -19,6 +21,10 @@
       <aside class="sidebar" id="sidebar" data-open="false" aria-label="Primary"></aside>
       <div class="main">
         <header class="header" id="header"></header>
+        <!-- Progress for in-flight loads. A filter change re-renders in place
+             rather than through a skeleton, so without this the console looks
+             frozen between the click and the new rows. -->
+        <div class="progress" id="progress" role="presentation"></div>
         <main class="content" id="main" tabindex="-1"></main>
       </div>
     </div>

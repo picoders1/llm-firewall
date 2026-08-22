@@ -41,16 +41,16 @@ export function view(result) {
   const header = card(
     null,
     el("div", { class: "stack" }, [
-      el("div", { style: "display:flex;gap:var(--space-3);flex-wrap:wrap;align-items:flex-start" }, [
-        el("div", { style: "min-width:0" }, [
-          el("h2", { class: "mono", style: "word-break:break-all", text: run.run_id }),
-          el("p", { class: "muted", style: "font-size:var(--text-sm);margin-top:4px" }, [
+      el("div", { class: "u-row u-row--top u-row--wrap" }, [
+        el("div", { class: "u-min-0" }, [
+          el("h2", { class: "mono u-break-all", text: run.run_id }),
+          el("p", { class: "muted u-text-sm eval__runmeta" }, [
             [run.detector, run.dataset && `${run.dataset}/${run.dataset_version ?? ""}`]
               .filter(Boolean)
               .join(" · "),
           ]),
         ]),
-        el("div", { style: "margin-left:auto;display:flex;gap:var(--space-2);flex-wrap:wrap" }, [
+        el("div", { class: "u-row u-row--wrap u-push" }, [
           evidenceBadge(run.status),
           decisionBadgeFor(run.decision),
         ]),
@@ -60,7 +60,7 @@ export function view(result) {
 
   const detection = card(
     "Attack detection quality",
-    el("div", { class: "eval__metrics", style: "padding:0" }, [
+    el("div", { class: "eval__metrics u-flush" }, [
       metric("Recall", run.recall === null ? "—" : formatScore(run.recall), ci(run, "recall_ci95")),
       metric("Precision", run.precision === null ? "—" : formatScore(run.precision), ci(run, "precision_ci95")),
       metric("F1", run.f1 === null ? "—" : formatScore(run.f1)),
@@ -70,7 +70,7 @@ export function view(result) {
 
   const falsePositives = card(
     "False-positive behaviour",
-    el("div", { class: "eval__metrics", style: "padding:0" }, [
+    el("div", { class: "eval__metrics u-flush" }, [
       metric("FPR", run.fpr === null ? "—" : formatRate(run.fpr), ci(run, "fpr_ci95")),
       metric("FNR", run.fnr === null ? "—" : formatRate(run.fnr)),
       metric("Threshold", run.threshold === null ? "—" : formatScore(run.threshold)),
@@ -83,7 +83,7 @@ export function view(result) {
   const performance = card(
     "Performance",
     latencyBlocks.length
-      ? el("div", { class: "eval__metrics", style: "padding:0" }, latencyBlocks.flatMap(([name, block]) => [
+      ? el("div", { class: "eval__metrics u-flush" }, latencyBlocks.flatMap(([name, block]) => [
           metric(`${titleCase(name)} p50`, block.p50_ms !== undefined ? formatDuration(block.p50_ms) : "—"),
           metric(`${titleCase(name)} p95`, block.p95_ms !== undefined ? formatDuration(block.p95_ms) : "—"),
           metric(`${titleCase(name)} n`, block.n !== undefined ? formatCount(block.n) : "—"),
@@ -143,12 +143,12 @@ export function view(result) {
       warnings.length
         ? el(
             "ul",
-            { style: "margin:0;padding-left:18px;font-size:var(--text-sm);color:var(--text-secondary)" },
+            { class: "eval__warnlist" },
             warnings.map((warning) => el("li", { text: String(warning) })),
           )
-        : el("p", { class: "muted", style: "font-size:var(--text-sm)", text: "No validity warnings were recorded." }),
+        : el("p", { class: "muted u-text-sm", text: "No validity warnings were recorded." }),
       run.benchmark_metadata?.disclaimer
-        ? el("p", { class: "muted", style: "font-size:var(--text-xs)", text: String(run.benchmark_metadata.disclaimer) })
+        ? el("p", { class: "muted u-text-xs", text: String(run.benchmark_metadata.disclaimer) })
         : null,
     ]),
   );
@@ -170,7 +170,7 @@ export function view(result) {
   );
 
   return el("div", { class: "stack" }, [
-    el("a", { class: "btn btn--ghost btn--sm", href: path("/evaluations"), style: "align-self:flex-start" }, [
+    el("a", { class: "btn btn--ghost btn--sm u-self-start", href: path("/evaluations") }, [
       icon("back", 14),
       "Back to evaluations",
     ]),

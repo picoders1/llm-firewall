@@ -10,7 +10,7 @@
 import { el, icon, render, safeHref } from "../dom.js";
 import { path } from "../router.js";
 import { formatRelative, formatTimestamp } from "../formatters.js";
-import { badge } from "./primitives.js";
+import { openShortcuts } from "./palette.js";
 
 const NAV = [
   { href: path("/"), label: "Overview", iconName: "overview" },
@@ -45,7 +45,7 @@ function brandMark() {
   return node;
 }
 
-export function renderSidebar(container, { activePath, onNavigate }) {
+export function renderSidebar(container, { activePath, onNavigate, version = null }) {
   render(
     container,
     el("div", { class: "brand" }, [
@@ -72,117 +72,227 @@ export function renderSidebar(container, { activePath, onNavigate }) {
         );
       }),
     ]),
+    /**
+     * "Observability console" used to sit here and said nothing the brand two
+     * inches above did not already say. What replaces it is the one fact about
+     * this surface an operator cannot infer from looking at it: **it cannot
+     * change anything.**
+     *
+     * That is not a caveat, it is an enforced property — the operator boundary
+     * refuses every non-GET, so a mutating endpoint cannot inherit read-only
+     * authentication without moving the boundary first (ADR-023). Stating it
+     * explains the absence of a single edit control anywhere in the console,
+     * and turns "there are no buttons" from a gap into a guarantee.
+     */
     el("div", { class: "sidebar__footer" }, [
-      el("span", { text: "Observability console" }),
-      el("span", { text: "Read-only — no policy control" }),
+      el("div", { class: "assurance", title: "Every route on this surface is a GET. The operator boundary refuses anything else, so this console cannot alter policy, detectors or data." }, [
+        icon("lock", 13),
+        el("div", { class: "assurance__text" }, [
+          el("span", { class: "assurance__title", text: "Read-only console" }),
+          el("span", { class: "assurance__sub", text: "Cannot alter policy or data" }),
+        ]),
+      ]),
+      el("button", { class: "sidebar__help", type: "button", onClick: () => openShortcuts() }, [
+        icon("keyboard", 13),
+        el("span", { text: "Keyboard shortcuts" }),
+        el("kbd", { class: "kbd kbd--sm", text: "?" }),
+      ]),
+      version ? el("span", { class: "sidebar__build mono", text: `v${version}`, title: `Gateway version ${version}` }) : null,
     ]),
   );
 }
 
 /**
- * The signed-in operator, or an honest statement that nobody is.
+ * The two security boundaries, as one indicator.
  *
- * Three states, because collapsing them would misinform: a named operator, an
- * explicit "authentication disabled" (development, where the boundary is off and
- * pretending otherwise would be a fabricated security property), and "unknown"
- * while the session request is still in flight or failed.
+ * There are two, and they are independent: the **operator** boundary in front of
+ * the console (ADR-023) and the **caller** boundary in front of `/v1`
+ * (ADR-024). The header used to report only the first, so a gateway whose
+ * `/v1` was wide open looked identical to one that was not.
  *
- * The sign-out link is rendered only when the gateway reported a path for it,
- * and only through `safeHref`, which refuses anything that is not a same-origin
- * absolute path — the console must not be able to walk an operator to an
- * attacker-chosen host because a setting was mistyped.
+ * Normal is quiet: when both are enforced this is a small lock, because a
+ * correctly configured system should not spend header space telling you so.
+ * Abnormal is loud, and names which boundary is open — that is the state worth
+ * interrupting someone for. In production neither can be open, since the
+ * process refuses to start that way; this is therefore a development signal,
+ * which is exactly why it must not be mistaken for decoration.
  */
-function identity(session) {
-  if (session && session.authenticated) {
-    const href = session.logout_path ? safeHref(session.logout_path) : null;
-    return el("div", { class: "header__item header__item--optional" }, [
-      el("span", { class: "muted", text: "Operator" }),
-      el("span", { class: "identity" }, [
-        el("strong", { text: session.subject ?? "Authenticated" }),
-        href ? el("a", { class: "identity__out", href, text: "Sign out" }) : null,
-      ]),
-    ]);
+function securityState(session, system) {
+  const operatorOpen = session ? session.enforced === false : null;
+  const callerOpen = system ? system.caller_auth_enforced === false : null;
+
+  if (operatorOpen === null && callerOpen === null) {
+    return { tone: "unknown", label: "Auth unknown", detail: "The gateway did not report its authentication state." };
   }
-  const unenforced = session && session.enforced === false;
-  return el("div", { class: "header__item header__item--optional" }, [
-    el("span", { class: "muted", text: "Operator" }),
-    unenforced
-      ? badge("Auth disabled", "warn", "▲")
-      : badge("Unknown", "unknown", "○"),
-  ]);
+
+  const open = [operatorOpen ? "console" : null, callerOpen ? "/v1" : null].filter(Boolean);
+  if (!open.length) {
+    return { tone: "secure", label: "Authenticated", detail: "Operator and caller boundaries are both enforced." };
+  }
+  return {
+    tone: "open",
+    // Named as a state, not an action: this chip sits among buttons, and
+    // "Auth off" reads like something you just pressed.
+    label: open.length === 2 ? "Unauthenticated" : `${open[0]} unauthenticated`,
+    detail: `Unauthenticated: ${open.join(" and ")}. Refused at startup when FIREWALL_ENVIRONMENT=production.`,
+  };
 }
 
-export function renderHeader(container, { state, onRefresh, onToggleMenu, onToggleTheme, theme, polling, onTogglePolling }) {
+export function renderHeader(container, { state, onRefresh, onToggleMenu, onToggleTheme, theme, polling, onTogglePolling, onOpenPalette }) {
   const { system, policy, session, lastUpdated, refreshing } = state;
 
-  const readiness = system
+  const ready = system
     ? system.ready
-      ? badge("Ready", "allow", "●")
-      : badge("Not ready", "warn", "▲")
-    : badge("Unknown", "unknown", "○");
+      ? { cls: "allow", glyph: "\u25cf", label: "Ready" }
+      : { cls: "warn", glyph: "\u25b2", label: "Not ready" }
+    : { cls: "unknown", glyph: "\u25cb", label: "Unknown" };
+
+  const security = securityState(session, system);
+  const environment = system?.environment ?? "unknown";
+  const isProduction = environment === "production";
+  const policyHash = policy?.policy_version ? policy.policy_version.replace("sha256:", "") : null;
+
+  // --- What the gateway is, and whether it is well ------------------------
+  const posture = el("div", { class: "posture" }, [
+    el(
+      "a",
+      {
+        class: `posture__item posture__status posture__status--${ready.cls}`,
+        href: path("/system"),
+        title: system ? `Readiness: ${ready.label}. Open System Health.` : "Readiness unknown",
+      },
+      [
+        el("span", { class: "posture__glyph", text: ready.glyph, "aria-hidden": "true" }),
+        el("span", { text: ready.label }),
+      ],
+    ),
+    el("span", {
+      class: `posture__item posture__env${isProduction ? " posture__env--production" : ""}`,
+      text: environment,
+      title: `Environment: ${environment}`,
+    }),
+    policyHash
+      ? el(
+          "a",
+          {
+            class: "posture__item posture__policy",
+            href: path("/detectors"),
+            title: `Policy in force: sha256:${policyHash}. Open Detector & Policy.`,
+          },
+          [
+            icon("detectors", 13),
+            el("span", { class: "mono", text: policyHash.slice(0, 8) }),
+          ],
+        )
+      : null,
+    el(
+      "a",
+      {
+        class: `posture__item posture__security posture__security--${security.tone}`,
+        href: path("/system"),
+        title: security.detail,
+      },
+      security.tone === "secure"
+        ? [icon("lock", 13), el("span", { class: "sr-only", text: security.label })]
+        : [
+            el("span", { class: "posture__glyph", text: security.tone === "open" ? "\u25b2" : "\u25cb", "aria-hidden": "true" }),
+            // The label is dropped on narrow screens, so the accessible name
+            // must not depend on it. The amber chip and glyph still carry the
+            // signal visually; the tooltip and this text carry it otherwise.
+            el("span", { class: "posture__label", text: security.label }),
+            el("span", { class: "sr-only", text: security.detail }),
+          ],
+    ),
+  ]);
+
+  // The signed-in operator, when there is one. Rendered only on a real
+  // authenticated session: an unauthenticated console must never show a name,
+  // and `safeHref` refuses a logout path that is not a same-origin absolute
+  // path, so a mistyped setting cannot walk an operator to another host.
+  if (session?.authenticated) {
+    const logout = session.logout_path ? safeHref(session.logout_path) : null;
+    posture.append(
+      el("span", { class: "posture__item posture__operator", title: session.subject ?? "Authenticated operator" }, [
+        icon("user", 13),
+        el("span", { class: "posture__subject", text: session.subject ?? "Authenticated" }),
+        logout ? el("a", { class: "posture__out", href: logout, text: "Sign out" }) : null,
+      ]),
+    );
+  }
+
+  // --- Whether what you are reading is current ----------------------------
+  const controls = el("div", { class: "controls" }, [
+    el(
+      "span",
+      {
+        class: "controls__updated",
+        title: lastUpdated ? `Last refreshed ${formatTimestamp(lastUpdated)}` : "Not refreshed yet",
+      },
+      [
+        icon("system", 12),
+        el("span", { text: lastUpdated ? formatRelative(lastUpdated) : "\u2014" }),
+        el("span", { class: "sr-only", text: "since this view was last refreshed" }),
+      ],
+    ),
+    el(
+      "button",
+      {
+        class: `btn btn--sm${polling ? " btn--on" : ""}`,
+        type: "button",
+        "aria-pressed": polling ? "true" : "false",
+        title: polling ? "Auto-refreshing every 30s \u2014 click to stop" : "Auto-refresh is off \u2014 click to start",
+      onClick: onTogglePolling,
+      },
+      [icon("pulse", 13), el("span", { class: "btn__label", text: polling ? "30s" : "Auto" })],
+    ),
+    el(
+      "button",
+      {
+        class: "btn btn--sm btn--icon",
+        type: "button",
+        "aria-label": theme === "dark" ? "Switch to light theme" : "Switch to dark theme",
+        title: theme === "dark" ? "Switch to light theme (Shift+T)" : "Switch to dark theme (Shift+T)",
+        onClick: onToggleTheme,
+      },
+      [icon(theme === "dark" ? "sun" : "moon", 14)],
+    ),
+    el(
+      "button",
+      {
+        class: "btn btn--primary btn--sm",
+        type: "button",
+        disabled: refreshing,
+        title: "Reload this view (R)",
+        onClick: onRefresh,
+      },
+      [
+        el("span", { class: refreshing ? "btn__spin" : "" }, [icon("refresh", 14)]),
+        el("span", { class: "btn__label", text: refreshing ? "Refreshing" : "Refresh" }),
+      ],
+    ),
+  ]);
 
   render(
     container,
     el("button", { class: "menu-toggle", type: "button", "aria-label": "Open navigation", onClick: onToggleMenu }, [
       icon("menu", 18),
     ]),
-    el("div", { class: "header__meta" }, [
-      el("div", { class: "header__item" }, [
-        el("span", { class: "muted", text: "Environment" }),
-        el("strong", { text: system?.environment ?? "Unknown" }),
-      ]),
-      el("div", { class: "header__divider" }),
-      el("div", { class: "header__item" }, [el("span", { class: "muted", text: "Status" }), readiness]),
-      el("div", { class: "header__divider header__item--optional" }),
-      el("div", { class: "header__item header__item--optional" }, [
-        el("span", { class: "muted", text: "Policy" }),
-        el("strong", {
-          class: "mono",
-          // The full hash is the tooltip; the truncation is display only.
-          text: policy?.policy_version ? policy.policy_version.replace("sha256:", "").slice(0, 8) : "—",
-          title: policy?.policy_version ?? "Policy version unavailable",
-        }),
-      ]),
-      el("div", { class: "header__divider header__item--optional" }),
-      identity(session),
-      el("div", { class: "header__divider header__item--optional" }),
-      el("div", { class: "header__item header__item--optional" }, [
-        el("span", { class: "muted", text: "Updated" }),
-        el("strong", {
-          text: lastUpdated ? formatRelative(lastUpdated) : "—",
-          title: lastUpdated ? formatTimestamp(lastUpdated) : "Not refreshed yet",
-        }),
-      ]),
-      el(
-        "button",
-        {
-          class: "btn btn--sm",
-          type: "button",
-          "aria-pressed": polling ? "true" : "false",
-          title: polling ? "Auto-refresh every 30s — click to stop" : "Auto-refresh is off",
-          onClick: onTogglePolling,
-        },
-        [polling ? "Auto 30s" : "Auto off"],
-      ),
-      el(
-        "button",
-        {
-          class: "btn btn--sm",
-          type: "button",
-          "aria-label": theme === "dark" ? "Switch to light theme" : "Switch to dark theme",
-          onClick: onToggleTheme,
-        },
-        [icon(theme === "dark" ? "sun" : "moon", 14)],
-      ),
-      el(
-        "button",
-        { class: "btn btn--primary btn--sm", type: "button", disabled: refreshing, onClick: onRefresh },
-        [
-          el("span", { class: refreshing ? "btn__spin" : "" }, [icon("refresh", 14)]),
-          el("span", { text: refreshing ? "Refreshing" : "Refresh" }),
-        ],
-      ),
-    ]),
+    el(
+      "button",
+      {
+        class: "cmdk",
+        type: "button",
+        "aria-label": "Open the command palette",
+        title: "Search views and filters (Ctrl+K)",
+        onClick: onOpenPalette,
+      },
+      [
+        icon("search", 14),
+        el("span", { class: "cmdk__text", text: "Search" }),
+        el("kbd", { class: "kbd kbd--sm cmdk__key", text: "Ctrl K" }),
+      ],
+    ),
+    el("div", { class: "header__meta" }, [posture, controls]),
   );
 }
 

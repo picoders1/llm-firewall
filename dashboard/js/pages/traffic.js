@@ -33,8 +33,8 @@ export async function load(signal, { query }) {
     hours,
     ...(await getAll(
       {
-        latency: () => endpoints.latency({ hours }),
-        traffic: () => endpoints.traffic({ hours }),
+        latency: (abort) => endpoints.latency({ hours }, { signal: abort }),
+        traffic: (abort) => endpoints.traffic({ hours }, { signal: abort }),
       },
       { signal },
     )),
@@ -91,7 +91,7 @@ export function view(data, { setQuery }) {
       return node;
     })(),
   ]);
-  nodes.push(el("div", { style: "display:flex;justify-content:flex-end" }, [windowPicker]));
+  nodes.push(el("div", { class: "u-row u-row--end" }, [windowPicker]));
 
   if (!data.latency.ok) {
     nodes.push(errorBanner("Latency unavailable", data.latency.error.userMessage));

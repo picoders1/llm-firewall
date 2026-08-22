@@ -102,7 +102,7 @@ export function skeletonBlock(lines = 3) {
     Array.from({ length: lines }, (_, index) =>
       el("div", {
         class: "skeleton skeleton--text",
-        style: `width:${[92, 74, 60, 84][index % 4]}%`,
+        style: { width: `${[92, 74, 60, 84][index % 4]}%` },
       }),
     ),
   );
@@ -114,7 +114,7 @@ export function skeletonCards(count = 6) {
     { class: "grid grid--kpi", "aria-hidden": "true" },
     Array.from({ length: count }, () =>
       el("div", { class: "kpi" }, [
-        el("div", { class: "skeleton skeleton--text", style: "width:50%" }),
+        el("div", { class: "skeleton skeleton--text skeleton--half" }),
         el("div", { class: "skeleton skeleton--value" }),
       ]),
     ),
@@ -126,15 +126,38 @@ export function loading(node) {
   return el("div", { role: "status", "aria-busy": "true", "aria-label": "Loading" }, [node]);
 }
 
-export function kpi({ label, value, foot = null, state = null, glyph = null }) {
-  return el("article", { class: "kpi", dataset: state ? { state } : {} }, [
+/**
+ * A single figure.
+ *
+ * `href` turns the tile into a link into the filtered event list, which is what
+ * makes the overview a place to start an investigation rather than a poster. It
+ * is a navigation and nothing else — the console cannot mutate anything, so a
+ * KPI has nothing to offer but a better question (ADR-023).
+ */
+export function kpi({ label, value, foot = null, state = null, glyph = null, href = null }) {
+  const body = [
     el("div", { class: "kpi__label" }, [
       glyph ? el("span", { text: glyph, "aria-hidden": "true" }) : null,
       el("span", { text: label }),
+      href ? el("span", { class: "kpi__go", "aria-hidden": "true" }, [icon("chevron", 13)]) : null,
     ]),
     el("div", { class: "kpi__value", text: value }),
     foot ? el("div", { class: "kpi__foot", text: foot }) : null,
-  ]);
+  ];
+
+  if (!href) {
+    return el("article", { class: "kpi", dataset: state ? { state } : {} }, body);
+  }
+  return el(
+    "a",
+    {
+      class: "kpi kpi--link",
+      href,
+      dataset: state ? { state } : {},
+      title: `Show ${label.toLowerCase()} in the event explorer`,
+    },
+    body,
+  );
 }
 
 export function defineList(rows) {

@@ -139,6 +139,46 @@
 .table tbody tr:last-child td { border-bottom: none; }
 .table--clickable tbody tr { cursor: pointer; }
 
+/* --- Result bar ----------------------------------------------------------
+ *
+ * The match count used to live only in the pagination footer, below fifty rows,
+ * so a filtered view could not tell you how large the filtered set was without
+ * scrolling to the bottom. It belongs above the table, beside the filters that
+ * produced it.
+ */
+.resultbar {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-raised);
+  flex-wrap: wrap;
+}
+.resultbar__count { font-size: var(--text-sm); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.resultbar__count strong { color: var(--text); font-weight: 650; }
+.resultbar__hint { font-size: var(--text-xs); color: var(--text-muted); }
+.resultbar__chips { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; min-width: 0; }
+
+/* A chip removes exactly one filter. Read-only: it changes the query string,
+ * never the gateway. */
+.chip {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: 2px var(--space-2) 2px var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: var(--radius-full);
+  background: var(--accent-bg);
+  color: var(--text);
+  font-size: var(--text-xs);
+  max-width: 260px;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.chip:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); border-color: var(--accent); }
+.chip__key { color: var(--text-muted); }
+.chip__value { font-weight: 550; min-width: 0; }
+.chip__x { color: var(--text-muted); font-size: var(--text-md); line-height: 1; }
+.chip:hover .chip__x { color: var(--text); }
+
+.resultbar__clear { margin-left: auto; flex-shrink: 0; }
+
 .pagination {
   display: flex; align-items: center; gap: var(--space-3);
   padding: var(--space-3) var(--space-5);
@@ -172,6 +212,7 @@
   .skeleton { animation: none; background: var(--surface-raised); }
 }
 .skeleton--text { height: 12px; }
+.skeleton--half { width: 50%; }
 .skeleton--value { height: 30px; width: 60%; }
 
 .banner {
@@ -197,22 +238,29 @@
 /* --- Distribution bar --------------------------------------------------- */
 
 .dist { display: flex; height: 10px; border-radius: var(--radius-full); overflow: hidden; background: var(--surface-raised); }
-.dist__seg { transition: width var(--transition); }
+/* Width arrives as `--seg-width` through the CSSOM, because a style attribute
+ * would be refused by the console's Content Security Policy. */
+.dist__seg { width: var(--seg-width, 0%); transition: width var(--transition); }
 .dist__seg--allow { background: var(--allow); }
 .dist__seg--warn { background: var(--warn); }
 .dist__seg--redact { background: var(--redact); }
 .dist__seg--block { background: var(--block); }
 .dist__seg--failure { background: var(--failure); }
 
-.legend { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-top: var(--space-4); }
+.legend { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-5); margin-top: var(--space-4); }
 .legend__item { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
 .legend__swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.legend__swatch--inline { display: inline-block; margin-right: var(--space-2); }
 .legend__value { font-variant-numeric: tabular-nums; font-weight: 550; }
 .legend__pct { color: var(--text-muted); font-size: var(--text-xs); }
 
 /* --- Chart -------------------------------------------------------------- */
 
-.chart { width: 100%; display: block; overflow: visible; }
+/* The chart is drawn at the host's measured pixel width (charts.js), so it must
+ * not be stretched by CSS as well — that is the distortion this replaced. The
+ * host owns the width; the SVG matches it exactly. */
+.chart-host { width: 100%; min-width: 0; }
+.chart { display: block; overflow: visible; max-width: 100%; }
 .chart__grid { stroke: var(--border-subtle); stroke-width: 1; }
 .chart__axis { fill: var(--text-muted); font-size: 10px; font-family: var(--font); }
 .chart__line { fill: none; stroke-width: 1.75; stroke-linejoin: round; stroke-linecap: round; }
@@ -239,7 +287,50 @@
 /* --- Misc --------------------------------------------------------------- */
 
 .meter { height: 6px; background: var(--surface-raised); border-radius: var(--radius-full); overflow: hidden; }
-.meter__fill { height: 100%; border-radius: var(--radius-full); }
+.meter__fill { height: 100%; border-radius: var(--radius-full); width: var(--bar-width, 0%); background: var(--bar-color, var(--accent)); }
+
+/* --- Bar list ------------------------------------------------------------
+ *
+ * A two-row grid rather than a flex row: the label and its value sit in
+ * separate columns that cannot merge, which is what a collapsed layout looked
+ * like before ("jailbreak.heuristic165" was a label and a count with no gap).
+ */
+.barlist { display: flex; flex-direction: column; gap: var(--space-1); }
+.barlist__row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  grid-template-areas: "label value pct" "track track track";
+  align-items: center;
+  gap: 2px var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-2);
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  text-align: left;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+.barlist__label { grid-area: label; font-size: var(--text-sm); color: var(--text); min-width: 0; }
+.barlist__value { grid-area: value; font-size: var(--text-sm); font-weight: 600; }
+.barlist__pct { grid-area: pct; font-size: var(--text-xs); color: var(--text-muted); min-width: 5ch; text-align: right; }
+.barlist__track {
+  grid-area: track;
+  display: block;
+  height: 6px;
+  margin-top: var(--space-1);
+  background: var(--surface-raised);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+.barlist__fill {
+  height: 100%;
+  width: var(--bar-width, 0%);
+  background: var(--bar-color, var(--accent));
+  border-radius: var(--radius-full);
+  transition: width var(--transition);
+}
+.barlist__row--action { cursor: pointer; }
+.barlist__row--action:hover { background: var(--surface-raised); border-color: var(--border-subtle); }
+.barlist__row--action:hover .barlist__label { color: var(--accent-strong); }
 .tag {
   font-size: var(--text-xs); padding: 1px var(--space-2);
   border-radius: var(--radius-sm); background: var(--surface-raised);
@@ -247,46 +338,11 @@
 }
 .divider { height: 1px; background: var(--border-subtle); margin: var(--space-5) 0; }
 
-/* --- Operator identity (ADR-023) -----------------------------------------
+/* --- Ended session (ADR-023) ---------------------------------------------
  *
- * The header's identity item and the full-page notice a console shows when its
- * session has ended. Both use existing tokens only — an authentication state is
- * not a reason to introduce a colour that means nothing anywhere else.
+ * The full-page notice a console shows when its session has ended. The header's
+ * operator chip lives in layout.css with the rest of the posture group.
  */
-.identity {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.identity strong {
-  /* An operator subject can be a long email address or a DN. Truncating is
-   * display-only: the value is never altered, and the header must not grow a
-   * horizontal scrollbar because someone's login is verbose. */
-  max-width: 16ch;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.identity__out {
-  color: var(--text-muted);
-  font-size: var(--text-xs);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-}
-
-.identity__out:hover {
-  color: var(--text-secondary);
-  border-bottom-color: var(--border-strong);
-}
-
-.identity__out:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
-}
-
 .identity-notice {
   display: flex;
   flex-direction: column;

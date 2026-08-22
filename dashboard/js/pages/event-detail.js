@@ -17,6 +17,7 @@ import {
   card, decisionMeta, defineList, errorState, loading, skeletonBlock,
 } from "../components/primitives.js";
 import { NOT_AVAILABLE, formatDuration, formatScore, formatTimestamp, titleCase } from "../formatters.js";
+import { copyable } from "../components/feedback.js";
 
 export function skeleton() {
   return loading(el("div", { class: "card" }, [el("div", { class: "card__body" }, [skeletonBlock(8)])]));
@@ -43,17 +44,20 @@ export function view(result) {
     "div",
     {
       class: "decision-hero",
-      style: `background:var(--${meta.cls}-bg);border-color:color-mix(in srgb, var(--${meta.cls}) 35%, transparent)`,
+      style: {
+        background: `var(--${meta.cls}-bg)`,
+        "border-color": `color-mix(in srgb, var(--${meta.cls}) 35%, transparent)`,
+      },
     },
     [
       el("div", {
         class: "decision-hero__glyph",
-        style: `background:var(--${meta.cls});color:var(--text-inverse)`,
+        style: { background: `var(--${meta.cls})`, color: "var(--text-inverse)" },
         text: meta.glyph,
         "aria-hidden": "true",
       }),
       el("div", {}, [
-        el("div", { class: "decision-hero__label", text: meta.label, style: `color:var(--${meta.cls})` }),
+        el("div", { class: "decision-hero__label", text: meta.label, style: { color: `var(--${meta.cls})` } }),
         el("div", {
           class: "decision-hero__sub",
           text: `${titleCase(event.category) || "Uncategorised"} · ${event.direction} · severity ${event.severity}`,
@@ -71,7 +75,7 @@ export function view(result) {
       el("div", { class: "score-bar" }, [
         el("div", {
           class: "score-bar__fill",
-          style: `width:${pct}%;background:var(--${meta.cls})`,
+          style: { width: `${pct}%`, background: `var(--${meta.cls})` },
         }),
       ]),
       el("div", { class: "score-bar__labels" }, [
@@ -84,7 +88,7 @@ export function view(result) {
 
   const identity = defineList([
     ["Event ID", el("span", { class: "mono", text: String(event.event_id) })],
-    ["Request ID", el("span", { class: "mono", text: event.request_id })],
+    ["Request ID", copyable(event.request_id, { label: "request id" })],
     ["Timestamp", formatTimestamp(event.timestamp)],
     ["Direction", event.direction],
     ["Detector", event.detector ? el("span", { class: "mono", text: event.detector }) : null],
@@ -115,7 +119,7 @@ export function view(result) {
   ]);
 
   const fingerprint = defineList([
-    ["Content hash", event.content_hash ? el("span", { class: "mono truncate", text: event.content_hash }) : null],
+    ["Content hash", event.content_hash ? copyable(event.content_hash, { label: "content hash" }) : null],
     ["Content length", orNotAvailable(event.content_length, (value) => `${value} characters`)],
   ]);
 
@@ -130,7 +134,7 @@ export function view(result) {
     : el("p", { class: "not-available", text: "No additional detail was recorded." });
 
   return el("div", { class: "stack" }, [
-    el("a", { class: "btn btn--ghost btn--sm", href: path("/events"), style: "align-self:flex-start" }, [
+    el("a", { class: "btn btn--ghost btn--sm u-self-start", href: path("/events") }, [
       icon("back", 14),
       "Back to events",
     ]),
@@ -147,7 +151,7 @@ export function view(result) {
       card("Content fingerprint", fingerprint, { hint: "Hash and length only — content is never stored" }),
       card("Detector detail", details, { hint: "Rule identifiers and counts" }),
     ]),
-    el("p", { class: "muted", style: "font-size:var(--text-xs)" }, [
+    el("p", { class: "muted u-text-xs" }, [
       `Prompt and response text are never recorded. ${NOT_AVAILABLE} indicates a value the gateway did not observe, not a value of zero.`,
     ]),
   ]);

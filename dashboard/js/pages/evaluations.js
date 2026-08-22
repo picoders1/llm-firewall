@@ -71,7 +71,7 @@ export function metric(label, value, ci = null) {
 function runCard(run, navigate) {
   return el("article", { class: "eval" }, [
     el("header", { class: "eval__head" }, [
-      el("div", { style: "min-width:0" }, [
+      el("div", { class: "u-min-0" }, [
         el("div", { class: "eval__id", text: run.run_id }),
         el("div", { class: "eval__sub" }, [
           [run.detector, run.dataset && `${run.dataset}/${run.dataset_version ?? ""}`, run.created_at && formatTimestamp(run.created_at, { seconds: false })]
@@ -90,7 +90,7 @@ function runCard(run, navigate) {
       metric("Threshold", run.threshold === null ? "—" : formatScore(run.threshold)),
       metric("Samples", run.sample_count === null ? "—" : formatCount(run.sample_count)),
     ]),
-    el("div", { style: "padding:0 var(--space-5) var(--space-4)" }, [
+    el("div", { class: "eval__footer" }, [
       el("a", { class: "btn btn--sm", href: path(`/evaluations/${encodeURIComponent(run.run_id)}`) }, [
         "View detail",
         icon("chevron", 14),
@@ -123,7 +123,7 @@ export function view(result, { navigate }) {
     card(
       "Evidence",
       el("div", { class: "stack" }, [
-        el("p", { class: "secondary", style: "font-size:var(--text-sm)" }, [
+        el("p", { class: "secondary u-text-sm" }, [
           "Every figure below comes from a committed evaluation artefact carrying its dataset checksum. ",
           "A run marked Measured completed and produced a valid report — it does not mean the run met its criteria. ",
           "Those are separate columns on purpose.",
@@ -146,7 +146,7 @@ export function view(result, { navigate }) {
 
   if (payload.note) {
     nodes.push(
-      el("p", { class: "muted", style: "font-size:var(--text-xs)" }, [payload.note]),
+      el("p", { class: "muted u-text-xs" }, [payload.note]),
     );
   }
 

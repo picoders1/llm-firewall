@@ -126,6 +126,52 @@ def test_the_html_contains_no_inline_script_or_style():
     assert 'type="module"' in scripts[0]
 
 
+@pytest.mark.parametrize("path", JS_FILES, ids=lambda p: p.name)
+def test_no_style_attribute_is_ever_written(path: Path):
+    """The console is served under `style-src 'self'` with no `'unsafe-inline'`,
+    so the browser refuses style **attributes** — and `setAttribute("style", ...)`
+    is one.
+
+    This expectation is new because the world changed: the policy was always
+    strict, but the JavaScript built elements with `style: "width:42%"` strings,
+    which `el()` passed to `setAttribute`. The browser dropped every one of them,
+    so distribution bars rendered 0px wide and bar-list labels ran into their
+    values. The existing inline-style test only read `index.html` and could not
+    see it.
+
+    Styles are objects applied through the CSSOM, which CSP permits. `dom.js`
+    owns the single `node.style` write and is therefore exempt.
+    """
+    source = path.read_text(encoding="utf-8")
+    code = "\n".join(
+        line for line in source.splitlines() if not line.strip().startswith(("*", "//", "/*"))
+    )
+
+    assert 'setAttribute("style"' not in code, f"{path.name}: style attribute written directly"
+    # `style:` in an element spec must open an object literal, never a string.
+    for match in re.finditer(r"style:\s*(.)", code):
+        assert match.group(1) == "{", (
+            f"{path.name}: `style:` must be an object; a string becomes a CSP-blocked attribute"
+        )
+
+    if path.name != "dom.js":
+        assert ".style.setProperty" not in code, (
+            f"{path.name}: route dynamic styles through el()'s style object, not the CSSOM directly"
+        )
+
+
+def test_the_style_object_is_actually_applied_through_the_cssom():
+    """The counterpart to the rule above: `dom.js` must apply styles by property
+    rather than by attribute, or every call site would silently break again."""
+    source = (DASHBOARD / "js" / "dom.js").read_text(encoding="utf-8")
+    # Comments explain the attribute trap by naming it, so scan code only.
+    code = "\n".join(
+        line for line in source.splitlines() if not line.strip().startswith(("*", "//", "/*"))
+    )
+    assert "node.style.setProperty" in code
+    assert 'setAttribute("style"' not in code
+
+
 def test_no_analytics_or_tracking():
     for path in ALL_FILES:
         source = path.read_text(encoding="utf-8").lower()
@@ -207,9 +253,11 @@ def test_the_sign_out_link_cannot_leave_the_origin():
     with a slash and is exactly the case a naive check passes."""
     shell = (DASHBOARD / "js" / "components" / "shell.js").read_text(encoding="utf-8")
     assert "safeHref(session.logout_path)" in shell
-    body = shell.split("function identity(")[1].split("\nexport function renderHeader")[0]
+    # This used to slice out the body of `function identity(`. That function was
+    # removed when the header was rebuilt around the posture group, so the check
+    # now scans the whole module — which is stronger anyway: a raw use of the
+    # server-supplied path is refused no matter which function grows one.
     code = "\n".join(
-        line for line in body.splitlines() if not line.strip().startswith(("*", "//", "/*"))
+        line for line in shell.splitlines() if not line.strip().startswith(("*", "//", "/*"))
     )
-    # No raw use of the server-supplied path as an href.
     assert "href: session.logout_path" not in code

@@ -23,7 +23,13 @@ export function skeleton() {
 }
 
 export async function load(signal) {
-  return getAll({ detectors: () => endpoints.detectors(), policy: () => endpoints.policy() }, { signal });
+  return getAll(
+    {
+      detectors: (abort) => endpoints.detectors({ signal: abort }),
+      policy: (abort) => endpoints.policy({ signal: abort }),
+    },
+    { signal },
+  );
 }
 
 /** Four mutually exclusive modes, each with a word and a shape. */
@@ -61,7 +67,7 @@ function detectorRow(detector) {
       mode(detector),
       el("span", {
         class: "muted",
-        style: "font-size:var(--text-xs);max-width:22ch",
+        class: "u-text-xs u-max-22",
         text: detector.enforcing
           ? "Can block traffic"
           : detector.enabled
@@ -143,7 +149,7 @@ export function view(data) {
             ],
             ["Inspected roles", policy.inspect_roles.join(", ")],
           ]),
-          el("div", { class: "banner banner--degraded", role: "note", style: "margin:0" }, [
+          el("div", { class: "banner banner--degraded u-m-0", role: "note" }, [
             el("div", {}, [
               el("strong", { text: "Read-only" }),
               el("span", {

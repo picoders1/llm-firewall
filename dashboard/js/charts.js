@@ -9,8 +9,11 @@
  *    "information-dense", it is information-hidden (§16, §29).
  * 2. **Honest.** A series with no observations renders an empty state, not a
  *    flat line at zero. A flat line at zero is a measurement.
- * 3. **Responsive.** Charts use a viewBox and `preserveAspectRatio`, so layout
- *    is CSS's job and the SVG scales without re-rendering on resize.
+ * 3. **Responsive.** Charts are drawn at the container's measured pixel width,
+ *    so one SVG unit is one CSS pixel at every size. This replaced a fixed
+ *    viewBox stretched by `preserveAspectRatio="none"`, which scaled the axis
+ *    **text** along with the geometry and left labels unreadable on a phone.
+ *    The trade is a redraw on resize; see `lineChart` for how that is bounded.
  */
 
 import { el, svg } from "./dom.js";
@@ -74,7 +77,52 @@ function tooltip() {
 const shared = tooltip();
 
 /**
+ * Live-resizing registry for charts.
+ *
+ * One ResizeObserver for every chart on the page. Elements that leave the DOM
+ * are unobserved on the next callback, because the router replaces a page's
+ * nodes wholesale and an observer holding a strong reference to a detached
+ * subtree is a leak that only shows up after an hour of navigating.
+ */
+const resizing = new WeakMap();
+const observer =
+  typeof ResizeObserver === "undefined"
+    ? null
+    : new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.target.isConnected) {
+            observer.unobserve(entry.target);
+            resizing.delete(entry.target);
+            continue;
+          }
+          const draw = resizing.get(entry.target);
+          const width = Math.round(entry.contentRect.width);
+          if (draw && width > 0) draw(width);
+        }
+      });
+
+function onResize(node, draw) {
+  if (!observer) return;
+  resizing.set(node, draw);
+  observer.observe(node);
+}
+
+/**
  * Multi-series line chart.
+ *
+ * ## Why this re-renders on resize
+ *
+ * It used to draw into a fixed 720-unit viewBox with `preserveAspectRatio="none"`
+ * and let CSS stretch it. That kept layout in CSS and cost no resize handling,
+ * but non-uniform scaling distorts **text** as well as geometry: on a phone the
+ * SVG compressed to roughly half its authored width and the axis labels went
+ * with it, thin and unreadable; on a wide monitor the same labels stretched.
+ *
+ * Drawing at the measured pixel width instead means one SVG unit is one CSS
+ * pixel, so labels render at their true size at every width, and the point
+ * spacing adapts rather than being squeezed. The cost is a redraw when the
+ * container changes size, which is what the ResizeObserver above is for.
+ *
  * @param {{series: Array<{key,label,color,points:Array<{label,value}>}>, height?:number, formatValue?:Function, summary:string}} spec
  */
 export function lineChart({ series, height = 200, formatValue = formatCount, summary }) {
@@ -83,109 +131,116 @@ export function lineChart({ series, height = 200, formatValue = formatCount, sum
     return emptyState("No data in this window", "Nothing has been recorded for the selected time range.");
   }
 
-  const width = 720;
-  const innerW = width - PAD.left - PAD.right;
-  const innerH = height - PAD.top - PAD.bottom;
   const maxValue = Math.max(...populated.flatMap((s) => s.points.map((p) => p.value)), 0);
   const maxY = niceCeiling(maxValue);
   const length = Math.max(...populated.map((s) => s.points.length));
 
-  const gridLines = [0, 0.25, 0.5, 0.75, 1].map((ratio) => {
-    const y = PAD.top + innerH - ratio * innerH;
-    return svg("g", {}, [
-      svg("line", { class: "chart__grid", x1: PAD.left, x2: width - PAD.right, y1: y, y2: y }),
-      svg("text", { class: "chart__axis", x: PAD.left - 8, y: y + 3, "text-anchor": "end" }, [
-        String(formatValue(maxY * ratio)),
-      ]),
-    ]);
-  });
+  const host = el("div", { class: "chart-host" });
 
-  const drawn = populated.map((s) => {
-    const scaled = scale(s.points, innerW, innerH, maxY);
-    return svg("g", {}, [
-      svg("path", { class: "chart__line", d: linePath(scaled), stroke: s.color }),
-    ]);
-  });
+  function draw(width) {
+    const innerW = Math.max(40, width - PAD.left - PAD.right);
+    const innerH = height - PAD.top - PAD.bottom;
 
-  // X labels: at most six, so they never collide at narrow widths.
-  const step = Math.max(1, Math.ceil(length / 6));
-  const xLabels = populated[0].points
-    .map((point, index) => ({ point, index }))
-    .filter(({ index }) => index % step === 0)
-    .map(({ point, index }) => {
-      const x = PAD.left + (length > 1 ? (index / (length - 1)) * innerW : 0);
-      return svg("text", { class: "chart__axis", x, y: height - 6, "text-anchor": "middle" }, [point.label]);
-    });
-
-  const cursor = svg("line", { class: "chart__cursor", y1: PAD.top, y2: PAD.top + innerH, x1: 0, x2: 0, opacity: 0 });
-  const markers = populated.map((s) => svg("circle", { class: "chart__dot", r: 3.5, fill: s.color, opacity: 0 }));
-
-  const hit = svg("rect", {
-    class: "chart__hit",
-    x: PAD.left,
-    y: PAD.top,
-    width: innerW,
-    height: innerH,
-  });
-
-  const chart = svg(
-    "svg",
-    {
-      class: "chart",
-      viewBox: `0 0 ${width} ${height}`,
-      preserveAspectRatio: "none",
-      role: "img",
-      "aria-label": summary,
-    },
-    [...gridLines, ...drawn, cursor, ...markers, hit],
-  );
-
-  hit.addEventListener("pointermove", (event) => {
-    const bounds = chart.getBoundingClientRect();
-    const ratio = (event.clientX - bounds.left) / bounds.width;
-    const index = Math.round(ratio * width >= PAD.left ? ((ratio * width - PAD.left) / innerW) * (length - 1) : 0);
-    const clamped = Math.max(0, Math.min(length - 1, index));
-    const x = PAD.left + (length > 1 ? (clamped / (length - 1)) * innerW : 0);
-    cursor.setAttribute("x1", x);
-    cursor.setAttribute("x2", x);
-    cursor.setAttribute("opacity", 1);
-
-    const rows = [];
-    populated.forEach((s, seriesIndex) => {
-      const point = s.points[clamped];
-      if (!point) return;
-      const y = PAD.top + innerH - (maxY ? (point.value / maxY) * innerH : 0);
-      markers[seriesIndex].setAttribute("cx", x);
-      markers[seriesIndex].setAttribute("cy", y);
-      markers[seriesIndex].setAttribute("opacity", 1);
-      rows.push(
-        el("div", { class: "tooltip__row" }, [
-          el("span", {}, [
-            el("span", { class: "legend__swatch", style: `background:${s.color};display:inline-block;margin-right:6px` }),
-            s.label,
-          ]),
-          el("span", { text: String(formatValue(point.value)) }),
+    const gridLines = [0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+      const y = PAD.top + innerH - ratio * innerH;
+      return svg("g", {}, [
+        svg("line", { class: "chart__grid", x1: PAD.left, x2: width - PAD.right, y1: y, y2: y }),
+        svg("text", { class: "chart__axis", x: PAD.left - 8, y: y + 3, "text-anchor": "end" }, [
+          String(formatValue(maxY * ratio)),
         ]),
-      );
+      ]);
     });
-    const label = populated[0].points[clamped]?.label ?? "";
-    shared.show(el("div", {}, [el("div", { class: "tooltip__title", text: label }), ...rows]), event.clientX, event.clientY);
-  });
 
-  const hide = () => {
-    cursor.setAttribute("opacity", 0);
-    markers.forEach((marker) => marker.setAttribute("opacity", 0));
-    shared.hide();
-  };
-  hit.addEventListener("pointerleave", hide);
-  hit.addEventListener("pointercancel", hide);
+    const drawn = populated.map((s) =>
+      svg("g", {}, [
+        svg("path", { class: "chart__line", d: linePath(scale(s.points, innerW, innerH, maxY)), stroke: s.color }),
+      ]),
+    );
+
+    // Label density follows the available width rather than a fixed count, so a
+    // narrow chart thins its axis instead of overlapping it.
+    const maxLabels = Math.max(2, Math.floor(innerW / 90));
+    const step = Math.max(1, Math.ceil(length / maxLabels));
+    const xLabels = populated[0].points
+      .map((point, index) => ({ point, index }))
+      .filter(({ index }) => index % step === 0)
+      .map(({ point, index }) => {
+        const x = PAD.left + (length > 1 ? (index / (length - 1)) * innerW : 0);
+        return svg("text", { class: "chart__axis", x, y: height - 6, "text-anchor": "middle" }, [point.label]);
+      });
+
+    const cursor = svg("line", { class: "chart__cursor", y1: PAD.top, y2: PAD.top + innerH, x1: 0, x2: 0, opacity: 0 });
+    const markers = populated.map((s) => svg("circle", { class: "chart__dot", r: 3.5, fill: s.color, opacity: 0 }));
+    const hit = svg("rect", { class: "chart__hit", x: PAD.left, y: PAD.top, width: innerW, height: innerH });
+
+    const chart = svg(
+      "svg",
+      {
+        class: "chart",
+        viewBox: `0 0 ${width} ${height}`,
+        width,
+        height,
+        role: "img",
+        "aria-label": summary,
+      },
+      [...gridLines, ...drawn, ...xLabels, cursor, ...markers, hit],
+    );
+
+    hit.addEventListener("pointermove", (event) => {
+      const bounds = chart.getBoundingClientRect();
+      // One unit is one pixel, so the cursor position needs no rescaling.
+      const offset = event.clientX - bounds.left - PAD.left;
+      const ratio = innerW > 0 ? offset / innerW : 0;
+      const clamped = Math.max(0, Math.min(length - 1, Math.round(ratio * (length - 1))));
+      const x = PAD.left + (length > 1 ? (clamped / (length - 1)) * innerW : 0);
+      cursor.setAttribute("x1", x);
+      cursor.setAttribute("x2", x);
+      cursor.setAttribute("opacity", 1);
+
+      const rows = [];
+      populated.forEach((s, seriesIndex) => {
+        const point = s.points[clamped];
+        if (!point) return;
+        const y = PAD.top + innerH - (maxY ? (point.value / maxY) * innerH : 0);
+        markers[seriesIndex].setAttribute("cx", x);
+        markers[seriesIndex].setAttribute("cy", y);
+        markers[seriesIndex].setAttribute("opacity", 1);
+        rows.push(
+          el("div", { class: "tooltip__row" }, [
+            el("span", {}, [
+              el("span", { class: "legend__swatch legend__swatch--inline", style: { background: s.color } }),
+              s.label,
+            ]),
+            el("span", { text: String(formatValue(point.value)) }),
+          ]),
+        );
+      });
+      const label = populated[0].points[clamped]?.label ?? "";
+      shared.show(el("div", {}, [el("div", { class: "tooltip__title", text: label }), ...rows]), event.clientX, event.clientY);
+    });
+
+    const hide = () => {
+      cursor.setAttribute("opacity", 0);
+      markers.forEach((marker) => marker.setAttribute("opacity", 0));
+      shared.hide();
+    };
+    hit.addEventListener("pointerleave", hide);
+    hit.addEventListener("pointercancel", hide);
+
+    host.replaceChildren(chart);
+  }
+
+  // Drawn once at an assumed width so the chart is never blank, then corrected
+  // the moment the observer reports the real one.
+  draw(720);
+  onResize(host, draw);
 
   const legend = el(
     "div",
     { class: "legend" },
     populated.map((s) =>
       el("div", { class: "legend__item" }, [
-        el("span", { class: "legend__swatch", style: `background:${s.color}` }),
+        el("span", { class: "legend__swatch", style: { background: s.color } }),
         el("span", { text: s.label }),
       ]),
     ),
@@ -197,7 +252,7 @@ export function lineChart({ series, height = 200, formatValue = formatCount, sum
   ]);
 
   return el("div", {}, [
-    chart,
+    host,
     legend,
     dataTableFallback(summary, rows, ["Time", ...populated.map((s) => s.label)]),
   ]);
@@ -219,7 +274,8 @@ export function distribution({ segments, total, summary }) {
     present.map((segment) =>
       el("div", {
         class: `dist__seg dist__seg--${segment.cls}`,
-        style: `width:${(segment.value / total) * 100}%`,
+        style: { "--seg-width": `${((segment.value / total) * 100).toFixed(3)}%` },
+        title: `${segment.label}: ${formatCount(segment.value)}`,
       }),
     ),
   );
@@ -229,7 +285,7 @@ export function distribution({ segments, total, summary }) {
     { class: "legend" },
     segments.map((segment) =>
       el("div", { class: "legend__item" }, [
-        el("span", { class: "legend__swatch", style: `background:var(--${segment.cls})` }),
+        el("span", { class: "legend__swatch", style: { background: `var(--${segment.cls})` } }),
         el("span", { text: segment.label }),
         el("span", { class: "legend__value", text: formatCount(segment.value) }),
         el("span", {
@@ -247,24 +303,48 @@ export function distribution({ segments, total, summary }) {
   ]);
 }
 
-/** Horizontal bars for a small categorical breakdown. */
-export function barList({ items, total, color = "var(--accent)" }) {
+/**
+ * Horizontal bars for a small categorical breakdown.
+ *
+ * `onSelect` makes a row a real link into the filtered event list. It is a
+ * navigation, not a mutation: the console stays read-only (ADR-023), and the
+ * row is a `<button>` so it is reachable from the keyboard rather than a
+ * click-only affordance.
+ */
+export function barList({ items, total = null, color = "var(--accent)", onSelect = null, valueLabel = null }) {
   if (!items.length) return emptyState("Nothing recorded", "No categories were observed in this window.");
   const max = Math.max(...items.map((item) => item.value), 1);
+  const sum = total ?? items.reduce((acc, item) => acc + item.value, 0);
+
   return el(
     "div",
-    { class: "stack" },
-    items.map((item) =>
-      el("div", { class: "stack", style: "gap:6px" }, [
-        el("div", { style: "display:flex;justify-content:space-between;gap:12px;font-size:var(--text-sm)" }, [
-          el("span", { class: "truncate", text: item.label, title: item.label }),
-          el("span", { class: "num", text: formatCount(item.value) }),
+    { class: "barlist" },
+    items.map((item) => {
+      const share = sum > 0 ? (item.value / sum) * 100 : 0;
+      const body = [
+        el("span", { class: "barlist__label truncate", text: item.label, title: item.label }),
+        el("span", { class: "barlist__value num", text: valueLabel ? valueLabel(item) : formatCount(item.value) }),
+        sum > 0 ? el("span", { class: "barlist__pct num", text: `${share.toFixed(1)}%` }) : null,
+        el("span", { class: "barlist__track" }, [
+          el("div", {
+            class: "barlist__fill",
+            style: { "--bar-width": `${((item.value / max) * 100).toFixed(3)}%`, "--bar-color": color },
+          }),
         ]),
-        el("div", { class: "meter" }, [
-          el("div", { class: "meter__fill", style: `width:${(item.value / max) * 100}%;background:${color}` }),
-        ]),
-      ]),
-    ),
+      ];
+
+      if (!onSelect) return el("div", { class: "barlist__row" }, body);
+      return el(
+        "button",
+        {
+          class: "barlist__row barlist__row--action",
+          type: "button",
+          onClick: () => onSelect(item),
+          title: `Show events for ${item.label}`,
+        },
+        body,
+      );
+    }),
   );
 }
 

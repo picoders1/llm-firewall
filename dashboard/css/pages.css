@@ -65,3 +65,13 @@
 .score-bar__labels { display: flex; justify-content: space-between; font-size: var(--text-xs); color: var(--text-muted); margin-top: var(--space-2); }
 
 .not-available { color: var(--text-muted); font-style: italic; font-size: var(--text-sm); }
+
+/* Evaluation detail: classes replacing style attributes the CSP refuses. */
+.eval__footer { padding: 0 var(--space-5) var(--space-4); }
+.eval__runmeta { margin-top: var(--space-1); }
+.eval__warnlist {
+  margin: 0;
+  padding-left: 18px;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}

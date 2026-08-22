@@ -18,7 +18,11 @@ export function skeleton() {
 
 export async function load(signal) {
   return getAll(
-    { system: () => endpoints.system(), ready: () => endpoints.ready(), policy: () => endpoints.policy() },
+    {
+      system: (abort) => endpoints.system({ signal: abort }),
+      ready: (abort) => endpoints.ready({ signal: abort }),
+      policy: (abort) => endpoints.policy({ signal: abort }),
+    },
     { signal },
   );
 }
@@ -34,9 +38,9 @@ function dependency(dep) {
   return el("div", { class: "dep" }, [
     el("div", {
       class: "dep__icon",
-      style: `background:var(--${state.cls}-bg);color:var(--${state.cls})`,
+      style: { background: `var(--${state.cls}-bg)`, color: `var(--${state.cls})` },
     }, [icon(dep.status === "ok" ? "check" : "info", 16)]),
-    el("div", { style: "min-width:0" }, [
+    el("div", { class: "u-min-0" }, [
       el("div", { class: "dep__name", text: titleCase(dep.name) }),
       el("div", { class: "dep__detail", text: dep.detail ?? "No additional detail" }),
     ]),
@@ -105,9 +109,9 @@ export function view(data) {
             return el("div", { class: "dep" }, [
               el("div", {
                 class: "dep__icon",
-                style: `background:var(--${state.cls}-bg);color:var(--${state.cls})`,
+                style: { background: `var(--${state.cls}-bg)`, color: `var(--${state.cls})` },
               }, [icon(state.iconName, 16)]),
-              el("div", { style: "min-width:0" }, [
+              el("div", { class: "u-min-0" }, [
                 el("div", { class: "dep__name", text: titleCase(check.name) }),
                 el("div", { class: "dep__detail mono truncate", text: check.detail ?? "\u2014" }),
               ]),

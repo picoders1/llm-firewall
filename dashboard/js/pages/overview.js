@@ -13,8 +13,8 @@
 import { el, icon } from "../dom.js";
 import { path } from "../router.js";
 import { endpoints, getAll } from "../api.js";
-import { distribution, barList } from "../charts.js";
-import { formatCount, formatTimestamp, titleCase } from "../formatters.js";
+import { distribution, barList, lineChart } from "../charts.js";
+import { formatCount, formatTime, formatTimestamp, titleCase } from "../formatters.js";
 import {
   card, decisionBadge, degradedBanner, emptyState, errorBanner, errorState,
   kpi, loading, skeletonCards, dataTable,
@@ -29,8 +29,8 @@ export function skeleton() {
 export async function load(signal) {
   return getAll(
     {
-      overview: () => endpoints.overview({ hours: WINDOW_HOURS }),
-      events: () => endpoints.events({ hours: WINDOW_HOURS, page_size: 8 }),
+      overview: (abort) => endpoints.overview({ hours: WINDOW_HOURS }, { signal: abort }),
+      events: (abort) => endpoints.events({ hours: WINDOW_HOURS, page_size: 8 }, { signal: abort }),
     },
     { signal },
   );
@@ -61,13 +61,19 @@ export function view(data, { navigate }) {
     );
   }
 
+  const hours = overview.window.granted_hours;
+  const explore = (filter) => path(`/events?hours=${hours}&${filter}`);
+
+  // Each tile links to the events that produced it. "Total Requests" does not:
+  // the event list holds non-benign decisions only, so a link from the total
+  // would land on a smaller number and imply the console had lost rows.
   const totals = [
-    { label: "Total Requests", value: overview.total_requests, state: null, glyph: null },
-    { label: "Allowed", value: overview.allowed_requests, state: "allow", glyph: "●" },
-    { label: "Warned", value: overview.warned_requests, state: "warn", glyph: "▲" },
-    { label: "Redacted", value: overview.redacted_requests, state: "redact", glyph: "◆" },
-    { label: "Blocked", value: overview.blocked_requests, state: "block", glyph: "■" },
-    { label: "Detector Failures", value: overview.detector_failures, state: "failure", glyph: "✕" },
+    { label: "Total Requests", value: overview.total_requests, state: null, glyph: null, href: null },
+    { label: "Allowed", value: overview.allowed_requests, state: "allow", glyph: "●", href: explore("decision=allow") },
+    { label: "Warned", value: overview.warned_requests, state: "warn", glyph: "▲", href: explore("decision=warn") },
+    { label: "Redacted", value: overview.redacted_requests, state: "redact", glyph: "◆", href: explore("decision=redact") },
+    { label: "Blocked", value: overview.blocked_requests, state: "block", glyph: "■", href: explore("decision=block") },
+    { label: "Detector Failures", value: overview.detector_failures, state: "failure", glyph: "✕", href: explore("decision=detector_failure") },
   ];
 
   nodes.push(
@@ -80,11 +86,33 @@ export function view(data, { navigate }) {
           value: formatCount(entry.value),
           state: entry.state,
           glyph: entry.glyph,
-          foot: entry.label === "Total Requests" ? `Last ${overview.window.granted_hours}h` : null,
+          href: entry.value > 0 ? entry.href : null,
+          foot: entry.label === "Total Requests" ? `Last ${hours}h` : null,
         }),
       ),
     ),
   );
+
+  const series = overview.decisions_over_time ?? [];
+  if (series.length > 1) {
+    const at = (key) => series.map((point) => ({ label: formatTime(point.bucket), value: point[key] ?? 0 }));
+    nodes.push(
+      card(
+        "Decisions over time",
+        lineChart({
+          height: 210,
+          series: [
+            { key: "allowed", label: "Allow", color: "var(--allow)", points: at("allowed") },
+            { key: "blocked", label: "Block", color: "var(--block)", points: at("blocked") },
+            { key: "redacted", label: "Redact", color: "var(--redact)", points: at("redacted") },
+            { key: "warned", label: "Warn", color: "var(--warn)", points: at("warned") },
+          ].filter((entry) => entry.points.some((point) => point.value > 0)),
+          summary: `Decisions per bucket over the last ${hours} hours.`,
+        }),
+        { hint: `${series.length} buckets` },
+      ),
+    );
+  }
 
   const decisionSegments = [
     { label: "Allow", value: overview.allowed_requests, cls: "allow" },
@@ -115,6 +143,7 @@ export function view(data, { navigate }) {
                 label: entry.key,
                 value: entry.count,
               })),
+              onSelect: (item) => navigate(explore(`detector=${encodeURIComponent(item.label)}`)),
             })
           : emptyState("No detections", "No detector reported a positive finding in this window."),
       ),
@@ -129,8 +158,10 @@ export function view(data, { navigate }) {
           items: overview.requests_by_category.map((entry) => ({
             label: titleCase(entry.key),
             value: entry.count,
+            key: entry.key,
           })),
           color: "var(--block)",
+          onSelect: (item) => navigate(explore(`category=${encodeURIComponent(item.key)}`)),
         }),
       ),
     );

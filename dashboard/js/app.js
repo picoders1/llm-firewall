@@ -18,6 +18,7 @@ import { ErrorKind, endpoints } from "./api.js";
 import { renderHeader, renderSidebar } from "./components/shell.js";
 import { createRefreshCoordinator, loadTheme, saveTheme, shell } from "./state.js";
 import { emptyState } from "./components/primitives.js";
+import { openPalette, openShortcuts } from "./components/palette.js";
 
 import * as overview from "./pages/overview.js";
 import * as events from "./pages/events.js";
@@ -42,6 +43,7 @@ const ROUTES = [
 const sidebarEl = document.getElementById("sidebar");
 const headerEl = document.getElementById("header");
 const mainEl = document.getElementById("main");
+const progressEl = document.getElementById("progress");
 
 let theme = loadTheme();
 document.documentElement.dataset.theme = theme;
@@ -67,6 +69,7 @@ function paintShell() {
   renderSidebar(sidebarEl, {
     activePath: window.location.pathname,
     onNavigate: () => closeDrawer(),
+    version: shell.get().system?.version ?? null,
   });
   renderHeader(headerEl, {
     state: shell.get(),
@@ -78,12 +81,13 @@ function paintShell() {
       refresher.toggle();
       paintShell();
     },
-    onToggleTheme: () => {
-      theme = theme === "dark" ? "light" : "dark";
-      document.documentElement.dataset.theme = theme;
-      saveTheme(theme);
-      paintShell();
-    },
+    onToggleTheme: () => toggleTheme(),
+    onOpenPalette: () =>
+      openPalette({
+        navigate: (target) => router.navigate(target),
+        onRefresh: () => refresher.refresh(),
+        onToggleTheme: toggleTheme,
+      }),
   });
 }
 
@@ -152,14 +156,20 @@ async function renderPage(navigation, { silent = false } = {}) {
     render(mainEl, pageHeader(page.meta), page.skeleton());
   }
 
+  progressEl?.setAttribute("data-active", "true");
   shell.set((state) => ({ ...state, refreshing: true }));
   try {
     const data = await page.load(signal, ctx);
-    if (signal.aborted) return;
+    if (signal.aborted) {
+      // A newer navigation owns the indicator now; do not clear it under them.
+      return;
+    }
+    progressEl?.removeAttribute("data-active");
     render(mainEl, pageHeader(page.meta), page.view(data, ctx));
     shell.set((state) => ({ ...state, lastUpdated: new Date().toISOString(), refreshing: false }));
   } catch (error) {
     if (error?.name === "AbortError" || signal.aborted) return;
+    progressEl?.removeAttribute("data-active");
     shell.set((state) => ({ ...state, refreshing: false }));
     if (error?.kind === ErrorKind.UNAUTHENTICATED || error?.kind === ErrorKind.FORBIDDEN) {
       // Stop polling first. An expired session that keeps refreshing turns one
@@ -223,8 +233,77 @@ function closeDrawer() {
   document.getElementById("scrim")?.remove();
 }
 
+/**
+ * Global keyboard control.
+ *
+ * Every binding is a navigation or a display preference. There is deliberately
+ * no destructive or mutating shortcut, because the console has no mutating
+ * capability to bind one to (ADR-023).
+ *
+ * Nothing fires while the operator is typing: a `g` in the detector filter is a
+ * letter, not a command.
+ */
+const GO_TO = { o: "/", e: "/events", d: "/detectors", t: "/traffic", v: "/evaluations", s: "/system" };
+let awaitingGo = false;
+let goTimer = null;
+
+function isTyping(target) {
+  if (!target) return false;
+  if (target.isContentEditable) return true;
+  return ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
+}
+
+function toggleTheme() {
+  theme = theme === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = theme;
+  saveTheme(theme);
+  paintShell();
+}
+
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeDrawer();
+
+  // Ctrl/Cmd+K works even from a field: it is how you leave the field.
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+    event.preventDefault();
+    openPalette({
+      navigate: (target) => router.navigate(target),
+      onRefresh: () => refresher.refresh(),
+      onToggleTheme: toggleTheme,
+    });
+    return;
+  }
+
+  if (isTyping(event.target) || event.ctrlKey || event.metaKey || event.altKey) return;
+  if (document.querySelector(".overlay")) return;
+
+  if (awaitingGo) {
+    const destination = GO_TO[event.key.toLowerCase()];
+    awaitingGo = false;
+    clearTimeout(goTimer);
+    if (destination) {
+      event.preventDefault();
+      router.navigate(path(destination));
+    }
+    return;
+  }
+
+  if (event.key === "g") {
+    awaitingGo = true;
+    // The prefix expires, so a stray `g` cannot silently swallow the next key.
+    goTimer = setTimeout(() => { awaitingGo = false; }, 1500);
+    return;
+  }
+  if (event.key === "?") {
+    event.preventDefault();
+    openShortcuts();
+  } else if (event.key === "r" || event.key === "R") {
+    event.preventDefault();
+    refresher.refresh();
+  } else if (event.key === "T") {
+    event.preventDefault();
+    toggleTheme();
+  }
 });
 
 // Boot.
