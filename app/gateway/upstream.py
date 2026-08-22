@@ -101,7 +101,28 @@ class HttpUpstreamClient:
 
         latency_ms = (time.perf_counter() - started) * 1000.0
 
-        if response.status_code >= 500:
+        if response.status_code < 200 or response.status_code >= 300:
+            # ANY non-2xx, not just 5xx. This read `>= 500` until R-114, so a 4xx
+            # fell straight through to the success path: the handler hardcodes
+            # `JSONResponse(status_code=200, ...)`, so an upstream 401, 404 or 429
+            # was relabelled **200 OK** with the provider's error body reflected
+            # verbatim. Found the first time this gateway fronted a real model
+            # rather than the mock — Ollama answered 404 for an unknown model and
+            # the caller received 200. With a paid provider the same path turns a
+            # bad API key (401) and a rate limit (429) into apparent successes.
+            #
+            # It also broke the rule the comment below states: `docs/07` says
+            # upstream bodies are NEVER reflected, and for 4xx they were. Raising
+            # here maps every upstream error onto the registered contract —
+            # 502 `upstream_error` with a gateway-authored message — and lets
+            # `record_trace` count it, because a raised call never records a
+            # latency and that is precisely the signature R-107 counts on.
+            #
+            # Accepted cost: a 429 is no longer distinguishable from a 500 by the
+            # caller. Propagating the upstream status instead would leak provider
+            # behaviour and reflect its body, which is a policy change this fix
+            # deliberately does not make on its own.
+            #
             # The upstream body is NEVER reflected: it can contain the reflected
             # prompt or provider internals (docs/07-openai-compatible-api.md).
             raise UpstreamError("The upstream model returned an error.")
