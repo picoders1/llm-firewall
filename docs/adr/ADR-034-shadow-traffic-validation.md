@@ -159,13 +159,21 @@ classified as a false positive.
 | 1 | Decision behaviour | **Produced** — run 1, 1,808 requests |
 | 2 | Request-path behaviour | **Produced** — latency in run 1; accepted/refused/upstream/audit in run 2 |
 | 3 | Capacity and limits | **Partially produced** — edge `limit_req` and the in-process ceiling measured exactly; `limit_conn` and the caller rate limit not reachable in this stack |
-| 4 | Alert validation | **Partially produced** — 3 of 16 observed on real conditions, **1 demonstrated defective (R-104)**, 12 not exercised with dependencies named |
-| 5 | Runbook dry run | **Partially produced** — 3 entries walked, 1 command found broken as written (R-105) |
+| 4 | Alert validation | **Substantially produced by run 3** — **15 of 16** driven to the state each rule requires, with Prometheus transition timestamps and every registered hold observed unshortened ([run 3 report](../../eval/results/shadow/20260821T201400Z__phase20-run3-alert-validation/report.md)). #7 `FirewallBlockRateStepChange` remains **EXTERNALLY UNVERIFIED** and was not attempted. Run 3 also found **R-111**, a critical alert whose numerator could never move |
+| 5 | Runbook dry run | **Produced** — run 2 walked 3 entries on a healthy stack (R-105); run 3 walked **5 entries / 13 commands against genuinely firing conditions**, 11 worked and 2 failed ([run 3 report](../../eval/results/shadow/20260821T201400Z__phase20-run3-alert-validation/report.md)). The registered requirement is *"a representative subset"*, which is met. A second command was found broken as written (**R-112**), and it could only appear against a real fault |
 | 6 | Security regression | **Produced** — no invariant failed in either run |
 
 **Phase 20 is therefore not complete.** Twelve alerts and the majority of runbook
 entries remain unexercised, and each is recorded with the specific dependency that
 prevents it rather than assumed acceptable.
+
+> **Amended after run 3 (2026-08-22).** Measurement 4 is now 15 of 16 and
+> measurement 5 is produced; the sentence above is superseded on both counts and is
+> left standing as the run-2 record. **Measurement 3 is unchanged** — `limit_conn`
+> and the caller rate limit were still not reachable in this stack, so Phase 20 is
+> still not complete, and capacity is now the only reason. The runbook walk found a
+> second broken command (**R-112**), which a healthy-stack rehearsal could not have
+> surfaced; and a rehearsal against an induced fault still is not an incident.
 
 ## Verification
 

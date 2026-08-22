@@ -716,26 +716,67 @@ Additionally:
 
 ## Execution status
 
-**RUN 3 NOT EXECUTED. NO ALERT HAS BEEN VALIDATED.** Phase 1 built the fixtures and
-verified them in isolation; no Prometheus rule has been driven to `pending` or
-`firing` by any of this work.
+**EXECUTED 2026-08-21/22 — 15 of 16 alerts validated on real conditions.** Every
+transition below is a Prometheus observation with its timestamps; every registered
+`for:` hold elapsed unshortened, and no threshold was altered to make anything fire.
+Full evidence: [run 3 report](../../eval/results/shadow/20260821T201400Z__phase20-run3-alert-validation/report.md).
 
-| # | Alert | Status |
-|---|---|---|
-| 1, 2, 8, 10, 11, 12, 14, 15, 16 | nine locally validatable | **PLANNED — not executed.** Fixtures built and verified in isolation |
-| **5, 6** | detector-error alerts | **BLOCKED — no working seam.** Fixture B was measured and cannot emit `firewall_detector_errors_total`. Awaiting phase 0c |
-| 3, 4, 13 | validated before Run 3 | Recorded in ADR-034 and the risk register; **not re-run** |
-| 7 | `FirewallBlockRateStepChange` | **EXTERNALLY UNVERIFIED** — not attempted |
-| 9 | `FirewallRetentionStalled` | **PLANNED, OPTIONAL** — ~3 h 20 m soak |
+| # | Alert | `for:` | PENDING | FIRING | Status |
+|---|---|---|---|---|---|
+| 6 | `FirewallDetectorErrorsPresent` | — | — | 20:14:24 | **VALIDATED** — R-104 clause; `increase()` read 0 at the same instant |
+| 10 | `FirewallRetentionSweepsFailing` | — | — | 20:15:38 | **VALIDATED** — R-104 clause; `increase()` read 0 at the same instant |
+| 1 | `FirewallAuditEventsDropped` | — | — | ≤20:20:59 | **VALIDATED** |
+| 12 | `FirewallAuditQueueSaturating` | 10m | 20:19:38 | 20:29:52 | **VALIDATED** — also settled R-109 as *partially* confirmed |
+| 11 | `FirewallAuditBacklogExceedsRetention` | 30m | 20:31:08 | 21:01:14 | **VALIDATED** |
+| 5 | `FirewallDetectorErrorRateHigh` | 10m | 20:42:24 | 20:52:52 | **VALIDATED** — via the phase 0c seam |
+| 8 | `FirewallUpstreamErrorsHigh` | 10m | 20:59:24 | 21:09:30 | **VALIDATED** — first exercise of the R-107 numerator |
+| 16 | `FirewallGatewayOverheadHigh` | 15m | 21:21:00 | 21:36:03 | **VALIDATED** |
+| 14 | `FirewallCallerAuthFailureSpike` | 10m | 21:38:00 | 21:48:59 | **VALIDATED** |
+| 15 | `FirewallOperatorAuthDenialSpike` | 10m | 21:38:00 | 21:48:59 | **VALIDATED** |
+| 2 | `FirewallAuditWriteFailing` | 10m | 22:05:13 | 22:15:42 | **VALIDATED, with its dependency stated** — see below |
+| 9 | `FirewallRetentionStalled` | 15m | 01:05:30 | 01:20:30 | **VALIDATED** — one success 22:04:48, then 613 consecutive failed sweeps; threshold crossed 01:04:48. Nothing shortened |
+| 3, 4, 13 | validated before run 3 | — | — | — | Recorded in ADR-034; #3 re-confirmed incidentally |
+| **7** | `FirewallBlockRateStepChange` | 30m | — | — | **EXTERNALLY UNVERIFIED** — not attempted |
+
+**#2 carries a dependency that must not be lost.** Its transition was observed
+against **pre-commit** code: the alert could not have fired at all before **R-111**,
+which was found by driving this very condition. R-111 is committed at **`3114fb9`**,
+and a post-commit confirmation against image `3f62e57a2835` — 12 requests, 8×200,
+4×403, **0×5xx**, counter `0 → 12` — establishes that the committed code behaves as
+the code that produced the transition. **That confirmation is a dependency check, not
+a re-execution of the alert transition.**
+
+**#9 is recorded honestly.** The soak began as a by-product of the #2 test leaving
+the database stopped, rather than as a separately initiated run. The mechanism
+(`stop postgres`), the sequence and the durations match section 8 exactly, and the
+10800 s threshold and 15 m hold were preserved — so the criteria are met on their own
+terms, and the way the condition arose is stated rather than tidied away.
 
 | Deliverable | Status |
 |---|---|
-| `config/policies/fault-injection.yaml` | **Built.** Marker cost confirmed on the real gateway |
-| `compose.fault.yaml` | **Built.** Isolation and teardown confirmed |
-| `tests/security/test_fault_fixtures_are_not_production.py` | **Built.** 21 tests, four negative controls |
-| `scripts/seed_backdated_audit.py` | **Built.** Refusals and the #11 numerator confirmed |
-| `eval/runners/shadow.py` extension | **Not started** (phase 2) |
-| Detector-error seam for #5/#6 | **Not designed** (phase 0c) |
+| `config/policies/fault-injection.yaml` | **Built and used.** Two markers; latency marker drove #16, error marker drove #5/#6 |
+| `compose.fault.yaml` | **Built and used.** Isolation and teardown confirmed |
+| `tests/security/test_fault_fixtures_are_not_production.py` | **Built.** 28 tests, seven negative controls |
+| `scripts/seed_backdated_audit.py` | **Built and used.** Seeded the #11 backlog |
+| `tests/unit/test_detector_error_seam.py` | **Built.** 11 tests pinning the phase 0c seam |
+| `eval/runners/shadow.py` extension | **Built and used** (phase 2) — rate control exact to 0.3%; fault delivery exact in every run. **Still uncommitted** |
+| Detector-error seam for #5/#6 | **Designed (0c), verified, implemented, used** |
+| Run 3 evidence artefact | **Written.** Still uncommitted |
+
+### Runbook walk
+
+ADR-034 §5's *representative subset* was walked on 2026-08-22 03:20–03:22 UTC with
+**five alerts genuinely firing** — the first walk against real conditions rather
+than a healthy stack. **13 commands: 11 worked, 2 failed.**
+
+The two failures are the same command reached from two entries:
+`scripts/purge_audit.py` exits 1 with 129 lines of traceback and **no
+operator-facing message** when the database is configured but unreachable — which is
+precisely the state those entries send an operator into. Recorded as **R-112**, not
+fixed. A healthy-stack rehearsal could not have found it.
+
+**Still open, and not closed by this run:** R-108, R-109, R-110, **R-112**, F1, F6,
+the two further stale ADR-012 test references, and #7.
 
 ---
 
