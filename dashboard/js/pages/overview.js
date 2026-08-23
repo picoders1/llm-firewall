@@ -93,8 +93,26 @@ export function view(data, { navigate }) {
     ),
   );
 
+  // The card is always rendered. A single bucket cannot make a line — two points
+  // are the minimum for a trend — but *omitting the panel* to say so breaks the
+  // rule the rest of the console follows: absence is stated, never defaulted.
+  // Dropping it silently reads as a broken chart, which is exactly how it was
+  // first reported.
   const series = overview.decisions_over_time ?? [];
-  if (series.length > 1) {
+  if (series.length <= 1) {
+    nodes.push(
+      card(
+        "Decisions over time",
+        emptyState(
+          series.length === 0 ? "No decisions in this window" : "Not enough points to plot a trend",
+          series.length === 0
+            ? "Nothing has been evaluated in the selected window, so there is no series to draw."
+            : `A trend needs at least two time buckets. Every request in this window landed in a single bucket, so there is one point and no line. It will appear as traffic spreads over time.`,
+        ),
+        { hint: `${series.length} bucket${series.length === 1 ? "" : "s"}` },
+      ),
+    );
+  } else {
     const at = (key) => series.map((point) => ({ label: formatTime(point.bucket), value: point[key] ?? 0 }));
     nodes.push(
       card(
