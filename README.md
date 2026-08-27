@@ -34,6 +34,43 @@ that would be required: [docs/22-evidence-and-claims.md](docs/22-evidence-and-cl
 
 ## What it does, in one screen
 
+```
+                        client  (OpenAI SDK — only base_url changes)
+                                          │
+                                          ▼
+        admission ─→ caller auth ─→ normalise ─→ inspect input
+         (503 if      (401, before   (offsets            │
+         saturated)    inference)     preserved)         │
+                                          ┌──────────────┼──────────────┐
+                                          ▼              ▼              ▼
+                                     injection       jailbreak         PII
+                                     heuristic       heuristic        regex
+                                          └──────────────┼──────────────┘
+                                                         ▼
+                                                  policy engine
+                                            (pure: results → action)
+                              ┌─────────────┬────────────┴─┬───────────────┐
+                              ▼             ▼              ▼               ▼
+                           ALLOW          WARN          REDACT           BLOCK
+                              │             │              │                │
+                              └─────────────┴──────┬───────┘         403 + category,
+                                                   ▼                 upstream never
+                                           upstream LLM call         contacted (~9 ms)
+                                                   │                        │
+                                                   ▼                        │
+                                           inspect output                   │
+                                        (PII on the way back)               │
+                                                   │                        │
+                                                   ▼                        │
+                                           response to client               │
+                                                   │                        │
+                                                   └────────┬───────────────┘
+                                                            ▼
+                                                 audit · metrics · console
+```
+
+All three outcomes, plus the proof that a block never reached the model:
+
 ```bash
 docker compose up -d --build      # gateway :8005, mock upstream :8081, PostgreSQL :5434
 ```
@@ -57,58 +94,159 @@ curl -sS localhost:8081/__stats
 
 Then open the Security Operations console at **<http://localhost:8005/dashboard>**.
 
-## Highlights
+## Highlights, module by module
 
-* **Blocked means blocked.** The "upstream was never called" invariant is asserted against a
-  real call counter in every negative test — a 403 alone would not prove it.
-* **Detectors detect; the policy engine decides.** `app/detectors/` cannot import `app/policy`,
-  and `Action` is not importable inside detectors. The whole security decision surface is a
-  pure function, exhaustively testable as a truth table with no models loaded. Enforced by an
-  AST test, so a violation is caught even if the module is never imported.
-* **Fail closed, loudly.** A detector that raises or times out blocks by default with a distinct
-  `503 detector_failure`. A fail-open override exists and is named in a startup warning.
-* **Normalisation preserves offsets.** Redaction spans computed on normalised text map back to
-  the raw body, so evasion via unicode or whitespace does not defeat redaction (ADR-010).
-* **Provenance may only tighten.** Trust is derived from role, never read from the wire. A
-  policy overlay that would *loosen* a decision is rejected at load time.
-* **Prompts are never logged.** Enforced by a structlog processor at the sink, not per call
-  site, and no audit column can hold a prompt or completion — asserted against the schema.
-* **The audit write is off the request path.** A bounded queue drops and counts rather than
-  blocking; blocking was implemented, measured against a stalled database, and removed because
-  it hung the request path until every client timed out (ADR-029).
+Each entry names the module that owns the guarantee and the test that enforces it. None of
+these are conventions — every one is asserted.
+
+### `app/detectors/` — detection
+* **Detectors detect; they never decide.** The package cannot import `app/policy`, and `Action`
+  is not importable inside it. Enforced by `tests/unit/test_layer_boundaries.py`, which parses
+  the **AST** — so a violation is caught even in a module no test imports.
+* **Every detector is wrapped in `GuardedDetector`**, giving it a timeout and an error boundary
+  it cannot escape. One slow detector cannot stall the request; one raising detector cannot
+  take down the pipeline.
+* **Fail closed, loudly.** A detector that raises or times out **blocks** by default with a
+  distinct `503 detector_failure`. A per-detector fail-open override exists and is named in a
+  startup warning, so an operator cannot forget they enabled it.
+* **Registry holds five, policy enables four.** `injection.heuristic`, `jailbreak.heuristic`,
+  `pii.regex` on input plus `pii.regex` on output. `injection.transformer` and `output.stub`
+  ship disabled.
+
+### `app/policy/` — the decision
+* **The entire security decision is a pure function** — `(results, config, direction,
+  provenance) → PolicyDecision`. No I/O, no clock, no model. That is what makes it exhaustively
+  testable as a truth table with nothing loaded.
+* **Provenance may only tighten.** Trust is derived from role, never read from the wire
+  (`trust_inline_claims=False`). A `by_trust` overlay that would *loosen* a decision is
+  rejected **at load time**, not ignored at runtime.
+* **Invalid policy prevents startup** and is never silently repaired.
+
+### `app/core/` — normalisation
+* **Offsets survive normalisation.** `core/normalize.py` carries raw text, normalised text and
+  an offset map, so a redaction span computed on normalised text maps back to the exact bytes
+  of the raw body (ADR-010). Unicode or whitespace evasion does not defeat redaction.
+
+### `app/gateway/` — the upstream
+* **Blocked means blocked.** Every negative test asserts `upstream.call_count == 0` — a 403
+  alone would not prove the model was spared.
+* **A client header can never become the upstream credential.** `HttpUpstreamClient` binds
+  `authorization` at construction, and `chat_completions(self, payload)` has nowhere to put a
+  header. A test asserts that signature (ADR-024).
+
+### `app/middleware/` — the two boundaries
+* **Operator identity is derived, never received.** Access class is assigned **by path**, and
+  unknown paths default to operator-only, so a new route is protected before anyone classifies
+  it. No identity header is read until the socket's peer is inside `FIREWALL_TRUSTED_PROXIES`;
+  `X-Forwarded-For` is never consulted, because the client controls it.
+* **Callers are a separate boundary with a separate type.** `/v1/**` requires a service key
+  compared against SHA-256 digests — **the raw key is never stored on the gateway** — and the
+  comparison loop does not short-circuit on first match. It runs in middleware, so a refusal
+  costs no detector inference (~95 ms) and never reaches the upstream.
+* **Operator and caller principals are different types**, so one cannot be substituted for the
+  other by accident.
+
+### `app/observability/` — logging and metrics
+* **Prompts are never logged.** Enforced by a structlog processor **at the sink**, not per call
+  site, so a new log statement cannot leak one. `full` content logging is refused in production,
+  in code.
+* **Configuration is exported as metrics** (`firewall_audit_retention_period_seconds`,
+  `firewall_audit_queue_capacity`, `firewall_retention_enabled`) so an alert rule can never
+  hardcode a threshold the application owns.
+
+### `app/database/` — audit and retention
+* **No audit column can hold a prompt or completion** — asserted against the schema, not against
+  a code path.
+* **The audit write is off the request path.** `queue_drop` puts a bounded queue in front of
+  PostgreSQL, saving ~9 ms p50. When it fills, records are **dropped and counted**. Blocking was
+  implemented, measured against a stalled database, and removed because it hung the request path
+  until every client timed out (ADR-029).
 * **Retention deletes by age and nothing else.** The only predicate is `created_at` — no filter
   by decision, category, detector or caller, because a purge that can be aimed is a mechanism
-  for erasing the evidence of a block (ADR-030).
-* **Deployment is an artefact, not a description.** The production topology is standalone and
-  test-asserted: only the edge publishes a port, the audit store sits on an internal network,
-  credentials are mounted files (ADR-028).
+  for erasing the evidence of a block. `tests/security/test_retention_safety.py` compiles the
+  statements and asserts on the SQL (ADR-030).
+
+### `dashboard/` — the Security Operations console
+* **Structurally read-only.** Every operator endpoint is a `GET` and the boundary refuses other
+  methods, so a mutating endpoint cannot inherit read-only authentication without an edit there.
+* **No framework, no build step, no runtime dependency** — vanilla HTML/CSS/JS under a strict
+  CSP with no `unsafe-inline` (ADR-022). `innerHTML` is absent by static assertion.
+* **Six views over real audit data.** No fixture rows, no fabricated series.
+
+### `eval/` — the evidence regime
 * **Negative results are first-class.** Two fine-tuning experiments are recorded as failures
   with their evidence intact. No model has been promoted on a partial win.
+* **Hold-outs have a scoring budget**, and threshold calibration uses the dev split only —
+  enforced at the library boundary by `eval/schema.py:require_tunable`, which raises on a
+  frozen split.
+
+### `deploy/` — the artefact
+* **Deployment is an artefact, not a description.** The production topology is standalone and
+  test-asserted: only the edge publishes a port, the audit store sits on an `internal: true`
+  network, credentials arrive as mounted files (ADR-028).
 
 ## Architecture
 
 ```
-        client (OpenAI SDK, base_url → this gateway)
-                          │
-    ┌─────────────────────▼──────────────────────────────┐
-    │ middleware   admission · auth · request-id · timing  │
-    │ api          /health  /ready  /metrics  /v1/*        │
-    │ core         normalise → DetectionContext            │
-    │ detectors    concurrent, each timeout+error guarded  │
-    │ policy       PURE: results + config → action         │
-    │ gateway      pooled httpx → upstream                 │
-    │ observability structlog · Prometheus · OTel          │
-    │ database     SQLAlchemy async + Alembic              │
-    └─────────────────────┬──────────────────────────────┘
-                          ▼
-              OpenAI-compatible upstream
+                    client application (OpenAI SDK)
+                                 │  base_url → this gateway
+                                 ▼
+   ┌─────────────────────────────────────────────────────────────────┐
+   │                          LLM FIREWALL                            │
+   │                                                                  │
+   │  middleware      admission (503) · caller auth (401) ·           │
+   │                  operator auth · request-id · timing             │
+   │        │                                                         │
+   │        ▼                                                         │
+   │  api             /health   /ready   /metrics   /v1/*   /dashboard│
+   │        │                                                         │
+   │        ▼                                                         │
+   │  core            normalise → DetectionContext (offsets kept)     │
+   │        │                                                         │
+   │        ▼                                                         │
+   │  detectors       concurrent fan-out, each timeout + error guarded│
+   │        │         ── cannot import policy (AST-enforced) ──       │
+   │        ▼                                                         │
+   │  policy          PURE  (results, config, direction, provenance)  │
+   │        │                        → ALLOW │ WARN │ REDACT │ BLOCK  │
+   │        ▼                                                         │
+   │  gateway         pooled httpx · credential bound at construction │
+   │        │                                                         │
+   │        ▼                                                         │
+   │  output          inspect completion, redact before returning     │
+   │        │                                                         │
+   │        ├──────────────► observability   structlog · Prometheus · OTel
+   │        └──────────────► database        SQLAlchemy async + Alembic
+   └─────────────────────────────────┬───────────────────────────────┘
+                                     ▼
+                        OpenAI-compatible upstream
+                   (OpenAI · vLLM · Ollama · LM Studio · …)
 ```
 
-Request path: middleware → `api/v1/chat.py` → `core/normalize.py` → `detectors/pipeline.py`
-(concurrent, each wrapped in `GuardedDetector`) → `policy/engine.py` → `gateway/upstream.py` →
-output inspection → audit.
-
 Details: [docs/02-system-architecture.md](docs/02-system-architecture.md).
+
+## Pipeline stages
+
+What happens to a request, in order, and the guarantee each stage carries.
+
+| # | Stage | Module | Guarantee |
+|---|---|---|---|
+| 1 | **Admission** | `middleware/admission.py` | Outermost of everything. Bounds in-flight requests and **rejects rather than queues** (`503`). `/health` and `/ready` exempt. Off by default |
+| 2 | **Caller authentication** | `middleware/caller_auth.py` | `/v1/**` needs a service key. Refusal costs no inference and never reaches the upstream |
+| 3 | **Validation** | `api/v1/chat.py` | OpenAI-compatible schema; oversized bodies refused before work begins |
+| 4 | **Normalisation** | `core/normalize.py` | Unicode/whitespace folded for detection while an **offset map** preserves the raw body for redaction |
+| 5 | **Provenance** | `core/provenance.py` | Trust derived from message role. Never read from the wire |
+| 6 | **Input detection** | `detectors/pipeline.py` | All enabled detectors run **concurrently**, each inside `GuardedDetector` (timeout + error boundary) |
+| 7 | **Policy decision** | `policy/engine.py` | Pure function → `ALLOW` \| `WARN` \| `REDACT` \| `BLOCK`. A detector failure blocks by default |
+| 8 | **Upstream call** | `gateway/upstream.py` | Reached only if the decision allows. Pooled `httpx`; credential bound at construction |
+| 9 | **Output inspection** | `detectors/` (output direction) | The completion is inspected on the way back; PII is redacted before the client sees it |
+| 10 | **Audit** | `database/` | Decision, scores, latencies and a content **hash** — never the content |
+
+**On concurrency:** stage 6 is a concurrent fan-out inside a single process — `asyncio` tasks
+over an executor, bounded by `FIREWALL_DETECTOR_MAX_THREADS`. There is no agent framework, no
+inter-process orchestration and no LLM-as-judge on the request path: an LLM-based evaluator is
+deliberately kept **out** of production and confined to `eval/`, because a security decision
+that depends on a second model inherits that model's failure modes and latency.
 
 ## Tech stack
 
@@ -155,20 +293,38 @@ Details: [docs/02-system-architecture.md](docs/02-system-architecture.md).
 > Host ports **5434** and **8089** are used because 5432/5433 and 8080 are occupied on the
 > reference machine. Change them in `compose.yaml` if that does not apply to you.
 
-## Quick start
+## Installation
 
 ```bash
 git clone <repo> && cd llm-firewall
 cp .env.example .env            # defaults work; no credentials required
-
-docker compose up -d --build
-curl localhost:8005/health
-curl localhost:8005/ready
+docker compose up -d --build    # builds the image and starts three containers
 ```
 
-Then run the three paths from [What it does](#what-it-does-in-one-screen) above.
+That is the whole installation. Nothing is fetched from the network at runtime, no API key is
+required, and the schema is applied by Alembic rather than auto-created.
 
-### Pointing it at a real model
+For development on the host as well:
+
+```bash
+uv sync --all-groups            # installs app + dev + eval groups from the lockfile
+uv run alembic upgrade head     # against the containerised PostgreSQL on :5434
+```
+
+## Running
+
+### The default stack
+
+```bash
+docker compose up -d --build
+curl localhost:8005/health
+curl localhost:8005/ready       # each check is `required` or `advisory`
+```
+
+Then run the ALLOW / BLOCK / REDACT trio from
+[What it does](#what-it-does-in-one-screen).
+
+### Against a real model
 
 The gateway fronts anything OpenAI-compatible. With [Ollama](https://ollama.com) on the host:
 
@@ -181,7 +337,7 @@ FIREWALL_UPSTREAM_BASE_URL=http://172.17.0.1:11434/v1 docker compose up -d
 Blocked requests still cost ~9 ms and never reach the model, against seconds for a real
 generation — the gap is the proof.
 
-### Local development without containers
+### Without containers
 
 ```bash
 uv sync --all-groups
@@ -190,24 +346,25 @@ uv run alembic upgrade head
 uv run uvicorn app.main:app --reload --port 8005
 ```
 
-## Usage
+The console is served from the working tree in this mode, so frontend edits appear on refresh
+with no rebuild.
 
-### Authenticating callers
+### With caller authentication
 
-Outside production `/v1` is open, which is what keeps the quick start one command. In
-production it is not optional — the gateway holds your upstream API key, so
-`FIREWALL_ENVIRONMENT=production` with caller authentication disabled is a **startup failure**.
+Outside production `/v1` is open, which is what keeps installation one command. In production it
+is not optional — the gateway holds your upstream API key, so `FIREWALL_ENVIRONMENT=production`
+with caller authentication disabled is a **startup failure**.
 
 ```bash
 uv run python scripts/generate_caller_key.py web-app
 ```
 
 That prints two values with different destinations: the **raw key** goes to the calling
-application, the **digest** goes in `FIREWALL_CALLER_API_KEYS` on the gateway. The gateway
-never stores the raw key ([ADR-024](docs/adr/ADR-024-llm-caller-authentication.md)). Nothing
-changes for the client — the OpenAI SDK already sends the credential.
+application, the **digest** goes in `FIREWALL_CALLER_API_KEYS` on the gateway. The gateway never
+stores the raw key ([ADR-024](docs/adr/ADR-024-llm-caller-authentication.md)). Nothing changes
+for the client — the OpenAI SDK already sends the credential.
 
-### Running behind the reference edge
+### Behind the reference edge
 
 ```bash
 docker compose -f compose.yaml -f compose.edge.yaml up -d --build
@@ -215,11 +372,11 @@ curl -i localhost:8089/v1/chat/completions -H 'content-type: application/json' -
 # repeat quickly and the edge answers 429
 ```
 
-The edge authenticates nobody — it bounds *volume*, so the application never pays for a flood
-it was going to refuse. Its limits are **development defaults chosen to be observable by hand,
-not recommendations** ([ADR-025](docs/adr/ADR-025-edge-abuse-protection.md), R-67).
+The edge authenticates nobody — it bounds *volume*, so the application never pays for a flood it
+was going to refuse. Its limits are **development defaults chosen to be observable by hand, not
+recommendations** ([ADR-025](docs/adr/ADR-025-edge-abuse-protection.md), R-67).
 
-### Running with HTTPS
+### With HTTPS
 
 ```bash
 ./scripts/generate_dev_cert.sh   # writes deploy/certs/ — gitignored, never committed
@@ -245,18 +402,22 @@ docker compose -f compose.prod.yaml --env-file prod.env up -d
 ```
 
 Standalone, not an overlay — because what makes a deployment production is mostly what it
-*removes*, and a Compose overlay can only add. Asserted by 43 tests against the manifests and
-12 against a running stack ([ADR-028](docs/adr/ADR-028-production-deployment-manifests.md)).
+*removes*, and a Compose overlay can only add. Asserted by 43 tests against the manifests and 12
+against a running stack ([ADR-028](docs/adr/ADR-028-production-deployment-manifests.md)).
 
-### Security Operations console
+### The Security Operations console
 
 ```bash
 open http://localhost:8005/dashboard
 ```
 
-Six read-only views over real audit data. Outside production the console is open; identity is
-terminated at a reverse proxy and enforced in-process
-([ADR-023](docs/adr/ADR-023-operator-authentication.md)). To exercise that boundary locally:
+Six read-only views over real audit data: Overview, Security Events, Detector & Policy, Traffic
+& Latency, Evaluation, System Health. `Ctrl`/`⌘`+`K` opens a command palette; `?` lists the
+keyboard map.
+
+Outside production the console is open; identity is terminated at a reverse proxy and enforced
+in-process ([ADR-023](docs/adr/ADR-023-operator-authentication.md)). To exercise that boundary
+locally:
 
 ```bash
 docker compose -f compose.yaml -f compose.console-auth.yaml up -d --build
@@ -294,8 +455,25 @@ Invalid policy prevents startup and is never silently repaired
 | `FIREWALL_UPSTREAM_API_KEY` | Bound once at construction; unreachable from a request |
 | `FIREWALL_CALLER_API_KEYS` | SHA-256 digests of caller keys — never the raw key |
 | `FIREWALL_TRUSTED_PROXIES` | CIDRs whose identity headers are believed; `0.0.0.0/0` is refused |
+| `FIREWALL_DETECTOR_DEFAULT_TIMEOUT_MS` | Per-detector timeout before the guard fires |
 | `FIREWALL_AUDIT_WRITE_MODE` | `sync` \| `queue_drop` |
 | `FIREWALL_RETENTION_ENABLED` | Off by default — deletion is irreversible |
+
+### The shipped policy
+
+`config/policies/default.yaml`. **Every threshold is a placeholder, not a calibrated value.**
+
+| Detector | Direction | Enabled | Threshold | Action | On error |
+|---|---|---|---|---|---|
+| `injection.heuristic` | input | ✅ | 0.85 | **block** | fail closed |
+| `jailbreak.heuristic` | input | ✅ | 0.85 | **block** | fail closed |
+| `pii.regex` | input | ✅ | 0.50 | **redact** | fail closed |
+| `pii.regex` | output | ✅ | 0.50 | **redact** | fail closed |
+| `injection.transformer` | input | ❌ | 0.9955 | warn | fail open |
+| `output.stub` | output | ❌ | 0.90 | block | fail closed |
+
+PII redacts rather than blocks on purpose: *"summarise this customer email"* is legitimate work,
+and refusing it would push users around the gateway rather than through it.
 
 ## Security posture
 
@@ -319,8 +497,8 @@ Invalid policy prevents startup and is never silently repaired
 | Container | Non-root, read-only root filesystem, dropped capabilities |
 
 **What this project does not claim:** it does not *prevent* prompt injection, does not detect
-attacks assembled across conversation turns, does not defend against adaptive white-box
-evasion, and makes no regulatory compliance claim of any kind.
+attacks assembled across conversation turns, does not defend against adaptive white-box evasion,
+and makes no regulatory compliance claim of any kind.
 Full scope: [docs/09-threat-model.md](docs/09-threat-model.md).
 
 ## Evaluation
@@ -343,8 +521,8 @@ calibration use the dev split only, enforced at the library boundary.
 
 The baseline's measured value **is not recall** — it is that it never fires on legitimate
 traffic. The better-scoring transformer ships disabled because a frozen threshold sweep showed
-**no deployable operating point**: at threshold 0.9995 it still false-positives on 87.5% of
-hard negatives.
+**no deployable operating point**: at threshold 0.9995 it still false-positives on 87.5% of hard
+negatives.
 
 Methodology: [docs/13-evaluation-strategy.md](docs/13-evaluation-strategy.md).
 
@@ -359,6 +537,7 @@ uv run pytest                                # 1,815 total
 uv run ruff check . && uv run ruff format --check .
 uv run mypy app                              # strict, app/ only
 uv lock --check                              # CI fails if the lock is stale
+node --test tests/frontend/*.test.mjs        # console safety, no browser needed
 ```
 
 Tests do not merely describe the security boundaries — they attack them. Layer boundaries are
@@ -378,7 +557,7 @@ eval/           datasets, metrics, runners — the pre-registration regime
 migrations/     Alembic revisions
 scripts/        operator and experiment entry points
 services/       the controllable mock upstream
-tests/          unit · api · security · integration · evaluation
+tests/          unit · api · security · integration · evaluation · frontend
 ```
 
 `docs/` is the source of truth; **code contradicting it is a bug in one of the two**.
@@ -418,10 +597,12 @@ Start at **[docs/README.md](docs/README.md)**.
 | [Architecture](docs/02-system-architecture.md) | How a request flows and why the layers are separated |
 | [Threat model](docs/09-threat-model.md) | What is in scope, and what is explicitly not |
 | [Policy engine](docs/06-policy-engine.md) | The decision function and its truth table |
+| [Detector architecture](docs/05-detector-architecture.md) | The plugin contract and the failure semantics |
 | [Evaluation strategy](docs/13-evaluation-strategy.md) | Corpora, splits, statistics, hold-out budget |
 | [Evidence and claims](docs/22-evidence-and-claims.md) | Every claim, its artefact, and the refusals |
 | [Release readiness](docs/release-readiness.md) | Capability-by-capability, graded on evidence |
 | [Runbook](docs/runbook.md) | One entry per alert, walked against real conditions |
+| [Console frontend](docs/23-dashboard-frontend.md) | Design system, interaction model, CSP constraints |
 | [ADRs](docs/adr/) | Every significant decision, with the alternatives rejected |
 
 ## Licence
