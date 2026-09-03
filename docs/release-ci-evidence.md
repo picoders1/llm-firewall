@@ -3,6 +3,11 @@
 Where the scanner and pipeline results for a release candidate are recorded, and
 what each one is worth.
 
+> **Commit identity note.** The SHAs below are the ones GitHub recorded, which predate the
+> 2026-08-22 `filter-branch` rewrite. They are intentionally *not* rewritten — the remote
+> executed against them. Their current reachable equivalents are in
+> [git-history-rewrite.md](git-history-rewrite.md); every tree is identical.
+
 **Rule for this document: a result is recorded with the environment that produced
 it.** A local scan is evidence about a locally built image. A remote CI run is
 evidence about the artefact the pipeline builds. They are not interchangeable, and

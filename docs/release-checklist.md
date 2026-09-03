@@ -3,6 +3,11 @@
 The gate between a release candidate and a tag. Every line is either checked with
 a command or is not checked at all — there is no "looks fine" state.
 
+> **Commit identity note.** The SHAs below are the ones GitHub recorded, which predate the
+> 2026-08-22 `filter-branch` rewrite. They are intentionally *not* rewritten — the remote
+> executed against them. Their current reachable equivalents are in
+> [git-history-rewrite.md](git-history-rewrite.md); every tree is identical.
+
 **Nothing here may be ticked from documentation.** The Phase 18 audit exists
 because this project has repeatedly found capabilities that were fully documented
 and only partly enforced; the Phase 19 audit exists because `/metrics` was

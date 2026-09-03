@@ -7,7 +7,7 @@ Phase 0c pre-registers the replacement detector-error seam that Phase 0b left op
 **Date:** 2026-08-22 (pre-registration) · amended 2026-08-22 (Phase 0b, Phase 0c)
 **Phase:** 20, run 3
 **Registers:** the remainder of [ADR-034](ADR-034-shadow-traffic-validation.md) §4 (alert validation) and §5 (runbook dry run)
-**Baseline:** `v1.0.0-rc1` at `76d6fadc60492c32a628ff673297317cef4383ec`, plus the two post-RC hardening commits `3adc8eb` (R-104/R-105/R-106) and `72f2be7` (R-107)
+**Baseline:** `v1.0.0-rc1` at `5d528c0` (pre-rewrite `76d6fadc60492c32a628ff673297317cef4383ec` — see [git-history-rewrite.md](../git-history-rewrite.md)), plus the two post-RC hardening commits `23274df` (R-104/R-105/R-106) and `6f4a3f1` (R-107)
 
 ## Reading this document
 
@@ -71,7 +71,7 @@ the record: `services/mock_upstream/main.py` has shipped `__return_500__`,
 `__return_malformed__`, `__return_huge__` and `__slow__` since Phase 0, alongside
 `MOCK_LATENCY_MS` and `MOCK_SLOW_S`. The real obstacle was **R-107** — the alert's
 numerator never incremented for any real upstream failure. R-107 is fixed at
-`72f2be7` and unit-tested; **its >10% for 10m condition remains externally
+`6f4a3f1` and unit-tested; **its >10% for 10m condition remains externally
 unverified**, and exercising it is a Run 3 objective. No upstream fixture needs
 building.
 
@@ -740,7 +740,7 @@ Full evidence: [run 3 report](../../eval/results/shadow/20260821T201400Z__phase2
 
 **#2 carries a dependency that must not be lost.** Its transition was observed
 against **pre-commit** code: the alert could not have fired at all before **R-111**,
-which was found by driving this very condition. R-111 is committed at **`3114fb9`**,
+which was found by driving this very condition. R-111 is committed at **`c1cbf6e`**,
 and a post-commit confirmation against image `3f62e57a2835` — 12 requests, 8×200,
 4×403, **0×5xx**, counter `0 → 12` — establishes that the committed code behaves as
 the code that produced the transition. **That confirmation is a dependency check, not

@@ -127,8 +127,9 @@ overhead (accelerate the Phase 5 queue).
 
 ## Verification
 
-* `tests/integration/test_audit_persistence.py` — a blocked request writes a trace, detector
-  results, a policy decision and a security event, with the correct `policy_version`.
+* `tests/security/test_audit_integrity.py` — a blocked request writes a trace, detector
+  results, a policy decision and a security event, with the correct `policy_version`
+  (`test_every_record_carries_the_policy_version`).
 * `tests/unit/test_audit_failure_accounting.py` — with the database unreachable, the
   request still returns its correct decision and `firewall_audit_write_failures_total`
   increments, in both write modes.
@@ -140,8 +141,9 @@ overhead (accelerate the Phase 5 queue).
   exported and asserted *present* by a test, but nothing asserted it *moved*, and it
   never did (R-111). The file named above is the verification that now exists and does
   assert the increment.
-* `tests/unit/test_no_content_columns.py` — asserts no audit model defines a
-  content-bearing column beyond the gated `content_preview`.
+* `tests/security/test_audit_privacy.py` — asserts no audit model defines a
+  content-bearing column beyond the gated `content_preview`, structurally over the
+  mapped columns rather than over any code path.
 * Migration review: every schema change is an Alembic revision; nothing is created by
   `create_all()` outside test fixtures.
 

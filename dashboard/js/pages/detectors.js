@@ -32,12 +32,32 @@ export async function load(signal) {
   );
 }
 
-/** Four mutually exclusive modes, each with a word and a shape. */
+/**
+ * Mutually exclusive modes, each with a word and a shape.
+ *
+ * Derived from **`action`**, not from `enforcing` (R-113). `enforcing` is defined
+ * server-side as `enabled and action in {block, redact}` — deliberately, so a
+ * warn-only model cannot look like a control. Badging on it made `pii.regex`,
+ * whose action is *redact*, read as "Blocking — can block traffic", and the
+ * inventory contradicted the `policy.blocking_detectors` list in its own payload.
+ *
+ * A redacting detector is still an enforcing control and must not read as inert;
+ * it just does not block. That is the distinction this restores.
+ */
 function mode(detector) {
   if (!detector.enabled) return badge("Disabled by policy", "unknown", "○");
-  if (detector.enforcing) return badge("Blocking", "block", "■");
+  if (detector.action === "block") return badge("Blocking", "block", "■");
+  if (detector.action === "redact") return badge("Redacting", "redact", "◆");
   if (detector.action === "warn") return badge("Warn only", "warn", "▲");
-  return badge(titleCase(detector.action), "redact", "◆");
+  return badge(titleCase(detector.action), "unknown", "○");
+}
+
+/** The one-line consequence, matched to the action the policy actually applies. */
+function consequence(detector) {
+  if (!detector.enabled) return "Not part of the decision path";
+  if (detector.action === "block") return "Can block traffic";
+  if (detector.action === "redact") return "Can modify traffic; cannot block";
+  return "Records evidence; cannot block";
 }
 
 function detectorRow(detector) {
@@ -66,13 +86,9 @@ function detectorRow(detector) {
     el("div", { class: "detector__mode" }, [
       mode(detector),
       el("span", {
-        class: "muted",
-        class: "u-text-xs u-max-22",
-        text: detector.enforcing
-          ? "Can block traffic"
-          : detector.enabled
-            ? "Records evidence; cannot block"
-            : "Not part of the decision path",
+        // One `class` key only: a duplicate silently overwrites the first.
+        class: "muted u-text-xs u-max-22",
+        text: consequence(detector),
       }),
     ]),
   ]);
@@ -91,14 +107,18 @@ export function view(data) {
   if (!data.detectors.ok) return errorState(data.detectors.error);
   const detectors = data.detectors.data;
 
-  const enforcing = detectors.filter((detector) => detector.enforcing);
-  const warnOnly = detectors.filter((detector) => detector.enabled && !detector.enforcing);
-  const disabled = detectors.filter((detector) => !detector.enabled);
+  // Counted by action for the same reason the badge is (R-113): "Blocking 3"
+  // where only two detectors can block overstates what the controls do.
+  const blocking = detectors.filter((d) => d.enabled && d.action === "block");
+  const redacting = detectors.filter((d) => d.enabled && d.action === "redact");
+  const warnOnly = detectors.filter((d) => d.enabled && !d.enforcing);
+  const disabled = detectors.filter((d) => !d.enabled);
 
   nodes.push(
     el("div", { class: "grid grid--kpi" }, [
       kpi({ label: "Registered", value: formatCount(detectors.length) }),
-      kpi({ label: "Blocking", value: formatCount(enforcing.length), state: "block", glyph: "■" }),
+      kpi({ label: "Blocking", value: formatCount(blocking.length), state: "block", glyph: "■" }),
+      kpi({ label: "Redacting", value: formatCount(redacting.length), state: "redact", glyph: "◆" }),
       kpi({ label: "Warn only", value: formatCount(warnOnly.length), state: "warn", glyph: "▲" }),
       kpi({ label: "Disabled", value: formatCount(disabled.length), glyph: "○" }),
     ]),

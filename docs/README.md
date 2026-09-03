@@ -80,6 +80,7 @@ summary elsewhere.
 | [release-readiness.md](release-readiness.md) | Phase 18 audit: every capability graded PASS/PARTIAL/DEFERRED/SUPERSEDED against implementation, tests, live evidence and docs |
 | [release-ci-evidence.md](release-ci-evidence.md) | What each scanner and pipeline control actually produced, and in which environment |
 | [release-checklist.md](release-checklist.md) | The gate between a release candidate and a tag |
+| [git-history-rewrite.md](git-history-rewrite.md) | The 2026-08-22 `filter-branch` rewrite: old→new commit mapping, and why every tree is identical |
 
 ### Evaluation
 | Doc | Contents |

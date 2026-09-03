@@ -63,7 +63,7 @@ Status: **Specified** (agreed, not built) · **Implemented** (built and verified
 | FR-042 | Detector failure shall default to `fail_closed`, blocking with `category=detector_failure` and status `503`. | 0 | `tests/security/test_fail_closed.py` | Specified |
 | FR-043 | `fail_open` shall be configurable per detector, and every fail-open detector shall be named in a startup warning. | 0 | `tests/security/test_fail_open.py`, `tests/unit/test_startup_warnings.py` | Specified |
 | FR-044 | Upstream failures shall map to `502`/`504` without reflecting the upstream response body. | 1 | `tests/api/test_upstream_failures.py` | Specified |
-| FR-045 | Audit-write failure shall not fail the request by default, shall log at ERROR and increment a metric; `require_audit=true` shall invert this. | 0 | `tests/integration/test_audit_failure.py` | Specified |
+| FR-045 | Audit-write failure shall not fail the request by default, shall log at ERROR and increment a metric; `require_audit=true` shall invert this. | 0 | `tests/unit/test_audit_failure_accounting.py` | Specified |
 
 ### Observability and audit
 
@@ -75,8 +75,8 @@ Status: **Specified** (agreed, not built) · **Implemented** (built and verified
 | FR-053 | Inspected content shall not appear in logs at the default configuration. | 0 | `tests/security/test_log_leakage.py` | Specified |
 | FR-054 | `content_logging=full` shall be downgraded to `hash` when the environment is production. | 0 | `tests/unit/test_settings.py` | Specified |
 | FR-055 | Secrets shall never appear in logs, spans, audit records or error responses. | 0 | `tests/security/test_secret_leakage.py` | Specified |
-| FR-056 | Security events shall persist to PostgreSQL via Alembic-managed schema, with no column capable of holding full prompt content (except the gated preview). | 0 | `tests/integration/test_audit_persistence.py`, `tests/unit/test_no_content_columns.py` | Specified |
-| FR-057 | Each persisted decision shall record the `policy_version` and the threshold in force at decision time. | 0 | `tests/integration/test_audit_persistence.py` | Specified |
+| FR-056 | Security events shall persist to PostgreSQL via Alembic-managed schema, with no column capable of holding full prompt content (except the gated preview). | 0 | `tests/security/test_audit_integrity.py`, `tests/security/test_audit_privacy.py` | Specified |
+| FR-057 | Each persisted decision shall record the `policy_version` and the threshold in force at decision time. | 0 | `tests/security/test_audit_integrity.py` | Specified |
 | FR-058 | The gateway shall expose Prometheus metrics at `/metrics`, with no label derived from user content. | 0 | `tests/api/test_metrics.py` | Specified |
 | FR-059 | Gateway overhead shall be measurable per request, separately from upstream latency. | 0 | `tests/api/test_latency_fields.py` | Specified |
 
@@ -124,7 +124,7 @@ measurement that will establish its target.
 | NFR-013 | Evaluation results shall be reproducible: identical dataset checksum, configuration and commit shall produce identical classification metrics. | `tests/evaluation/test_determinism.py` | Specified |
 | NFR-014 | The gateway shall not depend on any single LLM provider; the upstream shall be swappable by configuration. | `tests/integration/test_upstream_swap.py` | Specified |
 | NFR-015 | Type checking (`mypy --strict` on `app/`) and linting shall pass with no suppressions outside documented exceptions. | CI jobs | Specified |
-| NFR-016 | Audit storage shall hold no prompt or completion content at production configuration. | `tests/unit/test_no_content_columns.py` | Specified |
+| NFR-016 | Audit storage shall hold no prompt or completion content at production configuration. | `tests/security/test_audit_privacy.py` | Specified |
 | NFR-017 | Horizontal scalability shall be preserved: no request-scoped state outside the process, so instances are interchangeable. | Review; `tests/unit/test_no_global_state.py` | Specified |
 
 ---

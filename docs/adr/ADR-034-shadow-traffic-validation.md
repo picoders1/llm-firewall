@@ -3,7 +3,7 @@
 **Status:** Executed in part — runs 1 and 2 complete; measurements 3–5 partially executed with the unexecutable remainder named
 **Date:** 2026-08-21
 **Phase:** 20
-**Validates:** `v1.0.0-rc1` at `76d6fadc60492c32a628ff673297317cef4383ec`
+**Validates:** `v1.0.0-rc1` at `5d528c0` (pre-rewrite `76d6fadc60492c32a628ff673297317cef4383ec` — see [git-history-rewrite.md](../git-history-rewrite.md))
 
 ## Context
 
